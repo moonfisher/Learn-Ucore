@@ -226,7 +226,6 @@ void inode_check(struct inode *node, const char *opstr);
 #define vop_gettype(node, type_store)                               (__vop_op(node, gettype)(node, type_store))
 #define vop_tryseek(node, pos)                                      (__vop_op(node, tryseek)(node, pos))
 #define vop_truncate(node, len)                                     (__vop_op(node, truncate)(node, len))
-#define vop_lookup(node, path, node_store)                          (__vop_op(node, lookup)(node, path, node_store))
 
 static inline int inode_ref_count(struct inode *node)
 {

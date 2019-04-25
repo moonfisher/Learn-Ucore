@@ -18,6 +18,7 @@ static int get_device(char *path, char **subpath, struct inode **node_store)
         if (path[i] == ':') { colon = i; break; }
         if (path[i] == '/') { slash = i; break; }
     }
+    
     if (colon < 0 && slash != 0)
     {
         /* *
@@ -26,20 +27,24 @@ static int get_device(char *path, char **subpath, struct inode **node_store)
          * the current directory, and use the whole thing as the subpath.
          * */
         /*
-         斜杠前没有冒号，因此没有指定设备名称，并且斜杠不是前导或者也不存在，
-         所以这是一个相对路径或只是一个裸文件名。 从当前目录开始搜索，并使用整个作为子路径。
+         没有冒号，且斜杠也不是第一个，说明是一个相对路径或只是一个裸文件名，比如 sh 或者 test/test1
+         从当前目录开始搜索，并使用整个作为子路径。
         */
         *subpath = path;
         return vfs_get_curdir(node_store);
     }
+    
     if (colon > 0)
     {
+        // 有冒号，且冒号不是第一个，说明是一个带根目录的访问方式，比如 disk0: 或者 disk0:/test，
+        // 需要先找到对应的根目录
         /* device:path - get root of device's filesystem */
         path[colon] = '\0';
 
         /* device:/path - skip slash, treat as device:path */
         while (path[++ colon] == '/');
         *subpath = path + colon;
+        
         // 由于初始化时已将 disk0 的 vfs_dev_t 结构添加到 vdev_list 中，这里遍历链表即可找到对应的 inode
         return vfs_get_root(path, node_store);
     }
@@ -88,12 +93,17 @@ int vfs_lookup(char *path, struct inode **node_store)
     {
         return ret;
     }
+    
     if (*path != '\0')
     {
-        ret = vop_lookup(node, path, node_store);
+        // 继续搜索后续路径
+        assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_lookup != NULL);
+        inode_check(node, "lookup");
+        ret = node->in_ops->vop_lookup(node, path, node_store);
         inode_ref_dec(node);
         return ret;
     }
+    
     *node_store = node;
     return 0;
 }

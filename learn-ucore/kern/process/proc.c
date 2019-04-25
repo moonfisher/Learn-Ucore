@@ -1189,7 +1189,8 @@ static int user_main(void *arg)
 static int init_main(void *arg)
 {
     int ret = 0;
-    // initproc 分配了文件系统资源和文件系统, 设置当前目录对应的 inode 为 disk0
+    // initproc 分配了文件系统资源和文件系统
+    // 设置 initproc 进程当前目录为根目录 disk0 对应的 inode 节点
     if ((ret = vfs_set_bootfs("disk0:")) != 0)
     {
         panic("set boot fs failed: %e.\n", ret);
