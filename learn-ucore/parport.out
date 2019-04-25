@@ -1,0 +1,82 @@
+(THU.CST) os is loading ...
+
+Special kernel symbols:
+  kern_entry           0xc0100000 (phys)
+  kern_init            0xc0100036 (phys)
+  etext                0xc01145ba (phys)
+  __STAB_BEGIN__       0xc0118fa0 (phys)
+  ___STAB_END__        0xc0145fac (phys)
+  __STABSTR_BEGIN__    0xc0145fad (phys)
+  __STABSTR_END__      0xc0152b1d (phys)
+  bootstack            0xc0153000 (phys)
+  bootstacktop         0xc0155000 (phys)
+  __vectors            0xc01555e0 (phys)
+  __boot_pgdir         0xc0156000 (phys)
+  __boot_pt1           0xc0157000 (phys)
+  edata                0xc0237000 (phys)
+  end                  0xc023b384 (phys)
+  Kernel executable memory footprint: 1261KB
+ebp:0xc0154f48 eip:0xc0100c48 args:0xc010030b 0xffff6ad9 0xc0154f78 0xc01000d2 
+    kern/debug/kdebug.c:368: print_stackframe+28
+ebp:0xc0154f58 eip:0xc0100f44 args:0x00000000 0x00000000 0x00000000 0xc01145e1 
+    kern/debug/kmonitor.c:141: mon_backtrace+10
+ebp:0xc0154f78 eip:0xc01000d2 args:0x00000000 0xc0154fa0 0xffff0000 0xc0154fa4 
+    kern/init/init.c:61: grade_backtrace2+19
+ebp:0xc0154f98 eip:0xc01000f4 args:0x00000000 0xffff0000 0xc0154fc4 0x0000002d 
+    kern/init/init.c:66: grade_backtrace1+27
+ebp:0xc0154fb8 eip:0xc0100111 args:0x00000000 0xc0100036 0xffff0000 0xc0100075 
+    kern/init/init.c:71: grade_backtrace0+19
+ebp:0xc0154fd8 eip:0xc0100132 args:0x00000000 0x00000000 0x00000000 0xc01145c0 
+    kern/init/init.c:76: grade_backtrace+26
+ebp:0xc0154ff8 eip:0xc0100082 args:0xc0114940 0xc0114948 0xc0100ece 0xc0114967 
+    kern/init/init.c:34: kern_init+75
+memory management: default_pmm_manager
+e820map:
+  memory: 0009f000, [00000000, 0009efff], type = 1.
+  memory: 00001000, [0009f000, 0009ffff], type = 2.
+  memory: 00018000, [000e8000, 000fffff], type = 2.
+  memory: 01ef0000, [00100000, 01feffff], type = 1.
+  memory: 00010000, [01ff0000, 01ffffff], type = 3.
+  memory: 00040000, [fffc0000, ffffffff], type = 2.
+maxpa: 01ff0000
+end: c023b384
+npage: 00001ff0, pages: c023c000
+freemem: 00283dc0.
+begin: 00284000
+end: 01ff0000
+check_alloc_page() succeeded!
+check_pgdir() succeeded!
+check_boot_pgdir() succeeded!
+-------------------- BEGIN --------------------
+PDE(0e0) c0000000-f8000000 38000000 urw
+  |-- PTE(38000) c0000000-f8000000 38000000 -rw
+PDE(001) fac00000-fb000000 00400000 -rw
+  |-- PTE(000e0) faf00000-fafe0000 000e0000 urw
+  |-- PTE(00001) fafeb000-fafec000 00001000 -rw
+--------------------- END ---------------------
+use SLOB allocator
+check_slab() success
+kmalloc_init() succeeded!
+check_vma_struct() succeeded!
+kernel panic at kern/mm/default_pmm.c:103:
+    assertion failed: !PageReserved(p) && !PageProperty(p)
+stack trackback:
+ebp:0xc0154e78 eip:0xc0100c48 args:0x00000000 0x03fd200a 0xc0154ec8 0xc0154eac 
+    kern/debug/kdebug.c:368: print_stackframe+28
+ebp:0xc0154e98 eip:0xc0100fb7 args:0xc01150cb 0x00000067 0xc01150b6 0xc01150e4 
+    kern/debug/panic.c:29: __panic+107
+ebp:0xc0154f38 eip:0xc0103b45 args:0xc023c000 0x00000001 0xc0154f68 0xc0105318 
+    kern/mm/default_pmm.c:103: default_free_pages+157
+ebp:0xc0154f68 eip:0xc010532e args:0xc023c000 0x00000001 0x00000002 0xc010874b 
+    kern/mm/pmm.c:414: free_pages+32
+ebp:0xc0154fa8 eip:0xc01088d4 args:0x00210400 0x002103e3 0x00a011d8 0x00001d6c 
+    kern/mm/vmm.c:393: check_pgfault+411
+ebp:0xc0154fc8 eip:0xc0108329 args:0xc0155560 0x00000100 0xc0154ff8 0xc0100096 
+    kern/mm/vmm.c:283: check_vmm+23
+ebp:0xc0154fd8 eip:0xc010830e args:0x00000000 0x00000000 0x00000000 0xc01145c0 
+    kern/mm/vmm.c:274: vmm_init+10
+ebp:0xc0154ff8 eip:0xc0100096 args:0xc0114940 0xc0114948 0xc0100ece 0xc0114967 
+    kern/init/init.c:41: kern_init+95
+Welcome to the kernel debug monitor!!
+Type 'help' for a list of commands.
+K> 
