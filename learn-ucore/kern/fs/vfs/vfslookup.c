@@ -67,7 +67,7 @@ static int get_device(char *path, char **subpath, struct inode **node_store)
         }
         /* The current directory may not be a device, so it must have a fs. */
         assert(node->in_fs != NULL);
-        *node_store = fsop_get_root(node->in_fs);
+        *node_store = node->in_fs->fs_get_root(node->in_fs);
         inode_ref_dec(node);
     }
 

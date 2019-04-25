@@ -284,11 +284,13 @@ static void trap_dispatch(struct trapframe *tf)
         case IRQ_OFFSET + IRQ_COM1:
             c = cons_getc();
             cprintf("serial [%03d] %c\n", c, c);
+            extern void dev_stdin_write(char c);
+            dev_stdin_write(c);
             break;
             
         case IRQ_OFFSET + IRQ_KBD:
             c = cons_getc();
-//            cprintf("kbd [%03d] %c\n", c, c);
+            cprintf("kbd [%03d] %c\n", c, c);
             extern void dev_stdin_write(char c);
             dev_stdin_write(c);
             break;

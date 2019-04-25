@@ -94,7 +94,7 @@ static void sfs_cleanup(struct fs *fs)
     int i = 0, ret = 0;
     for (i = 0; i < 32; i ++)
     {
-        if ((ret = fsop_sync(fs)) == 0)
+        if ((ret = (fs->fs_sync(fs))) == 0)
         {
             break;
         }
@@ -182,9 +182,9 @@ static int sfs_do_mount(struct device *dev, struct fs **fs_store)
         return -E_NO_MEM;
     }
     
-    struct fs *__fs = fs;
-    assert(__fs != NULL && (__fs->fs_type == fs_type_sfs_info));
-    struct sfs_fs *sfs = &(__fs->fs_info.__sfs_info);
+    assert(fs != NULL && (fs->fs_type == fs_type_sfs_info));
+    
+    struct sfs_fs *sfs = &(fs->fs_info.__sfs_info);
     sfs->dev = dev;
 
     int ret = -E_NO_MEM;
@@ -199,6 +199,7 @@ static int sfs_do_mount(struct device *dev, struct fs **fs_store)
     /*
      第 0 个块（4K）是超级块（superblock struct sfs_super），它包含了关于文件系统的
      所有关键参数，当计算机被启动或文件系统被首次接触时，超级块的内容就会被装入内存。
+     这些数据在 mksfs.c 里创建 sfs.img 的时候创建好
     */
     if ((ret = sfs_init_read(dev, SFS_BLKN_SUPER, sfs_buffer)) != 0)
     {
@@ -245,6 +246,7 @@ static int sfs_do_mount(struct device *dev, struct fs **fs_store)
     {
         goto failed_cleanup_hash_list;
     }
+    
     uint32_t freemap_size_nblks = sfs_freemap_blocks(super);
     if ((ret = sfs_init_freemap(dev, freemap, SFS_BLKN_FREEMAP, freemap_size_nblks, sfs_buffer)) != 0)
     {

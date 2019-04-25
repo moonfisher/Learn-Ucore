@@ -154,6 +154,7 @@
  *  USERBASE, USTAB---------> +---------------------------------+ 0x00200000
  *                            |        Invalid Memory (*)       | --/--
  *  0 ----------------------> +---------------------------------+ 0x00000000
+ *
  * (*) Note: The kernel ensures that "Invalid Memory" is *never* mapped.
  *  "Empty Memory" is normally unmapped, but user programs may map pages
  *  there if desired.

@@ -10,6 +10,11 @@
 #define PAGE_NSECT          (PGSIZE / SECTSIZE)
 
 /*
+ Linux 文件系统详解
+ https://www.cnblogs.com/alantu2018/p/8461749.html
+*/
+
+/*
  磁盘挂载顺序要和代码定义的保持一致，不然会访问出错
  
  qemu 模拟启动时命令如下

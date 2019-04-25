@@ -33,7 +33,14 @@ struct iobuf;   // kernel or userspace I/O buffer (iobuf.h)
  *
  */
 /*
- 抽象文件系统结构，fs_type 指明了具体是什么文件系统
+ 虚拟文件系统结构，fs_type 指明了具体是什么文件系统
+ 
+ 这一层，是对各种不同文件系统的抽象，如果各种文件系统都有各自的 API 接口，而用户想要的是，
+ 不管你是什么 API，他们只关心 mount / umount，或 open / close 等操作。
+ 
+ 所以，VFS 就把这些不同的文件系统做一个抽象，提供统一的 API 访问接口，这样，用户空间就不用
+ 关心不同文件系统中不一样的 API 了。VFS 所提供的这些统一的 API，再经过 System Call 包装一下，
+ 用户空间就可以经过系统调用来操作不同的文件系统。
 */
 struct fs
 {
@@ -72,12 +79,6 @@ struct fs
     to_struct((info), struct fs, fs_info.__##type##_info)
 
 struct fs *__alloc_fs(int type);
-
-// Macros to shorten the calling sequences.
-#define fsop_sync(fs)                       ((fs)->fs_sync(fs))
-#define fsop_get_root(fs)                   ((fs)->fs_get_root(fs))
-#define fsop_unmount(fs)                    ((fs)->fs_unmount(fs))
-#define fsop_cleanup(fs)                    ((fs)->fs_cleanup(fs))
 
 /*
  * Virtual File System layer functions.
@@ -152,7 +153,7 @@ int vfs_lookup_parent(char *path, struct inode **node_store, char **endp);
  *
  *    vfs_set_bootfs - Set the filesystem that paths beginning with a
  *                    slash are sent to. If not set, these paths fail
- *                    with ENOENT. The argument should be the device
+ *                    with E_NOENT. The argument should be the device
  *                    name or volume name for the filesystem (such as
  *                    "lhd0:") but need not have the trailing colon.
  *
@@ -186,7 +187,13 @@ int vfs_lookup_parent(char *path, struct inode **node_store, char **endp);
  *
  *    vfs_unmountall - Unmount all mounted filesystems.
  */
+/*
+ bootfs = boot file system
+ 设置文件系统，路径以斜杠开头。如果未设置，则这些路径会因 E_NOENT 而失败。
+ 参数应该是文件系统的设备名称或卷名（例如“disk0:”）
+*/
 int vfs_set_bootfs(char *fsname);
+// 返回根目录 “/” 对应的 inode
 int vfs_get_bootfs(struct inode **node_store);
 
 int vfs_add_fs(const char *devname, struct fs *fs);

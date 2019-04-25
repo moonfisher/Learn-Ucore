@@ -12,10 +12,10 @@
 #include "assert.h"
 
 // device info entry in vdev_list
-// 挂载在 vdev_list 下的虚拟设备
+// 挂载在 vdev_list 下的虚拟设备节点
 typedef struct
 {
-    // 虚拟设备名字
+    // 虚拟设备名字 stdin，stdout，disk0 等
     const char *devname;
     // 虚拟设备对应的外设结构
     struct inode *devnode;
@@ -61,7 +61,7 @@ void vfs_cleanup(void)
                 vfs_dev_t *vdev = le2vdev(le, vdev_link);
                 if (vdev->fs != NULL)
                 {
-                    fsop_cleanup(vdev->fs);
+                    (vdev->fs->fs_cleanup(vdev->fs));
                 }
             }
         }
@@ -177,6 +177,7 @@ static int vfs_do_add(const char *devname, struct inode *devnode, struct fs *fs,
         return ret;
     }
 
+    // 并不是直接挂载 inode 到 vdev_list，而是把 inode 封装到 vfs_dev_t 里再挂载
     vfs_dev_t *vdev;
     if ((vdev = kmalloc(sizeof(vfs_dev_t))) == NULL)
     {
@@ -218,6 +219,9 @@ int vfs_add_fs(const char *devname, struct fs *fs)
 /*
  * vfs_add_dev - Add a new device, by name. See  vfs_do_add information for the description of
  *               mountable.
+ */
+/*
+ 添加设备到虚拟文件设备列表里，devname 设备名字是不重复的，这里设备名字是唯一标识
  */
 int vfs_add_dev(const char *devname, struct inode *devnode, bool mountable)
 {
@@ -304,11 +308,11 @@ int vfs_unmount(const char *devname)
     }
     assert(vdev->devname != NULL && vdev->mountable);
 
-    if ((ret = fsop_sync(vdev->fs)) != 0)
+    if ((ret = (vdev->fs->fs_sync(vdev->fs))) != 0)
     {
         goto out;
     }
-    if ((ret = fsop_unmount(vdev->fs)) == 0)
+    if ((ret = (vdev->fs->fs_unmount(vdev->fs))) == 0)
     {
         vdev->fs = NULL;
         cprintf("vfs: unmount %s.\n", vdev->devname);
@@ -335,12 +339,12 @@ int vfs_unmount_all(void)
                 if (vdev->mountable && vdev->fs != NULL)
                 {
                     int ret;
-                    if ((ret = fsop_sync(vdev->fs)) != 0)
+                    if ((ret = (vdev->fs->fs_sync(vdev->fs))) != 0)
                     {
                         cprintf("vfs: warning: sync failed for %s: %e.\n", vdev->devname, ret);
                         continue ;
                     }
-                    if ((ret = fsop_unmount(vdev->fs)) != 0)
+                    if ((ret = (vdev->fs->fs_unmount(vdev->fs))) != 0)
                     {
                         cprintf("vfs: warning: unmount failed for %s: %e.\n", vdev->devname, ret);
                         continue ;

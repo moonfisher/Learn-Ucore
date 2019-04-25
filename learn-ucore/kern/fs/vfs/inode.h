@@ -60,7 +60,7 @@ struct inode
     int ref_count;  // 此 inode 的引用计数
     int open_count; // 打开此 inode 对应文件的个数
     struct fs *in_fs;   // inode 所属的文件系统
-    const struct inode_ops *in_ops; // 访问 inode 的函数指针，和具体文件系统相关
+    const struct inode_ops *in_ops; // 访问 inode 内容的函数指针，和具体文件系统相关
 };
 
 #define info2node(info, type)                                       \

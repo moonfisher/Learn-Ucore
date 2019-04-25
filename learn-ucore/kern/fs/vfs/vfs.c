@@ -25,7 +25,7 @@ struct fs *__alloc_fs(int type)
 }
 
 // vfs_init -  vfs initialize
-// 对于 vfs_init，它只是完成了对 vfs 访问的信号量和 devlist 的初始化
+// 虚拟设备列表初始化，只是完成了对 vfs 访问的信号量和 devlist 的初始化
 void vfs_init(void)
 {
     sem_init(&bootfs_sem, 1);
