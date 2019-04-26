@@ -64,11 +64,17 @@ int inode_ref_dec(struct inode *node)
 {
     assert(inode_ref_count(node) > 0);
     int ref_count, ret;
-    node->ref_count-= 1;
+    
+    node->ref_count -= 1;
     ref_count = node->ref_count;
+    
+    // 引用计数为 0，文件节点资源回收，同时把内存节点最新数据同步到磁盘上
     if (ref_count == 0)
     {
-        if ((ret = vop_reclaim(node)) != 0 && ret != -E_BUSY)
+        assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_reclaim != NULL);
+        inode_check(node, "reclaim");
+        
+        if ((ret = node->in_ops->vop_reclaim(node)) != 0 && ret != -E_BUSY)
         {
             cprintf("vfs: warning: vop_reclaim: %e.\n", ret);
         }
@@ -97,6 +103,8 @@ int inode_open_dec(struct inode *node)
     int open_count, ret;
     node->open_count -= 1;
     open_count = node->open_count;
+    
+    // 节点没有进程打开时，可以关闭节点
     if (open_count == 0)
     {
         assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_close != NULL);

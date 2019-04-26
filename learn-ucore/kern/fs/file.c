@@ -116,6 +116,8 @@ void fd_array_close(struct file *file)
     assert(file->status == FD_OPENED);
     assert(fopen_count(file) > 0);
     file->status = FD_CLOSED;
+    
+    // 文件没有进程打开时，可以释放文件资源
     if (fopen_count_dec(file) == 0)
     {
         fd_array_free(file);
@@ -369,7 +371,11 @@ int file_fsync(int fd)
         return ret;
     }
     fd_array_acquire(file);
-    ret = vop_fsync(file->node);
+    
+    assert(file->node != NULL && file->node->in_ops != NULL && file->node->in_ops->vop_fsync != NULL);
+    inode_check(file->node, "fsync");
+    ret = file->node->in_ops->vop_fsync(file->node);
+
     fd_array_release(file);
     return ret;
 }

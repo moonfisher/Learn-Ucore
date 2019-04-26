@@ -54,7 +54,7 @@ struct files_struct
     struct inode *pwd;      // inode of present working directory
     // 进程打开文件的数组
     struct file *fd_array;  // opened files array
-    // 访问此文件的线程个数
+    // 打开文件的个数
     int files_count;        // the number of opened files
     // 确保对进程控制块中 files_struct 的互斥访问
     semaphore_t files_sem;  // lock protect sem

@@ -57,10 +57,14 @@ struct inode
         inode_type_sfs_inode_info,
     } in_type;
     
-    int ref_count;  // 此 inode 的引用计数
-    int open_count; // 打开此 inode 对应文件的个数
-    struct fs *in_fs;   // inode 所属的文件系统
-    const struct inode_ops *in_ops; // 访问 inode 内容的函数指针，和具体文件系统相关
+    // 此 inode 的引用计数，说明有关联关系，通过文件引用计数实现文件共享
+    int ref_count;
+    // 此 inode 被 open 打开的次数，被引用不代表当前被打开了
+    int open_count;
+    // inode 所属的文件系统
+    struct fs *in_fs;
+    // 访问 inode 内容的函数指针，和具体文件系统相关
+    const struct inode_ops *in_ops;
 };
 
 #define info2node(info, type)                                       \
@@ -219,13 +223,10 @@ void inode_check(struct inode *node, const char *opstr);
      })
 
 #define vop_fstat(node, stat)                                       (__vop_op(node, fstat)(node, stat))
-#define vop_fsync(node)                                             (__vop_op(node, fsync)(node))
 #define vop_namefile(node, iob)                                     (__vop_op(node, namefile)(node, iob))
 #define vop_getdirentry(node, iob)                                  (__vop_op(node, getdirentry)(node, iob))
-#define vop_reclaim(node)                                           (__vop_op(node, reclaim)(node))
 #define vop_gettype(node, type_store)                               (__vop_op(node, gettype)(node, type_store))
 #define vop_tryseek(node, pos)                                      (__vop_op(node, tryseek)(node, pos))
-#define vop_truncate(node, len)                                     (__vop_op(node, truncate)(node, len))
 
 static inline int inode_ref_count(struct inode *node)
 {

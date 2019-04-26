@@ -25,7 +25,10 @@ static int sfs_sync(struct fs *fs)
         while ((le = list_next(le)) != list)
         {
             struct sfs_inode *sin = le2sin(le, inode_link);
-            vop_fsync(info2node(sin, sfs_inode));
+            struct inode *node = info2node(sin, sfs_inode);
+            assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_fsync != NULL);
+            inode_check(node, "fsync");
+            node->in_ops->vop_fsync(node);
         }
     }
     unlock_sfs_fs(sfs);

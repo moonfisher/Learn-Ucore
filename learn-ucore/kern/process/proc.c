@@ -438,7 +438,7 @@ static void copy_thread(struct proc_struct *proc, uintptr_t esp, struct trapfram
     proc->context.esp = (uintptr_t)(proc->tf);
 }
 
-//copy_fs&put_fs function used by do_fork in LAB8
+//copy_fs & put_fs function used by do_fork in LAB8
 static int copy_fs(uint32_t clone_flags, struct proc_struct *proc)
 {
     struct files_struct *filesp, *old_filesp = current->filesp;
@@ -496,6 +496,13 @@ static void put_fs(struct proc_struct *proc)
  是同时属于同一个进程的多个线程
  如果多个 proc_struct 之间不共享虚拟地址和文件句柄，那可以把这些 proc_struct 看做
  独立的进程
+ 
+ fork() 工作的机制：
+ 对父进程的所有值都拷贝一份到子进程（包包括缓冲区的东西），但是拷贝过后，父/子进程对数据的操作是互相不影响，
+ 也就是说，他们是独立的，但是有一点就是：关于文件的操作有点特殊，对于文件的操作，他们是这样工作的，
+ 比如在父进程 open 一个文件，那么就会有一个文件描述符并且该文件描述符会有一个条目，并且在文件系统中也有相应的条目，
+ 当创建一个子进程时，文件描述符会自增一个条目，当在父/子进程调用了 close 函数时，文件描述符就会自减 1，
+ 但是另一个的进程还可对该文件描述符进行操作，直到文件描述符的条目自减到 0 时，才关闭了文件描述符的作用。
 */
 int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const char *name)
 {
@@ -523,13 +530,14 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const c
         goto bad_fork_cleanup_proc;
     }
     
+    // 对于文件操作来说，父子进程是共享的,指向同样的文件节点，只是文件节点的引用次数增加
     if (copy_fs(clone_flags, proc) != 0)
     {
         //for LAB8
         goto bad_fork_cleanup_kstack;
     }
     
-    // 调用copy_mm()函数复制父进程的内存信息到子进程
+    // 调用 copy_mm() 函数复制父进程的内存信息到子进程
     if (copy_mm(clone_flags, proc) != 0)
     {
         goto bad_fork_cleanup_fs;

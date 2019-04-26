@@ -616,7 +616,9 @@ static int sfs_openfile(struct inode *node, uint32_t open_flags)
 // sfs_close - close file
 static int sfs_close(struct inode *node)
 {
-    return vop_fsync(node);
+    assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_fsync != NULL);
+    inode_check(node, "fsync");
+    return node->in_ops->vop_fsync(node);
 }
 
 /*  
@@ -968,6 +970,7 @@ out:
 /*
  * sfs_reclaim - Free all resources inode occupied . Called when inode is no longer in use. 
  */
+// 文件节点资源回收，同时把内存节点最新数据同步到磁盘上
 static int sfs_reclaim(struct inode *node)
 {
     struct sfs_fs *sfs = fsop_info(((node)->in_fs), sfs);
@@ -983,14 +986,19 @@ static int sfs_reclaim(struct inode *node)
     }
     if (sin->din->nlinks == 0)
     {
-        if ((ret = vop_truncate(node, 0)) != 0)
+        assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_truncate != NULL);
+        inode_check(node, "truncate");
+        
+        if ((ret = node->in_ops->vop_truncate(node, 0)) != 0)
         {
             goto failed_unlock;
         }
     }
     if (sin->dirty)
     {
-        if ((ret = vop_fsync(node)) != 0)
+        assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_fsync != NULL);
+        inode_check(node, "fsync");
+        if ((ret = node->in_ops->vop_fsync(node)) != 0)
         {
             goto failed_unlock;
         }
@@ -1048,7 +1056,10 @@ static int sfs_tryseek(struct inode *node, off_t pos)
     struct sfs_inode *sin = sfs_vop_info(node);
     if (pos > sin->din->size)
     {
-        return vop_truncate(node, pos);
+        assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_truncate != NULL);
+        inode_check(node, "truncate");
+        
+        return node->in_ops->vop_truncate(node, pos);
     }
     return 0;
 }

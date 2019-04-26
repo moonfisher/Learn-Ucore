@@ -72,7 +72,10 @@ int vfs_open(char *path, uint32_t open_flags, struct inode **node_store)
     inode_open_inc(node);
     if (open_flags & O_TRUNC || create)
     {
-        if ((ret = vop_truncate(node, 0)) != 0)
+        assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_truncate != NULL);
+        inode_check(node, "truncate");
+   
+        if ((ret = node->in_ops->vop_truncate(node, 0)) != 0)
         {
             inode_open_dec(node);
             inode_ref_dec(node);
