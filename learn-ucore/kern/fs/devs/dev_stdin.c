@@ -30,6 +30,8 @@ void dev_stdin_write(char c)
             {
                 p_wpos++;
             }
+            
+            // 收到数据先写到缓冲区了，然后唤醒等待处理数据的进程进行处理
             if (!wait_queue_empty(wait_queue))
             {
                 wakeup_queue(wait_queue, WT_KBD, 1);

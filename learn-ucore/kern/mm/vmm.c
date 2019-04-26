@@ -369,7 +369,7 @@ struct mm_struct *check_mm_struct;  // 用来做测试使用
 // check_pgfault - check correctness of pgfault handler
 static void check_pgfault(void)
 {
-    size_t nr_free_pages_store = nr_free_pages();
+//    size_t nr_free_pages_store = nr_free_pages();
 
     check_mm_struct = mm_create();
     assert(check_mm_struct != NULL);
@@ -389,8 +389,8 @@ static void check_pgfault(void)
     int i, sum = 0;
     for (i = 0; i < 100; i ++)
     {
-        // 这一句在 QEMU 3.1.0 上会触发 page fault 中断，理论上也确实如此
-        // 但在 QEMU 4.0.0 上为啥直接运行下去了
+        // 这一句在 QEMU 3.1.0 上会触发 page fault 中断，理论上也确实应该如此
+        // 因为这个虚拟地址没有做映射，但在新版本 QEMU 4.0.0 上为啥直接运行下去了
         *(char *)(addr + i) = i;
         sum += i;
     }
