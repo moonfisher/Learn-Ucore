@@ -530,7 +530,8 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const c
         goto bad_fork_cleanup_proc;
     }
     
-    // 对于文件操作来说，父子进程是共享的,指向同样的文件节点，只是文件节点的引用次数增加
+    // 对于文件操作来说，父子进程是共享的，父进程在 fork 之前，关联的文件子进程都能继承，
+    // 父子进程指向同样的文件节点，只是文件节点的引用次数增加
     if (copy_fs(clone_flags, proc) != 0)
     {
         //for LAB8
@@ -835,6 +836,8 @@ static int load_icode(int fd, int argc, char **kargv)
             start += size;
         }
     }
+    
+    // elf 程序已经全部加载到内存，可以关闭文件了
     sysfile_close(fd);
 
     // 映射用户进程堆栈地址空间
@@ -988,6 +991,9 @@ int do_execve(const char *name, int argc, const char **argv)
     }
     path = argv[0];
     unlock_mm(mm);
+    
+    // 父进程在 fork 之前，关联的文件子进程都能继承，父子进程指向同样的文件节点，只是文件节点的引用次数增加
+    // 但这里因为要执行 execve，运行新的用户程序，所以先把从父进程那里继承到的文件全部关闭，解除引用
     files_closeall(current->filesp);
 
     /* sysfile_open will check the first argument path, thus we have to use a user-space pointer, and argv[0] may be incorrect */    

@@ -222,11 +222,9 @@ void inode_check(struct inode *node, const char *opstr);
         __node->in_ops->vop_##sym;                                                                  \
      })
 
-#define vop_fstat(node, stat)                                       (__vop_op(node, fstat)(node, stat))
 #define vop_namefile(node, iob)                                     (__vop_op(node, namefile)(node, iob))
 #define vop_getdirentry(node, iob)                                  (__vop_op(node, getdirentry)(node, iob))
 #define vop_gettype(node, type_store)                               (__vop_op(node, gettype)(node, type_store))
-#define vop_tryseek(node, pos)                                      (__vop_op(node, tryseek)(node, pos))
 
 static inline int inode_ref_count(struct inode *node)
 {

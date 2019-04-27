@@ -202,6 +202,7 @@ int file_open(char *path, uint32_t open_flags)
     }
 
     struct inode *node;
+    // 根据 path 文件路径找到对应的文件 inode 节点
     if ((ret = vfs_open(path, open_flags, &node)) != 0)
     {
         fd_array_free(file);
@@ -212,7 +213,11 @@ int file_open(char *path, uint32_t open_flags)
     if (open_flags & O_APPEND)
     {
         struct stat __stat, *stat = &__stat;
-        if ((ret = vop_fstat(node, stat)) != 0)
+        
+        assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_fstat != NULL);
+        inode_check(node, "fstat");
+        
+        if ((ret = node->in_ops->vop_fstat(node, stat)) != 0)
         {
             vfs_close(node);
             fd_array_free(file);
@@ -325,7 +330,9 @@ int file_seek(int fd, off_t pos, int whence)
             pos += file->pos;
             break;
         case LSEEK_END:
-            if ((ret = vop_fstat(file->node, stat)) == 0)
+            assert(file->node != NULL && file->node->in_ops != NULL && file->node->in_ops->vop_fstat != NULL);
+            inode_check(file->node, "fstat");
+            if ((ret = file->node->in_ops->vop_fstat(file->node, stat)) != 0)
             {
                 pos += stat->st_size;
             }
@@ -336,7 +343,9 @@ int file_seek(int fd, off_t pos, int whence)
 
     if (ret == 0)
     {
-        if ((ret = vop_tryseek(file->node, pos)) == 0)
+        assert(file->node != NULL && file->node->in_ops != NULL && file->node->in_ops->vop_tryseek != NULL);
+        inode_check(file->node, "tryseek");
+        if ((ret = file->node->in_ops->vop_tryseek(file->node, pos)) == 0)
         {
             file->pos = pos;
         }
@@ -356,7 +365,10 @@ int file_fstat(int fd, struct stat *stat)
         return ret;
     }
     fd_array_acquire(file);
-    ret = vop_fstat(file->node, stat);
+    
+    assert(file->node != NULL && file->node->in_ops != NULL && file->node->in_ops->vop_fstat != NULL);
+    inode_check(file->node, "fstat");
+    ret = file->node->in_ops->vop_fstat(file->node, stat);
     fd_array_release(file);
     return ret;
 }

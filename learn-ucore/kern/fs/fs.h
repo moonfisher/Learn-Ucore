@@ -43,14 +43,14 @@ struct file;
  * process's file related informaction
  */
 /*
- 进程访问文件的数据接口
+ 进程访问文件的数据接口，记录当前进程的工作目录，打开的一些文件
  当创建一个进程后，该进程的 files_struct 将会被初始化或复制父进程的 files_struct。
  当用户进程打开一个文件时，将从 filemap 数组中取得一个空闲 file 项，然后会把此 file 的成员
  变量 node 指针指向一个代表此文件的 inode 的起始地址。
 */
 struct files_struct
 {
-    // 进程当前执行目录的内存 inode 指针
+    // 进程当前工作目录的内存 inode 指针
     struct inode *pwd;      // inode of present working directory
     // 进程打开文件的数组
     struct file *fd_array;  // opened files array
