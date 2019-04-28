@@ -366,6 +366,11 @@ static void trap_dispatch(struct trapframe *tf)
  * the code in kern/trap/trapentry.S restores the old CPU state saved in the
  * trapframe and then uses the iret instruction to return from the exception.
  * */
+/*
+ Linux 用户抢占和内核抢占
+ https://blog.csdn.net/gatieme/article/details/51872618
+ https://blog.csdn.net/a2796749/article/details/47101595
+*/
 // 参数 tf 在汇编函数 __alltraps 里设置好，再调用 c 函数 trap
 void trap(struct trapframe *tf)
 {
@@ -391,11 +396,19 @@ void trap(struct trapframe *tf)
         current->tf = otf;
         
         /*
-         这里表明了只有当进程在用户态执行到“任意”某处用户代码位置时发生了中断，
+         这里表明了只有当进程在 用户态 执行到 “任意” 某处用户代码位置时发生了中断，
          且当前进程控制块成员变量 need_resched 为 1（表示需要调度了）时，才会执行 shedule 函数。
-         这实际上体现了对用户进程的可抢占性。如果没有第一行的 if 语句，那么就可以体现对内核代码的可抢占性。
-         但如果要把这一行 if 语句去掉，我们就不得不实现对 ucore 中的所有全局变量的互斥访问操作，
-         以防止所谓的 race condition 现象，这样 ucore 的实现复杂度会增加不少。
+         这实际上体现了对用户进程的可抢占性。
+         
+         如果内核处于相对耗时的操作中, 比如文件系统或者内存管理相关的任务, 这种行为可能会带来问题.
+         这种情况下, 内核代替特定的进程执行相当长的时间, 而其他进程无法执行, 无法调度, 这就造成了
+         系统的延迟增加, 用户体验到”缓慢”的响应. 比如如果多媒体应用长时间无法得到 CPU, 则可能发生
+         视频和音频漏失现象.
+
+         如果没有第一行的 if 语句，那么就可以体现对内核代码的可抢占性。但如果要把这一行 if 语句去掉，
+         我们就不得不实现对 ucore 中的所有全局变量的互斥访问操作，以防止所谓的 race condition 现象，
+         这样 ucore 的实现复杂度会增加不少，为了简单，ucore 并没有实现内核抢占，当用户进程从用户态
+         陷入内核态之后，在内核处理完相关中断，再次返回到用户态之前，是不会被 schedule 调度的
          */
         if (!in_kernel)
         {
@@ -406,8 +419,13 @@ void trap(struct trapframe *tf)
                 do_exit(-E_KILLED);
             }
             
-            // 用户态切入内核态之后，有可能引起重新调度，比如基于时间片的计算，时间片达到最大之后，重新调度
-            // 正是因为有周期性的时钟中断，操作系统内核才能一直有机会获取代码执行权，否则用户进程写个死循环就完了
+            /*
+             进入这个分支，说明之前是从用户态切换到内核态，那么当内核态即将返回用户态时, 内核会检查
+             need_resched 是否设置, 如果设置, 则调用 schedule()，此时，发生用户抢占.
+             用户态切入内核态之后，有可能引起重新调度，比如基于时间片的计算，时间片达到最大之后，重新调度
+             正是因为在中断结束的时候，设置这个检测点，同时不间断，周期性的时钟中断，操作系统内核才能一直
+             有机会获取代码执行权，否则用户进程写个死循环就完了
+            */
             if (current->need_resched)
             {
                 schedule();

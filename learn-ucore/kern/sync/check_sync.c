@@ -257,7 +257,7 @@ void check_sync(void)
     for (i = 0; i < N; i++)
     {
         sem_init(&s[i], 0);
-        int pid = kernel_thread(philosopher_using_semaphore, (void *)i, 0);
+        int pid = kernel_thread(philosopher_using_semaphore, (void *)i, 0, "philosopher_using_semaphore");
         if (pid <= 0)
         {
             panic("create No.%d philosopher_using_semaphore failed.\n");
@@ -271,7 +271,7 @@ void check_sync(void)
     for (i = 0; i < N; i++)
     {
         state_condvar[i] = THINKING;
-        int pid = kernel_thread(philosopher_using_condvar, (void *)i, 0);
+        int pid = kernel_thread(philosopher_using_condvar, (void *)i, 0, "philosopher_using_condvar");
         if (pid <= 0)
         {
             panic("create No.%d philosopher_using_condvar failed.\n");

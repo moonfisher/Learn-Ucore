@@ -298,7 +298,7 @@ struct proc_struct *find_proc(int pid)
 // kernel_thread - create a kernel thread using "fn" function
 // NOTE: the contents of temp trapframe tf will be copied to 
 //       proc->tf in do_fork-->copy_thread function
-int kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags)
+int kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags, const char *name)
 {
     struct trapframe tf;
     memset(&tf, 0, sizeof(struct trapframe));
@@ -316,7 +316,7 @@ int kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags)
     // 下次进程运行的位置
     tf.tf_eip = (uint32_t)kernel_thread_entry;  // 0xC010b37b
     
-    return do_fork(clone_flags | CLONE_VM, 0, &tf, "");
+    return do_fork(clone_flags | CLONE_VM, 0, &tf, name);
 }
 
 // setup_kstack - alloc pages with size KSTACKPAGE as process kernel stack
@@ -561,6 +561,7 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const c
     }
     local_intr_restore(intr_flag);
 
+    cprintf("do_fork: name = \"%s\", kstack = %x.\n", local_name, current->kstack);
     wakeup_proc(proc);
 
     ret = proc->pid;
@@ -582,6 +583,7 @@ bad_fork_cleanup_proc:
 //   3. call scheduler to switch to other process
 int do_exit(int error_code)
 {
+    // idleproc 和 initproc 进程是不能退出的
     if (current == idleproc)
     {
         panic("idleproc exit.\n");
@@ -1004,7 +1006,7 @@ int do_execve(const char *name, int argc, const char **argv)
     }
     
     // 采用 excecv 加载程序时，是先创建的进程，后加载的应用程序二进制文件
-    // 所以这里先释放到创建进程时建立的页面资源，页表资源，只保留一个 task 空壳
+    // 所以这里先释放在 fork 创建进程时，从父进程那里继承的页面资源，页表资源
     // 等后续把程序从磁盘上读到内存里之后，再重新构建页表结构
     if (mm != NULL)
     {
@@ -1017,7 +1019,7 @@ int do_execve(const char *name, int argc, const char **argv)
         }
         current->mm = NULL;
     }
-    ret = -E_NO_MEM;;
+    ret = -E_NO_MEM;
     if ((ret = load_icode(fd, argc, kargv)) != 0)
     {
         goto execve_exit;
@@ -1214,7 +1216,7 @@ static int init_main(void *arg)
     size_t kernel_allocated_store = kallocated();
 
     // 通过 user_main 内核线程来启动用户进程（shell），并切换到用户态
-    int pid = kernel_thread(user_main, NULL, 0);
+    int pid = kernel_thread(user_main, NULL, 0, "user_main");
     if (pid <= 0)
     {
         panic("create user_main failed.\n");
@@ -1283,7 +1285,7 @@ void proc_init(void)
 
     current = idleproc;
 
-    int pid = kernel_thread(init_main, NULL, 0);
+    int pid = kernel_thread(init_main, NULL, 0, "init_main");
     if (pid <= 0)
     {
         panic("create init_main failed.\n");
