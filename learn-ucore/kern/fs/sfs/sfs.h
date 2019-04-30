@@ -96,7 +96,7 @@ struct sfs_super
     char info[SFS_MAX_INFO_LEN + 1];                /* infomation for sfs  */
 };
 
-/* inode (on disk) */
+/* inode (on disk 磁盘上的 inode) */
 /*
  之前在初始化过程中讨论过 vfs 对应的索引节点，其实索引节点主要是指存在磁盘中的索引节点，
  当把磁盘中的索引节点 load 到内存中之后，在内存中也会存在一个索引节点
@@ -146,7 +146,7 @@ struct sfs_disk_entry
 #define sfs_dentry_size                             \
     sizeof(((struct sfs_disk_entry *)0)->name)
 
-/* inode for sfs */
+/* inode for sfs 内存中的 inode */
 /*
  内存索引节点
  内存 inode 只有在打开一个文件后才会创建，如果关机则相关信息都会消失。

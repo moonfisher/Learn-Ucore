@@ -48,7 +48,7 @@ int vfs_open(char *path, uint32_t open_flags, struct inode **node_store)
                 return ret;
             }
             
-            assert(dir != NULL && dir->in_ops != NULL && dir->in_ops->vop_open != NULL);
+            assert(dir != NULL && dir->in_ops != NULL && dir->in_ops->vop_create != NULL);
             inode_check(dir, "create");
             ret = dir->in_ops->vop_create(dir, name, excl, &node);
         }

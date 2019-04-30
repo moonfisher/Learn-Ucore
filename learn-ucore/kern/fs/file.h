@@ -17,6 +17,7 @@ struct stat;
 struct dirent;
 
 /*
+ 进程打开文件表对应的数据结构
  file & dir 接口层定义了进程在内核中直接访问的文件相关信息，这定义在 file 数据结构中
  这个结构并不是文件系统的结构，只是描述进程使用文件的情况
 */
@@ -37,7 +38,7 @@ struct file
     off_t pos;
     // 该文件对应的内存 inode 指针
     struct inode *node;
-    // 打开此文件的次数
+    // 文件打开计数
     int open_count;
 };
 

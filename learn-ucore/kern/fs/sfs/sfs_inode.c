@@ -1150,6 +1150,30 @@ static int sfs_lookup(struct inode *node, char *path, struct inode **node_store)
     return 0;
 }
 
+static int sfs_create(struct inode *node, const char *name, bool excl, struct inode **node_store)
+{
+//    struct sfs_fs *sfs = fsop_info(((node)->in_fs), sfs);
+//    assert(*name != '\0' && *name != '/');
+//    inode_ref_inc(node);
+//    struct sfs_inode *sin = sfs_vop_info(node);
+//    if (sin->din->type != SFS_TYPE_DIR)
+//    {
+//        inode_ref_dec(node);
+//        return -E_NOTDIR;
+//    }
+//    struct inode *subnode;
+//    int ret = sfs_lookup_once(sfs, sin, name, &subnode, NULL);
+//
+//    inode_ref_dec(node);
+//    if (ret != 0)
+//    {
+//        return ret;
+//    }
+//    *node_store = subnode;
+    *node_store = NULL;
+    return 0;
+}
+
 // The sfs specific DIR operations correspond to the abstract operations on a inode.
 static const struct inode_ops sfs_node_dirops = {
     .vop_magic                      = VOP_MAGIC,
@@ -1162,6 +1186,7 @@ static const struct inode_ops sfs_node_dirops = {
     .vop_reclaim                    = sfs_reclaim,
     .vop_gettype                    = sfs_gettype,
     .vop_lookup                     = sfs_lookup,
+    .vop_create                     = sfs_create,
 };
 
 /// The sfs specific FILE operations correspond to the abstract operations on a inode.
@@ -1177,5 +1202,6 @@ static const struct inode_ops sfs_node_fileops = {
     .vop_gettype                    = sfs_gettype,
     .vop_tryseek                    = sfs_tryseek,
     .vop_truncate                   = sfs_truncfile,
+    .vop_create                     = sfs_create,
 };
 
