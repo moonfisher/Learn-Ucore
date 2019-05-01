@@ -186,6 +186,9 @@ int sysfile_seek(int fd, off_t pos, int whence)
 }
 
 /* sysfile_fstat - stat file */
+/*
+ 获取一些文件相关的信息。
+*/
 int sysfile_fstat(int fd, struct stat *__stat)
 {
     struct mm_struct *mm = current->mm;

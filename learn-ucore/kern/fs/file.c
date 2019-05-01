@@ -195,14 +195,24 @@ int file_open(char *path, uint32_t open_flags)
 
     int ret = 0;
     struct file *file;
-    // 从当前进程文件系统资源里分配
+    /*
+     从当前进程文件系统资源里分配，分配一个空闲的 file 数据结构变量 file 在文件系统抽象层的处理中，
+     要给这个即将打开的文件分配一个 file 数据结构的变量，这个变量其实是当前进程的打开文件数组
+     current->fs_struct->filemap[] 中的一个空闲元素（即还没用于一个打开的文件），而这个元素的
+     索引值就是最终要返回到用户进程并赋值给变量 fd
+    */
     if ((ret = fd_array_alloc(NO_FD, &file)) != 0)
     {
         return ret;
     }
 
     struct inode *node;
-    // 根据 path 文件路径找到对应的文件 inode 节点
+    /*
+     根据 path 文件路径找到对应的文件 inode 节点, 进一步调用 vfs_open 函数来找到 path 指出的文件
+     所对应的基于 inode 数据结构的 VFS 索引节点 node。
+     vfs_open 函数需要完成两件事情：通过 vfs_lookup 找到 path 对应文件的inode；
+     调用 vop_open 函数打开文件。
+    */
     if ((ret = vfs_open(path, open_flags, &node)) != 0)
     {
         fd_array_free(file);
