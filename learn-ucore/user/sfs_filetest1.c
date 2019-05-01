@@ -12,8 +12,6 @@
 static int safe_open(const char *path, int open_flags)
 {
 	int fd = open(path, open_flags);
-	printf("fd is %d\n", fd);
-	assert(fd >= 0);
 	return fd;
 }
 
@@ -41,6 +39,83 @@ static int safe_close(int fd)
 {
     int ret = close(fd);
     return ret;
+}
+
+void test1()
+{
+    char buffer[1024] = {0};
+    
+    int fd = safe_open("sfs_filetest1", O_RDONLY);
+    struct stat *stat1 = safe_fstat(fd);
+    assert(stat1->st_size >= 0 && stat1->st_blocks >= 0);
+    
+    int ret = safe_read(fd, buffer, sizeof(buffer) - 1);
+    printf("sfs_filetest1 length = %d, read %s.\n", ret, buffer);
+    ret = safe_close(fd);
+    
+    printf("sfs_filetest1 pass.\n\n");
+}
+
+void test2()
+{
+    char buffer[1024] = {0};
+    int ret = 0;
+    int fd = safe_open("test222", O_RDONLY);
+    if (fd >= 0)
+    {
+        ret = safe_read(fd, buffer, sizeof(buffer) - 1);
+        printf("test222 before write, length = %d, read %s.\n\n", ret, buffer);
+        ret = safe_close(fd);
+    }
+    else
+    {
+        printf("test222 can't found.\n\n");
+    }
+    
+    fd = safe_open("test222", O_RDWR | O_CREAT | O_APPEND);
+    struct stat *stat = safe_fstat(fd);
+    assert(stat->st_size >= 0 && stat->st_blocks >= 0);
+    
+    char str[] = "Hello, test222!\n";
+    ret = safe_write(fd, str, sizeof(str) - 1);
+    printf("test222 write, length = %d, write %s.\n", ret, str);
+    ret = safe_close(fd);
+    
+    fd = safe_open("test222", O_RDONLY);
+    ret = safe_read(fd, buffer, sizeof(buffer) - 1);
+    printf("test222 after write, length = %d, read %s.\n\n", ret, buffer);
+    ret = safe_close(fd);
+}
+
+void test3()
+{
+    char buffer[1024] = {0};
+    int ret = 0;
+    int fd = safe_open("/dir333/test333", O_RDONLY);
+    if (fd >= 0)
+    {
+        ret = safe_read(fd, buffer, sizeof(buffer) - 1);
+        printf("test333 before write, length = %d, read %s.\n\n", ret, buffer);
+        ret = safe_close(fd);
+    }
+    else
+    {
+        printf("test333 can't found.\n\n");
+    }
+    
+    fd = safe_open("/dir333/test333", O_RDWR | O_CREAT | O_APPEND);
+    struct stat *stat = safe_fstat(fd);
+    assert(stat->st_size >= 0 && stat->st_blocks >= 0);
+    
+    char str[] = "Hello, test333!\n";
+    ret = safe_write(fd, str, sizeof(str) - 1);
+    printf("test333 write, length = %d, write %s.\n", ret, str);
+    ret = safe_close(fd);
+    
+    fd = safe_open("/dir333/test333", O_RDONLY);
+    ret = safe_read(fd, buffer, sizeof(buffer) - 1);
+    printf("test333 after write, length = %d, read %s.\n\n", ret, buffer);
+    ret = safe_close(fd);
 }
 
 /*
@@ -93,32 +168,9 @@ static int safe_close(int fd)
 */
 int main(void)
 {
-//    char buffer1[1024] = {0};
-//
-//    int fd1 = safe_open("sfs_filetest1", O_RDONLY);
-//    struct stat *stat1 = safe_fstat(fd1);
-//    assert(stat1->st_size >= 0 && stat1->st_blocks >= 0);
-//
-//    int ret1 = safe_read(fd1, buffer1, sizeof(buffer1) - 1);
-//    printf("sfs_filetest1 length = %d, read %s.\n", ret1, buffer1);
-//    ret1 = safe_close(fd1);
-//
-//    printf("sfs_filetest1 pass.\n");
+    test1();
+    test2();
+    test3();
     
-    char buffer2[1024] = {0};
-    
-    int fd2 = safe_open("test222", O_RDWR | O_TRUNC | O_CREAT | O_APPEND);
-    struct stat *stat2 = safe_fstat(fd2);
-    assert(stat2->st_size >= 0 && stat2->st_blocks >= 0);
-    
-    char str[] = "Hello, world\r\n";
-    int ret2 = safe_write(fd2, str, sizeof(str) - 1);
-    ret2 = safe_close(fd2);
-    
-    fd2 = safe_open("test222", O_RDWR | O_TRUNC | O_CREAT);
-    ret2 = safe_read(fd2, buffer2, sizeof(buffer2) - 1);
-    printf("test222 length = %d, read %s.\n", ret2, buffer2);
-    ret2 = safe_close(fd2);
-
 	return 0;
 }
