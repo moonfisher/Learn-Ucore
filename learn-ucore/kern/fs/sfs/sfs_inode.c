@@ -834,7 +834,8 @@ out:
  */
 static inline int sfs_io(struct inode *node, struct iobuf *iob, bool write)
 {
-    struct sfs_fs *sfs = fsop_info(((node)->in_fs), sfs);
+    assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
+    struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
     struct sfs_inode *sin = sfs_vop_info(node);
     int ret;
     lock_sin(sin);
@@ -869,7 +870,10 @@ static int sfs_fstat(struct inode *node, struct stat *stat)
 {
     int ret;
     memset(stat, 0, sizeof(struct stat));
-    if ((ret = vop_gettype(node, &(stat->st_mode))) != 0)
+    
+    assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_gettype != NULL);
+    inode_check(node, "gettype");
+    if ((ret = node->in_ops->vop_gettype(node, &(stat->st_mode))) != 0)
     {
         return ret;
     }
@@ -885,7 +889,8 @@ static int sfs_fstat(struct inode *node, struct stat *stat)
  */
 static int sfs_fsync(struct inode *node)
 {
-    struct sfs_fs *sfs = fsop_info(((node)->in_fs), sfs);
+    assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
+    struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
     struct sfs_inode *sin = sfs_vop_info(node);
     int ret = 0;
     if (sin->dirty)
@@ -918,7 +923,8 @@ static int sfs_namefile(struct inode *node, struct iobuf *iob)
         return -E_NO_MEM;
     }
 
-    struct sfs_fs *sfs = fsop_info(((node)->in_fs), sfs);
+    assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
+    struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
     struct sfs_inode *sin = sfs_vop_info(node);
 
     int ret;
@@ -1017,7 +1023,8 @@ static int sfs_getdirentry(struct inode *node, struct iobuf *iob)
         return -E_NO_MEM;
     }
 
-    struct sfs_fs *sfs = fsop_info(((node)->in_fs), sfs);
+    assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
+    struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
     struct sfs_inode *sin = sfs_vop_info(node);
 
     int ret, slot;
@@ -1051,7 +1058,8 @@ out:
 // 文件节点资源回收，同时把内存节点最新数据同步到磁盘上
 static int sfs_reclaim(struct inode *node)
 {
-    struct sfs_fs *sfs = fsop_info(((node)->in_fs), sfs);
+    assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
+    struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
     struct sfs_inode *sin = sfs_vop_info(node);
 
     int  ret = -E_BUSY;
@@ -1151,7 +1159,8 @@ static int sfs_truncfile(struct inode *node, off_t len)
     {
         return -E_INVAL;
     }
-    struct sfs_fs *sfs = fsop_info(((node)->in_fs), sfs);
+    assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
+    struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
     struct sfs_inode *sin = sfs_vop_info(node);
     struct sfs_disk_inode *din = sin->din;
 
@@ -1207,7 +1216,8 @@ out_unlock:
  */
 static int sfs_lookup(struct inode *node, char *path, struct inode **node_store)
 {
-    struct sfs_fs *sfs = fsop_info(((node)->in_fs), sfs);
+    assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
+    struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
     assert(*path != '\0' && *path != '/');
     inode_ref_inc(node);
     struct sfs_inode *sin = sfs_vop_info(node);

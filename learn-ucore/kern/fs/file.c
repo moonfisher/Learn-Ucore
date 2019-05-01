@@ -404,7 +404,10 @@ int file_getdirentry(int fd, struct dirent *direntp)
     fd_array_acquire(file);
 
     struct iobuf __iob, *iob = iobuf_init(&__iob, direntp->name, sizeof(direntp->name), direntp->offset);
-    if ((ret = vop_getdirentry(file->node, iob)) == 0)
+    
+    assert(file->node != NULL && file->node->in_ops != NULL && file->node->in_ops->vop_getdirentry != NULL);
+    inode_check(file->node, "getdirentry");
+    if ((ret = file->node->in_ops->vop_getdirentry(file->node, iob)) == 0)
     {
         direntp->offset += iobuf_used(iob);
     }

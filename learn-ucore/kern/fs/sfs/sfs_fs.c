@@ -18,7 +18,8 @@
  */
 static int sfs_sync(struct fs *fs)
 {
-    struct sfs_fs *sfs = fsop_info(fs, sfs);
+    assert(fs != NULL && (fs->fs_type == fs_type_sfs_info));
+    struct sfs_fs *sfs = &(fs->fs_info.__sfs_info);
     lock_sfs_fs(sfs);
     {
         list_entry_t *list = &(sfs->inode_list), *le = list;
@@ -58,7 +59,9 @@ static struct inode *sfs_get_root(struct fs *fs)
 {
     struct inode *node;
     int ret;
-    if ((ret = sfs_load_inode(fsop_info(fs, sfs), &node, SFS_BLKN_ROOT)) != 0)
+    assert(fs != NULL && (fs->fs_type == fs_type_sfs_info));
+    struct sfs_fs *sfs = &(fs->fs_info.__sfs_info);
+    if ((ret = sfs_load_inode(sfs, &node, SFS_BLKN_ROOT)) != 0)
     {
         panic("load sfs root failed: %e", ret);
     }
@@ -70,7 +73,8 @@ static struct inode *sfs_get_root(struct fs *fs)
  */
 static int sfs_unmount(struct fs *fs)
 {
-    struct sfs_fs *sfs = fsop_info(fs, sfs);
+    assert(fs != NULL && (fs->fs_type == fs_type_sfs_info));
+    struct sfs_fs *sfs = &(fs->fs_info.__sfs_info);
     if (!list_empty(&(sfs->inode_list)))
     {
         return -E_BUSY;
@@ -90,7 +94,8 @@ static int sfs_unmount(struct fs *fs)
  */
 static void sfs_cleanup(struct fs *fs)
 {
-    struct sfs_fs *sfs = fsop_info(fs, sfs);
+    assert(fs != NULL && (fs->fs_type == fs_type_sfs_info));
+    struct sfs_fs *sfs = &(fs->fs_info.__sfs_info);
     uint32_t blocks = sfs->super.blocks, unused_blocks = sfs->super.unused_blocks;
     cprintf("sfs: cleanup: '%s' (%d/%d/%d)\n", sfs->super.info,
             blocks - unused_blocks, unused_blocks, blocks);

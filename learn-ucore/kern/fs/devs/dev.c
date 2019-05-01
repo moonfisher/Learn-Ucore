@@ -68,10 +68,14 @@ static int dev_fstat(struct inode *node, struct stat *stat)
 {
     int ret;
     memset(stat, 0, sizeof(struct stat));
-    if ((ret = vop_gettype(node, &(stat->st_mode))) != 0)
+    
+    assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_gettype != NULL);
+    inode_check(node, "gettype");
+    if ((ret = node->in_ops->vop_gettype(node, &(stat->st_mode))) != 0)
     {
         return ret;
     }
+
     struct device *dev = device_vop_info(node);
     stat->st_nlinks = 1;
     stat->st_blocks = dev->d_blocks;

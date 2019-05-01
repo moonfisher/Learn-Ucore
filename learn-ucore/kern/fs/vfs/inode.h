@@ -214,18 +214,6 @@ struct inode_ops
  */
 void inode_check(struct inode *node, const char *opstr);
 
-#define __vop_op(node, sym)                                                                         \
-    ({                                                                                              \
-        struct inode *__node = (node);                                                              \
-        assert(__node != NULL && __node->in_ops != NULL && __node->in_ops->vop_##sym != NULL);      \
-        inode_check(__node, #sym);                                                                  \
-        __node->in_ops->vop_##sym;                                                                  \
-     })
-
-#define vop_namefile(node, iob)                                     (__vop_op(node, namefile)(node, iob))
-#define vop_getdirentry(node, iob)                                  (__vop_op(node, getdirentry)(node, iob))
-#define vop_gettype(node, type_store)                               (__vop_op(node, gettype)(node, type_store))
-
 static inline int inode_ref_count(struct inode *node)
 {
     return node->ref_count;

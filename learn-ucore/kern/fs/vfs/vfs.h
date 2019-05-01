@@ -63,18 +63,6 @@ struct fs
     void (*fs_cleanup)(struct fs *fs);              // Cleanup of filesystem.???
 };
 
-#define __fs_type(type)                                             fs_type_##type##_info
-
-#define check_fs_type(fs, type)                                     ((fs)->fs_type == __fs_type(type))
-
-#define __fsop_info(_fs, type) ({                                   \
-            struct fs *__fs = (_fs);                                \
-            assert(__fs != NULL && check_fs_type(__fs, type));      \
-            &(__fs->fs_info.__##type##_info);                       \
-        })
-
-#define fsop_info(fs, type)                 __fsop_info(fs, type)
-
 #define info2fs(info, type)                                         \
     to_struct((info), struct fs, fs_info.__##type##_info)
 

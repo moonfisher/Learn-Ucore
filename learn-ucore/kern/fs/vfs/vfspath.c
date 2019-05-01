@@ -67,7 +67,9 @@ int vfs_set_curdir(struct inode *dir)
         if (dir != NULL)
         {
             uint32_t type;
-            if ((ret = vop_gettype(dir, &type)) != 0)
+            assert(dir != NULL && dir->in_ops != NULL && dir->in_ops->vop_gettype != NULL);
+            inode_check(dir, "gettype");
+            if ((ret = dir->in_ops->vop_gettype(dir, &type)) != 0)
             {
                 goto out;
             }
@@ -127,7 +129,10 @@ int vfs_getcwd(struct iobuf *iob)
     {
         goto out;
     }
-    ret = vop_namefile(node, iob);
+    
+    assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_namefile != NULL);
+    inode_check(node, "namefile");
+    ret = node->in_ops->vop_namefile(node, iob);
 
 out:
     inode_ref_dec(node);
