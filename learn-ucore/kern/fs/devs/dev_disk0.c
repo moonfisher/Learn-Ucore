@@ -18,22 +18,22 @@
 static char *disk0_buffer;
 static semaphore_t disk0_sem;
 
-static void lock_disk0(void)
+void lock_disk0(void)
 {
     down(&(disk0_sem));
 }
 
-static void unlock_disk0(void)
+void unlock_disk0(void)
 {
     up(&(disk0_sem));
 }
 
-static int disk0_open(struct device *dev, uint32_t open_flags)
+int disk0_open(struct device *dev, uint32_t open_flags)
 {
     return 0;
 }
 
-static int disk0_close(struct device *dev)
+int disk0_close(struct device *dev)
 {
     return 0;
 }
@@ -43,7 +43,7 @@ static int disk0_close(struct device *dev)
  blkno  起始 block 号
  nblks  要读取的 block 数
  */
-static void disk0_read_blks_nolock(uint32_t blkno, uint32_t nblks)
+void disk0_read_blks_nolock(uint32_t blkno, uint32_t nblks)
 {
     int ret;
     uint32_t sectno = blkno * DISK0_BLK_NSECT, nsecs = nblks * DISK0_BLK_NSECT;
@@ -59,7 +59,7 @@ static void disk0_read_blks_nolock(uint32_t blkno, uint32_t nblks)
  blkno  起始 block 号
  nblks  要写入 block 数
  */
-static void disk0_write_blks_nolock(uint32_t blkno, uint32_t nblks)
+void disk0_write_blks_nolock(uint32_t blkno, uint32_t nblks)
 {
     int ret;
     uint32_t sectno = blkno * DISK0_BLK_NSECT, nsecs = nblks * DISK0_BLK_NSECT;
@@ -70,7 +70,7 @@ static void disk0_write_blks_nolock(uint32_t blkno, uint32_t nblks)
     }
 }
 
-static int disk0_io(struct device *dev, struct iobuf *iob, bool write)
+int disk0_io(struct device *dev, struct iobuf *iob, bool write)
 {
     off_t offset = iob->io_offset;
     size_t resid = iob->io_resid;
@@ -78,12 +78,14 @@ static int disk0_io(struct device *dev, struct iobuf *iob, bool write)
     uint32_t nblks = resid / DISK0_BLKSIZE;
 
     /* don't allow I/O that isn't block-aligned */
+    // 磁盘并不支持几个字节几个字节这样读写，必须整块的读写
     if ((offset % DISK0_BLKSIZE) != 0 || (resid % DISK0_BLKSIZE) != 0)
     {
         return -E_INVAL;
     }
 
     /* don't allow I/O past the end of disk0 */
+    // 读写不能超过磁盘容量
     if (blkno + nblks > dev->d_blocks)
     {
         return -E_INVAL;
@@ -126,12 +128,12 @@ static int disk0_io(struct device *dev, struct iobuf *iob, bool write)
     return 0;
 }
 
-static int disk0_ioctl(struct device *dev, int op, void *data)
+int disk0_ioctl(struct device *dev, int op, void *data)
 {
     return -E_UNIMP;
 }
 
-static void disk0_device_init(struct device *dev)
+void disk0_device_init(struct device *dev)
 {
     static_assert(DISK0_BLKSIZE % SECTSIZE == 0);
     

@@ -11,6 +11,8 @@
 #include "error.h"
 #include "assert.h"
 
+struct inode *sfs_get_root(struct fs *fs);
+
 // device info entry in vdev_list
 // 挂载在 vdev_list 下的虚拟设备节点
 typedef struct
@@ -73,6 +75,10 @@ void vfs_cleanup(void)
  * vfs_get_root - Given a device name (stdin, stdout, etc.), hand
  *                back an appropriate inode.
  */
+/*
+ 从设备列表上，根据设备名字找到对应的设备，再根据设备上已经挂载的文件系统，找到对应的根目录
+ 设备上的文件系统挂载，最早是在 sfs_do_mount 里完成的
+*/
 int vfs_get_root(const char *devname, struct inode **node_store)
 {
     assert(devname != NULL);
@@ -90,7 +96,8 @@ int vfs_get_root(const char *devname, struct inode **node_store)
                     struct inode *found = NULL;
                     if (vdev->fs != NULL)
                     {
-                        found = vdev->fs->fs_get_root(vdev->fs);
+//                        found = vdev->fs->fs_get_root(vdev->fs);
+                        found = sfs_get_root(vdev->fs);
                     }
                     else if (!vdev->mountable)
                     {

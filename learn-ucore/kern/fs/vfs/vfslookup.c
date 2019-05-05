@@ -5,6 +5,8 @@
 #include "error.h"
 #include "assert.h"
 
+int sfs_lookup(struct inode *node, char *path, struct inode **node_store);
+
 /*
  * get_device- Common code to pull the device name, if any, off the front of a
  *             path and choose the inode to begin the name lookup relative to.
@@ -57,6 +59,7 @@ static int get_device(char *path, char **subpath, struct inode **node_store)
     int ret;
     if (*path == '/')
     {
+        // 类似 "/dir/test" 这种访问方式，需要先找到根目录节点
         if ((ret = vfs_get_bootfs(node_store)) != 0)
         {
             return ret;
@@ -99,7 +102,8 @@ int vfs_lookup(char *path, struct inode **node_store)
         // 继续搜索后续路径
         assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_lookup != NULL);
         inode_check(node, "lookup");
-        ret = node->in_ops->vop_lookup(node, path, node_store);
+//        ret = node->in_ops->vop_lookup(node, path, node_store);
+        ret = sfs_lookup(node, path, node_store);
         inode_ref_dec(node);
         return ret;
     }

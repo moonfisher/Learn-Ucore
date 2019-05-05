@@ -6,6 +6,8 @@
 #include "bitmap.h"
 #include "assert.h"
 
+int disk0_io(struct device *dev, struct iobuf *iob, bool write);
+
 //Basic block-level I/O routines
 
 /* sfs_rwblock_nolock - Basic block-level I/O routine for Rd/Wr one disk block,
@@ -16,11 +18,16 @@
  * @write: BOOL: Read or Write
  * @check: BOOL: if check (blono < sfs super.blocks)
  */
+/*
+ 磁盘并不支持几个字节几个字节这样读写，必须整块的读写
+*/
 static int sfs_rwblock_nolock(struct sfs_fs *sfs, void *buf, uint32_t blkno, bool write, bool check)
 {
     assert((blkno != 0 || !check) && blkno < sfs->super.blocks);
-    struct iobuf __iob, *iob = iobuf_init(&__iob, buf, SFS_BLKSIZE, blkno * SFS_BLKSIZE);
-    return sfs->dev->d_io(sfs->dev, iob, write);
+    struct iobuf __iob;
+    struct iobuf *iob = iobuf_init(&__iob, buf, SFS_BLKSIZE, blkno * SFS_BLKSIZE);
+//    return sfs->dev->d_io(sfs->dev, iob, write);
+    return disk0_io(sfs->dev, iob, write);
 }
 
 /* sfs_rwblock - Basic block-level I/O routine for Rd/Wr N disk blocks ,

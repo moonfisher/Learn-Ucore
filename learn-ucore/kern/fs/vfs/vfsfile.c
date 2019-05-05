@@ -6,6 +6,7 @@
 #include "error.h"
 #include "assert.h"
 
+int sfs_create(struct inode *node, const char *name, bool excl, struct inode **node_store);
 
 // open file in vfs, get/create inode for file with filename path.
 int vfs_open(char *path, uint32_t open_flags, struct inode **node_store)
@@ -39,7 +40,8 @@ int vfs_open(char *path, uint32_t open_flags, struct inode **node_store)
     ret = vfs_lookup(path, &node);
     if (ret != 0)
     {
-        if (ret == -16 && (create))
+        // 文件路径不存在，看是否需要创建文件
+        if (ret == -E_NOENT && (create))
         {
             char *name;
             struct inode *dir;
@@ -50,7 +52,8 @@ int vfs_open(char *path, uint32_t open_flags, struct inode **node_store)
             
             assert(dir != NULL && dir->in_ops != NULL && dir->in_ops->vop_create != NULL);
             inode_check(dir, "create");
-            ret = dir->in_ops->vop_create(dir, name, excl, &node);
+//            ret = dir->in_ops->vop_create(dir, name, excl, &node);
+            ret = sfs_create(dir, name, excl, &node);
         }
         else
             return ret;

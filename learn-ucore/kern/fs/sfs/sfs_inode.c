@@ -19,7 +19,7 @@ static const struct inode_ops sfs_node_fileops; // file operations
 /*
  * lock_sin - lock the process of inode Rd/Wr
  */
-static void lock_sin(struct sfs_inode *sin)
+void lock_sin(struct sfs_inode *sin)
 {
     down(&(sin->sem));
 }
@@ -27,7 +27,7 @@ static void lock_sin(struct sfs_inode *sin)
 /*
  * unlock_sin - unlock the process of inode Rd/Wr
  */
-static void unlock_sin(struct sfs_inode *sin)
+void unlock_sin(struct sfs_inode *sin)
 {
     up(&(sin->sem));
 }
@@ -35,7 +35,7 @@ static void unlock_sin(struct sfs_inode *sin)
 /*
  * sfs_get_ops - return function addr of fs_node_dirops/sfs_node_fileops
  */
-static const struct inode_ops *sfs_get_ops(uint16_t type)
+const struct inode_ops *sfs_get_ops(uint16_t type)
 {
     switch (type)
     {
@@ -50,7 +50,7 @@ static const struct inode_ops *sfs_get_ops(uint16_t type)
 /*
  * sfs_hash_list - return inode entry in sfs->hash_list
  */
-static list_entry_t *sfs_hash_list(struct sfs_fs *sfs, uint32_t ino)
+list_entry_t *sfs_hash_list(struct sfs_fs *sfs, uint32_t ino)
 {
     return sfs->hash_list + sin_hashfn(ino);
 }
@@ -58,7 +58,7 @@ static list_entry_t *sfs_hash_list(struct sfs_fs *sfs, uint32_t ino)
 /*
  * sfs_set_links - link inode sin in sfs->linked-list AND sfs->hash_link
  */
-static void sfs_set_links(struct sfs_fs *sfs, struct sfs_inode *sin)
+void sfs_set_links(struct sfs_fs *sfs, struct sfs_inode *sin)
 {
     list_add(&(sfs->inode_list), &(sin->inode_link));
     list_add(sfs_hash_list(sfs, sin->ino), &(sin->hash_link));
@@ -67,7 +67,7 @@ static void sfs_set_links(struct sfs_fs *sfs, struct sfs_inode *sin)
 /*
  * sfs_remove_links - unlink inode sin in sfs->linked-list AND sfs->hash_link
  */
-static void sfs_remove_links(struct sfs_inode *sin)
+void sfs_remove_links(struct sfs_inode *sin)
 {
     list_del(&(sin->inode_link));
     list_del(&(sin->hash_link));
@@ -76,7 +76,7 @@ static void sfs_remove_links(struct sfs_inode *sin)
 /*
  * sfs_block_inuse - check the inode with NO. ino inuse info in bitmap
  */
-static bool sfs_block_inuse(struct sfs_fs *sfs, uint32_t ino)
+bool sfs_block_inuse(struct sfs_fs *sfs, uint32_t ino)
 {
     if (ino != 0 && ino < sfs->super.blocks)
     {
@@ -88,7 +88,7 @@ static bool sfs_block_inuse(struct sfs_fs *sfs, uint32_t ino)
 /*
  * sfs_block_alloc -  check and get a free disk block
  */
-static int sfs_block_alloc(struct sfs_fs *sfs, uint32_t *ino_store)
+int sfs_block_alloc(struct sfs_fs *sfs, uint32_t *ino_store)
 {
     int ret;
     if ((ret = bitmap_alloc(sfs->freemap, ino_store)) != 0)
@@ -105,7 +105,7 @@ static int sfs_block_alloc(struct sfs_fs *sfs, uint32_t *ino_store)
 /*
  * sfs_block_free - set related bits for ino block to 1(means free) in bitmap, add sfs->super.unused_blocks, set superblock dirty *
  */
-static void sfs_block_free(struct sfs_fs *sfs, uint32_t ino)
+void sfs_block_free(struct sfs_fs *sfs, uint32_t ino)
 {
     assert(sfs_block_inuse(sfs, ino));
     bitmap_free(sfs->freemap, ino);
@@ -116,7 +116,7 @@ static void sfs_block_free(struct sfs_fs *sfs, uint32_t ino)
 /*
  * sfs_create_inode - alloc a inode in memroy, and init din/ino/dirty/reclian_count/sem fields in sfs_inode in inode
  */
-static int sfs_create_inode(struct sfs_fs *sfs, struct sfs_disk_inode *din, uint32_t ino, struct inode **node_store)
+int sfs_create_inode(struct sfs_fs *sfs, struct sfs_disk_inode *din, uint32_t ino, struct inode **node_store)
 {
     struct inode *node;
     if ((node = __alloc_inode(inode_type_sfs_inode_info)) != NULL)
@@ -139,7 +139,7 @@ static int sfs_create_inode(struct sfs_fs *sfs, struct sfs_disk_inode *din, uint
  *
  * NOTICE: le2sin, info2node MACRO
  */
-static struct inode *lookup_sfs_nolock(struct sfs_fs *sfs, uint32_t ino)
+struct inode *lookup_sfs_nolock(struct sfs_fs *sfs, uint32_t ino)
 {
     struct inode *node;
     list_entry_t *list = sfs_hash_list(sfs, ino), *le = list;
@@ -161,11 +161,13 @@ static struct inode *lookup_sfs_nolock(struct sfs_fs *sfs, uint32_t ino)
 
 /*
  * sfs_load_inode - If the inode isn't existed, load inode related ino disk block data into a new created inode.
- *                  If the inode is in memory alreadily, then do nothing
+ * If the inode is in memory alreadily, then do nothing
  */
 int sfs_load_inode(struct sfs_fs *sfs, struct inode **node_store, uint32_t ino)
 {
     lock_sfs_fs(sfs);
+    
+    // 先看缓存链表上，有没有当前要加载的 inode 节点，有就直接返回，没有再从磁盘上读取，提高速度
     struct inode *node;
     if ((node = lookup_sfs_nolock(sfs, ino)) != NULL)
     {
@@ -190,6 +192,8 @@ int sfs_load_inode(struct sfs_fs *sfs, struct inode **node_store, uint32_t ino)
     {
         goto failed_cleanup_din;
     }
+    
+    // 从磁盘读取的 inode 节点数据，放到缓存链表上，方便下次读取
     sfs_set_links(sfs, sfs_vop_info(node));
 
 out_unlock:
@@ -213,7 +217,7 @@ failed_unlock:
  * @create:   BOOL, if the block isn't allocated, if create = 1 the alloc a block,  otherwise just do nothing
  * @ino_store: 0 OR the index of already inused block or new allocated block.
  */
-static int sfs_bmap_get_sub_nolock(struct sfs_fs *sfs, uint32_t *entp, uint32_t index, bool create, uint32_t *ino_store)
+int sfs_bmap_get_sub_nolock(struct sfs_fs *sfs, uint32_t *entp, uint32_t index, bool create, uint32_t *ino_store)
 {
     assert(index < SFS_BLK_NENTRY);
     int ret;
@@ -279,7 +283,7 @@ failed_cleanup:
  * @create:   BOOL, if the block isn't allocated, if create = 1 the alloc a block,  otherwise just do nothing
  * @ino_store: 0 OR the index of already inused block or new allocated block.
  */
-static int sfs_bmap_get_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_t index, bool create, uint32_t *ino_store)
+int sfs_bmap_get_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_t index, bool create, uint32_t *ino_store)
 {
     struct sfs_disk_inode *din = sin->din;
     int ret;
@@ -328,7 +332,7 @@ out:
 /*
  * sfs_bmap_free_sub_nolock - set the entry item to 0 (free) in the indirect block
  */
-static int sfs_bmap_free_sub_nolock(struct sfs_fs *sfs, uint32_t ent, uint32_t index)
+int sfs_bmap_free_sub_nolock(struct sfs_fs *sfs, uint32_t ent, uint32_t index)
 {
     assert(sfs_block_inuse(sfs, ent) && index < SFS_BLK_NENTRY);
     int ret;
@@ -352,7 +356,7 @@ static int sfs_bmap_free_sub_nolock(struct sfs_fs *sfs, uint32_t ent, uint32_t i
 /*
  * sfs_bmap_free_nolock - free a block with logical index in inode and reset the inode's fields
  */
-static int sfs_bmap_free_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_t index)
+int sfs_bmap_free_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_t index)
 {
     struct sfs_disk_inode *din = sin->din;
     int ret;
@@ -398,7 +402,7 @@ static int sfs_bmap_free_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint3
  为 inode 增长一个 block。并标记 inode 为 dirty（所有对 inode 数据的修改都要做这样的操作，这样，
  当 inode 不再使用的时候，sfs 能够保证 inode 数据能够被写回到磁盘）
 */
-static int sfs_bmap_load_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_t index, uint32_t *ino_store)
+int sfs_bmap_load_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_t index, uint32_t *ino_store)
 {
     struct sfs_disk_inode *din = sin->din;
     assert(index <= din->blocks);
@@ -431,7 +435,7 @@ static int sfs_bmap_load_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint3
  他应该是 sfs_bmap_get_nolock 的逆操作。和 sfs_bmap_get_nolock 一样，调用
  sfs_bmap_free_nolock 也要格外小心。
 */
-static int sfs_bmap_truncate_nolock(struct sfs_fs *sfs, struct sfs_inode *sin)
+int sfs_bmap_truncate_nolock(struct sfs_fs *sfs, struct sfs_inode *sin)
 {
     struct sfs_disk_inode *din = sin->din;
     assert(din->blocks != 0);
@@ -453,7 +457,7 @@ static int sfs_bmap_truncate_nolock(struct sfs_fs *sfs, struct sfs_inode *sin)
  * @entry:    file entry
  */
 // 将目录的第 slot 个 entry 读取到指定的内存空间
-static int sfs_dirent_read_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, int slot, struct sfs_disk_entry *entry)
+int sfs_dirent_read_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, int slot, struct sfs_disk_entry *entry)
 {
     assert(sin->din->type == SFS_TYPE_DIR && (slot >= 0 && slot < sin->din->blocks));
     int ret;
@@ -506,7 +510,7 @@ static int sfs_dirent_read_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, int
  当某个 entry 删除的时候，SFS 通过设置 entry->ino 为0将该 entry 所在的 block 标记为 free，
  在需要添加新 entry 的时候，SFS 优先使用这些 free 的 entry，其次才会去在数据页尾追加新的 entry。
 */
-static int sfs_dirent_search_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const char *name, uint32_t *ino_store, int *slot, int *empty_slot)
+int sfs_dirent_search_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const char *name, uint32_t *ino_store, int *slot, int *empty_slot)
 {
     assert(strlen(name) <= SFS_MAX_FNAME_LEN);
     struct sfs_disk_entry *entry;
@@ -518,17 +522,22 @@ static int sfs_dirent_search_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, c
 #define set_pvalue(x, v)            do { if ((x) != NULL) { *(x) = (v); } } while (0)
     int ret, i, nslots = sin->din->blocks;
     set_pvalue(empty_slot, nslots);
+    // 这里每次搜索都是循环遍历，然后进行 name 名字比较，目录如果很多，估计有性能问题
     for (i = 0; i < nslots; i ++)
     {
         if ((ret = sfs_dirent_read_nolock(sfs, sin, i, entry)) != 0)
         {
             goto out;
         }
+        
+        // ino 为 0 时，表示一个无效的 entry。因为 block 0 用来保存 super block，
+        // 它不可能被其他任何文件或目录使用
         if (entry->ino == 0)
         {
             set_pvalue(empty_slot, i);
             continue ;
         }
+        
         if (strcmp(name, entry->name) == 0)
         {
             set_pvalue(slot, i);
@@ -546,7 +555,7 @@ out:
 /*
  * sfs_dirent_findino_nolock - read all file entries in DIR's inode and find a entry->ino == ino
  */
-static int sfs_dirent_findino_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_t ino, struct sfs_disk_entry *entry)
+int sfs_dirent_findino_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_t ino, struct sfs_disk_entry *entry)
 {
     int ret, i, nslots = sin->din->blocks;
     for (i = 0; i < nslots; i ++)
@@ -563,7 +572,7 @@ static int sfs_dirent_findino_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, 
     return -E_NOENT;
 }
 
-static int sfs_dirent_create_inode(struct sfs_fs *sfs, uint16_t type, struct inode **node_store)
+int sfs_dirent_create_inode(struct sfs_fs *sfs, uint16_t type, struct inode **node_store)
 {
     struct sfs_disk_inode *din;
     if ((din = kmalloc(sizeof(struct sfs_disk_inode))) == NULL)
@@ -599,7 +608,7 @@ failed_cleanup_din:
     return ret;
 }
 
-static int sfs_dirent_write_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, int slot, uint32_t ino, const char *name)
+int sfs_dirent_write_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, int slot, uint32_t ino, const char *name)
 {
     assert(sin->din->type == SFS_TYPE_DIR && (slot >= 0 && slot <= sin->din->blocks));
     struct sfs_disk_entry *entry;
@@ -627,7 +636,7 @@ out:
     return ret;
 }
 
-static int sfs_dirent_link_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, int slot, struct sfs_inode *lnksin, const char *name)
+int sfs_dirent_link_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, int slot, struct sfs_inode *lnksin, const char *name)
 {
     int ret;
     if ((ret = sfs_dirent_write_nolock(sfs, sin, slot, lnksin->ino, name)) != 0)
@@ -649,7 +658,7 @@ static int sfs_dirent_link_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, int
  * @node_store: the inode corresponding the file name in DIR
  * @slot:       the logical index of file entry
  */
-static int sfs_lookup_once(struct sfs_fs *sfs, struct sfs_inode *sin, const char *name, struct inode **node_store, int *slot)
+int sfs_lookup_once(struct sfs_fs *sfs, struct sfs_inode *sin, const char *name, struct inode **node_store, int *slot)
 {
     int ret;
     uint32_t ino;
@@ -667,7 +676,7 @@ static int sfs_lookup_once(struct sfs_fs *sfs, struct sfs_inode *sin, const char
 }
 
 // sfs_opendir - just check the opne_flags, now support readonly
-static int sfs_opendir(struct inode *node, uint32_t open_flags)
+int sfs_opendir(struct inode *node, uint32_t open_flags)
 {
     switch (open_flags & O_ACCMODE)
     {
@@ -686,13 +695,13 @@ static int sfs_opendir(struct inode *node, uint32_t open_flags)
 }
 
 // sfs_openfile - open file (no use)
-static int sfs_openfile(struct inode *node, uint32_t open_flags)
+int sfs_openfile(struct inode *node, uint32_t open_flags)
 {
     return 0;
 }
 
 // sfs_close - close file
-static int sfs_close(struct inode *node)
+int sfs_close(struct inode *node)
 {
     assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_fsync != NULL);
     inode_check(node, "fsync");
@@ -708,7 +717,7 @@ static int sfs_close(struct inode *node)
  * @alenp:    the length need to read (is a pointer). and will RETURN the really Rd/Wr lenght
  * @write:    BOOL, 0 read, 1 write
  */
-static int sfs_io_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, void *buf, off_t offset, size_t *alenp, bool write)
+int sfs_io_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, void *buf, off_t offset, size_t *alenp, bool write)
 {
     struct sfs_disk_inode *din = sin->din;
     assert(din->type != SFS_TYPE_DIR);
@@ -832,7 +841,7 @@ out:
  * sfs_io - Rd/Wr file. the wrapper of sfs_io_nolock
             with lock protect
  */
-static inline int sfs_io(struct inode *node, struct iobuf *iob, bool write)
+int sfs_io(struct inode *node, struct iobuf *iob, bool write)
 {
     assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
     struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
@@ -852,13 +861,13 @@ static inline int sfs_io(struct inode *node, struct iobuf *iob, bool write)
 }
 
 // sfs_read - read file
-static int sfs_read(struct inode *node, struct iobuf *iob)
+int sfs_read(struct inode *node, struct iobuf *iob)
 {
     return sfs_io(node, iob, 0);
 }
 
 // sfs_write - write file
-static int sfs_write(struct inode *node, struct iobuf *iob)
+int sfs_write(struct inode *node, struct iobuf *iob)
 {
     return sfs_io(node, iob, 1);
 }
@@ -866,7 +875,7 @@ static int sfs_write(struct inode *node, struct iobuf *iob)
 /*
  * sfs_fstat - Return nlinks/block/size, etc. info about a file. The pointer is a pointer to struct stat;
  */
-static int sfs_fstat(struct inode *node, struct stat *stat)
+int sfs_fstat(struct inode *node, struct stat *stat)
 {
     int ret;
     memset(stat, 0, sizeof(struct stat));
@@ -887,7 +896,7 @@ static int sfs_fstat(struct inode *node, struct stat *stat)
 /*
  * sfs_fsync - Force any dirty inode info associated with this file to stable storage.
  */
-static int sfs_fsync(struct inode *node)
+int sfs_fsync(struct inode *node)
 {
     assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
     struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
@@ -915,7 +924,7 @@ static int sfs_fsync(struct inode *node)
  *sfs_namefile -Compute pathname relative to filesystem root of the file and copy to the specified io buffer.
  *  
  */
-static int sfs_namefile(struct inode *node, struct iobuf *iob)
+int sfs_namefile(struct inode *node, struct iobuf *iob)
 {
     struct sfs_disk_entry *entry;
     if (iob->io_resid <= 2 || (entry = kmalloc(sizeof(struct sfs_disk_entry))) == NULL)
@@ -990,7 +999,7 @@ failed:
 /*
  * sfs_getdirentry_sub_noblock - get the content of file entry in DIR
  */
-static int sfs_getdirentry_sub_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, int slot, struct sfs_disk_entry *entry)
+int sfs_getdirentry_sub_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, int slot, struct sfs_disk_entry *entry)
 {
     int ret, i, nslots = sin->din->blocks;
     for (i = 0; i < nslots; i ++)
@@ -1015,7 +1024,7 @@ static int sfs_getdirentry_sub_nolock(struct sfs_fs *sfs, struct sfs_inode *sin,
  * sfs_getdirentry - according to the iob->io_offset, calculate the dir entry's slot in disk block,
                      get dir entry content from the disk 
  */
-static int sfs_getdirentry(struct inode *node, struct iobuf *iob)
+int sfs_getdirentry(struct inode *node, struct iobuf *iob)
 {
     struct sfs_disk_entry *entry;
     if ((entry = kmalloc(sizeof(struct sfs_disk_entry))) == NULL)
@@ -1056,7 +1065,7 @@ out:
  * sfs_reclaim - Free all resources inode occupied . Called when inode is no longer in use. 
  */
 // 文件节点资源回收，同时把内存节点最新数据同步到磁盘上
-static int sfs_reclaim(struct inode *node)
+int sfs_reclaim(struct inode *node)
 {
     assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
     struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
@@ -1112,7 +1121,7 @@ failed_unlock:
 /*
  * sfs_gettype - Return type of file. The values for file types are in sfs.h.
  */
-static int sfs_gettype(struct inode *node, uint32_t *type_store)
+int sfs_gettype(struct inode *node, uint32_t *type_store)
 {
     struct sfs_disk_inode *din = sfs_vop_info(node)->din;
     switch (din->type)
@@ -1133,7 +1142,7 @@ static int sfs_gettype(struct inode *node, uint32_t *type_store)
 /* 
  * sfs_tryseek - Check if seeking to the specified position within the file is legal.
  */
-static int sfs_tryseek(struct inode *node, off_t pos)
+int sfs_tryseek(struct inode *node, off_t pos)
 {
     if (pos < 0 || pos >= SFS_MAX_FILE_SIZE)
     {
@@ -1153,7 +1162,7 @@ static int sfs_tryseek(struct inode *node, off_t pos)
 /*
  * sfs_truncfile : reszie the file with new length
  */
-static int sfs_truncfile(struct inode *node, off_t len)
+int sfs_truncfile(struct inode *node, off_t len)
 {
     if (len < 0 || len > SFS_MAX_FILE_SIZE)
     {
@@ -1214,18 +1223,20 @@ out_unlock:
  *              DIR, and hand back the inode for the file it
  *              refers to.
  */
-static int sfs_lookup(struct inode *node, char *path, struct inode **node_store)
+int sfs_lookup(struct inode *node, char *path, struct inode **node_store)
 {
     assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
     struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
     assert(*path != '\0' && *path != '/');
     inode_ref_inc(node);
+    
     struct sfs_inode *sin = sfs_vop_info(node);
     if (sin->din->type != SFS_TYPE_DIR)
     {
         inode_ref_dec(node);
         return -E_NOTDIR;
     }
+    
     struct inode *subnode;
     int ret = sfs_lookup_once(sfs, sin, path, &subnode, NULL);
 
@@ -1238,7 +1249,7 @@ static int sfs_lookup(struct inode *node, char *path, struct inode **node_store)
     return 0;
 }
 
-static int sfs_create_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const char *name, bool excl, struct inode **node_store)
+int sfs_create_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const char *name, bool excl, struct inode **node_store)
 {
     int ret, slot;
     uint32_t ino;
@@ -1282,7 +1293,7 @@ out:
     return 0;
 }
 
-static int sfs_create(struct inode *node, const char *name, bool excl, struct inode **node_store)
+int sfs_create(struct inode *node, const char *name, bool excl, struct inode **node_store)
 {
     if (strlen(name) > SFS_MAX_FNAME_LEN)
     {

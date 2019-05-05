@@ -189,7 +189,7 @@ struct sfs_fs
     struct device *dev;                             /* device mounted on */
     struct bitmap *freemap;                         /* blocks in use are mared 0 */
     bool super_dirty;                               /* true if super/freemap modified */
-    // 文件缓冲区，大小 4k
+    // 文件读写缓冲区，大小 4k
     void *sfs_buffer;                               /* buffer for non-block aligned io */
     semaphore_t fs_sem;                             /* semaphore for fs */
     semaphore_t io_sem;                             /* semaphore for io */

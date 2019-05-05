@@ -8,7 +8,7 @@
 #include "error.h"
 
 static semaphore_t bootfs_sem;
-// 根目录 “/” 对应的 inode
+// 当前文件系统根目录 “/” 对应的 inode
 static struct inode *bootfs_node = NULL;
 
 extern void vfs_devlist_init(void);
@@ -60,7 +60,7 @@ static void change_bootfs(struct inode *node)
     }
 }
 
-// vfs_set_bootfs - change the dir of file system
+// vfs_set_bootfs - change the dir of file system "disk0"
 int vfs_set_bootfs(char *fsname)
 {
     struct inode *node = NULL;

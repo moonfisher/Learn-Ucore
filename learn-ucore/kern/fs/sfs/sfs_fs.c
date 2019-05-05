@@ -13,10 +13,12 @@
 #include "error.h"
 #include "assert.h"
 
+int disk0_io(struct device *dev, struct iobuf *iob, bool write);
+
 /*
  * sfs_sync - sync sfs's superblock and freemap in memroy into disk
  */
-static int sfs_sync(struct fs *fs)
+int sfs_sync(struct fs *fs)
 {
     assert(fs != NULL && (fs->fs_type == fs_type_sfs_info));
     struct sfs_fs *sfs = &(fs->fs_info.__sfs_info);
@@ -55,12 +57,13 @@ static int sfs_sync(struct fs *fs)
 /*
  * sfs_get_root - get the root directory inode  from disk (SFS_BLKN_ROOT,1)
  */
-static struct inode *sfs_get_root(struct fs *fs)
+struct inode *sfs_get_root(struct fs *fs)
 {
     struct inode *node;
     int ret;
     assert(fs != NULL && (fs->fs_type == fs_type_sfs_info));
     struct sfs_fs *sfs = &(fs->fs_info.__sfs_info);
+    
     if ((ret = sfs_load_inode(sfs, &node, SFS_BLKN_ROOT)) != 0)
     {
         panic("load sfs root failed: %e", ret);
@@ -71,7 +74,7 @@ static struct inode *sfs_get_root(struct fs *fs)
 /*
  * sfs_unmount - unmount sfs, and free the memorys contain sfs->freemap/sfs_buffer/hash_liskt and sfs itself.
  */
-static int sfs_unmount(struct fs *fs)
+int sfs_unmount(struct fs *fs)
 {
     assert(fs != NULL && (fs->fs_type == fs_type_sfs_info));
     struct sfs_fs *sfs = &(fs->fs_info.__sfs_info);
@@ -92,7 +95,7 @@ static int sfs_unmount(struct fs *fs)
  *
  * NOTICE: nouse now.
  */
-static void sfs_cleanup(struct fs *fs)
+void sfs_cleanup(struct fs *fs)
 {
     assert(fs != NULL && (fs->fs_type == fs_type_sfs_info));
     struct sfs_fs *sfs = &(fs->fs_info.__sfs_info);
@@ -123,11 +126,12 @@ static void sfs_cleanup(struct fs *fs)
  *      (1) init iobuf
  *      (2) read dev into iobuf
  */
-static int sfs_init_read(struct device *dev, uint32_t blkno, void *blk_buffer)
+int sfs_init_read(struct device *dev, uint32_t blkno, void *blk_buffer)
 {
     struct iobuf __iob;
     struct iobuf *iob = iobuf_init(&__iob, blk_buffer, SFS_BLKSIZE, blkno * SFS_BLKSIZE);
-    return dev->d_io(dev, iob, 0);
+//    return dev->d_io(dev, iob, 0);
+    return disk0_io(dev, iob, 0);
 }
 
 /*
@@ -142,7 +146,7 @@ static int sfs_init_read(struct device *dev, uint32_t blkno, void *blk_buffer)
  *      (1) get data addr in bitmap
  *      (2) read dev into iobuf
  */
-static int sfs_init_freemap(struct device *dev, struct bitmap *freemap, uint32_t blkno, uint32_t nblks, void *blk_buffer)
+int sfs_init_freemap(struct device *dev, struct bitmap *freemap, uint32_t blkno, uint32_t nblks, void *blk_buffer)
 {
     size_t len;
     void *data = bitmap_getdata(freemap, &len);
@@ -171,7 +175,7 @@ static int sfs_init_freemap(struct device *dev, struct bitmap *freemap, uint32_t
   在 sfs_do_mount 函数中，完成了加载位于硬盘上的 SFS 文件系统的超级块 superblock 和 freemap
   的工作。这样，在内存中就有了 SFS 文件系统的全局信息。
 */
-static int sfs_do_mount(struct device *dev, struct fs **fs_store)
+int sfs_do_mount(struct device *dev, struct fs **fs_store)
 {
     static_assert(SFS_BLKSIZE >= sizeof(struct sfs_super));
     static_assert(SFS_BLKSIZE >= sizeof(struct sfs_disk_inode));
@@ -197,7 +201,7 @@ static int sfs_do_mount(struct device *dev, struct fs **fs_store)
 
     int ret = -E_NO_MEM;
 
-    void *sfs_buffer;
+    void *sfs_buffer;   // 文件读写缓冲区，大小 4k
     if ((sfs->sfs_buffer = sfs_buffer = kmalloc(SFS_BLKSIZE)) == NULL)
     {
         goto failed_cleanup_fs;
@@ -219,14 +223,12 @@ static int sfs_do_mount(struct device *dev, struct fs **fs_store)
     struct sfs_super *super = sfs_buffer;
     if (super->magic != SFS_MAGIC)
     {
-        cprintf("sfs: wrong magic in superblock. (%08x should be %08x).\n",
-                super->magic, SFS_MAGIC);
+        cprintf("sfs: wrong magic in superblock. (%08x should be %08x).\n", super->magic, SFS_MAGIC);
         goto failed_cleanup_sfs_buffer;
     }
     if (super->blocks > dev->d_blocks)
     {
-        cprintf("sfs: fs has %u blocks, device has %u blocks.\n",
-                super->blocks, dev->d_blocks);
+        cprintf("sfs: fs has %u blocks, device has %u blocks.\n", super->blocks, dev->d_blocks);
         goto failed_cleanup_sfs_buffer;
     }
     super->info[SFS_MAX_INFO_LEN] = '\0';
@@ -277,8 +279,7 @@ static int sfs_do_mount(struct device *dev, struct fs **fs_store)
     sem_init(&(sfs->io_sem), 1);
     sem_init(&(sfs->mutex_sem), 1);
     list_init(&(sfs->inode_list));
-    cprintf("sfs: mount: '%s' (%d/%d/%d)\n", sfs->super.info,
-            blocks - unused_blocks, unused_blocks, blocks);
+    cprintf("sfs: mount: '%s' (%d/%d/%d)\n", sfs->super.info, blocks - unused_blocks, unused_blocks, blocks);
 
     /* link addr of sync/get_root/unmount/cleanup funciton  fs's function pointers*/
     fs->fs_sync = sfs_sync;
