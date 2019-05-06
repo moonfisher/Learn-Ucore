@@ -20,7 +20,7 @@
 (an simplified Linux process/thread mechanism )
 introduction:
   ucore implements a simple process/thread mechanism. process contains the independent memory sapce, at least one threads
-for execution, the kernel data(for management), processor state (for context switch), files(in lab6), etc. ucore needs to
+for execution, the kernel data(for management), processor state (for context switch), files, etc. ucore needs to
 manage all these details efficiently. In ucore, a thread is just a special kind of process(share process's memory).
 ------------------------------
 process state       :     meaning               -- reason
@@ -438,7 +438,7 @@ static void copy_thread(struct proc_struct *proc, uintptr_t esp, struct trapfram
     proc->context.esp = (uintptr_t)(proc->tf);
 }
 
-//copy_fs & put_fs function used by do_fork in LAB8
+//copy_fs & put_fs function used by do_fork
 static int copy_fs(uint32_t clone_flags, struct proc_struct *proc)
 {
     struct files_struct *filesp, *old_filesp = current->filesp;
@@ -534,7 +534,6 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const c
     // 父子进程指向同样的文件节点，只是文件节点的引用次数增加
     if (copy_fs(clone_flags, proc) != 0)
     {
-        //for LAB8
         goto bad_fork_cleanup_kstack;
     }
     
@@ -568,7 +567,7 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const c
 fork_out:
     return ret;
 
-bad_fork_cleanup_fs:  //for LAB8
+bad_fork_cleanup_fs:
     put_fs(proc);
 bad_fork_cleanup_kstack:
     put_kstack(proc);
@@ -607,7 +606,7 @@ int do_exit(int error_code)
         }
         current->mm = NULL;
     }
-    put_fs(current); //for LAB8
+    put_fs(current);
     current->state = PROC_ZOMBIE;
     current->exit_code = error_code;
     
@@ -656,7 +655,7 @@ int do_exit(int error_code)
     panic("do_exit will not return!! %d.\n", current->pid);
 }
 
-//load_icode_read is used by load_icode in LAB8
+//load_icode_read is used by load_icode
 static int load_icode_read(int fd, void *buf, size_t len, off_t offset)
 {
     int ret;
@@ -907,7 +906,7 @@ bad_mm:
     goto out;
 }
 
-// this function isn't very correct in LAB8
+// this function isn't very correct
 static void put_kargv(int argc, char **kargv)
 {
     while (argc > 0)
@@ -1311,7 +1310,7 @@ void cpu_idle(void)
     }
 }
 
-//FOR LAB6, set the process's priority (bigger value will get more CPU time) 
+// set the process's priority (bigger value will get more CPU time) 
 void set_priority(uint32_t priority)
 {
     if (priority == 0)

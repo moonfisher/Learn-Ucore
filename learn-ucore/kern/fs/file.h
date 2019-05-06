@@ -34,7 +34,7 @@ struct file
     bool writable;
     // 文件在 filemap 中的索引值
     int fd;
-    // 访问文件的当前位置
+    // 访问文件的当前位置，用于记录分多次读取
     off_t pos;
     // 该文件对应的内存 inode 指针
     struct inode *node;

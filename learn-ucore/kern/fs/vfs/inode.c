@@ -31,6 +31,7 @@ void inode_init(struct inode *node, const struct inode_ops *ops, struct fs *fs)
     node->open_count = 0;
     node->in_ops = ops;
     node->in_fs = fs;
+    memset(node->name, 0, 256);
     inode_ref_inc(node);
 }
 

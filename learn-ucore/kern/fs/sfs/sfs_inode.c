@@ -163,7 +163,7 @@ struct inode *lookup_sfs_nolock(struct sfs_fs *sfs, uint32_t ino)
  * sfs_load_inode - If the inode isn't existed, load inode related ino disk block data into a new created inode.
  * If the inode is in memory alreadily, then do nothing
  */
-int sfs_load_inode(struct sfs_fs *sfs, struct inode **node_store, uint32_t ino)
+int sfs_load_inode(struct sfs_fs *sfs, struct inode **node_store, uint32_t ino, const char *name)
 {
     lock_sfs_fs(sfs);
     
@@ -193,6 +193,8 @@ int sfs_load_inode(struct sfs_fs *sfs, struct inode **node_store, uint32_t ino)
         goto failed_cleanup_din;
     }
     
+    memset(node->name, 0, 256);
+    memcpy(node->name, name, 256);
     // 从磁盘读取的 inode 节点数据，放到缓存链表上，方便下次读取
     sfs_set_links(sfs, sfs_vop_info(node));
 
@@ -291,6 +293,7 @@ int sfs_bmap_get_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_t inde
 	// the index of disk block is in the fist SFS_NDIRECT  direct blocks
     if (index < SFS_NDIRECT)
     {
+        // 通过直接索引，可以获取 ino
         if ((ino = din->direct[index]) == 0 && create)
         {
             if ((ret = sfs_block_alloc(sfs, &ino)) != 0)
@@ -306,6 +309,7 @@ int sfs_bmap_get_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_t inde
     index -= SFS_NDIRECT;
     if (index < SFS_BLK_NENTRY)
     {
+        // 需要间接访问才能获取 ino
         ent = din->indirect;
         if ((ret = sfs_bmap_get_sub_nolock(sfs, &ent, index, create, &ino)) != 0)
         {
@@ -416,7 +420,7 @@ int sfs_bmap_load_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_t ind
     assert(sfs_block_inuse(sfs, ino));
     if (create)
     {
-        din->blocks ++;
+        din->blocks++;
     }
     if (ino_store != NULL)
     {
@@ -520,9 +524,11 @@ int sfs_dirent_search_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const ch
     }
 
 #define set_pvalue(x, v)            do { if ((x) != NULL) { *(x) = (v); } } while (0)
-    int ret, i, nslots = sin->din->blocks;
+    int ret = 0;
+    int i = 0;
+    int nslots = sin->din->blocks;
     set_pvalue(empty_slot, nslots);
-    // 这里每次搜索都是循环遍历，然后进行 name 名字比较，目录如果很多，估计有性能问题
+    // 这里每次搜索都是循环遍历，从磁盘上读出数据，然后进行 name 名字比较，目录如果很多，估计有性能问题
     for (i = 0; i < nslots; i ++)
     {
         if ((ret = sfs_dirent_read_nolock(sfs, sin, i, entry)) != 0)
@@ -663,14 +669,17 @@ int sfs_lookup_once(struct sfs_fs *sfs, struct sfs_inode *sin, const char *name,
     int ret;
     uint32_t ino;
     lock_sin(sin);
-    {   // find the NO. of disk block and logical index of file entry
+    {
+        // find the NO. of disk block and logical index of file entry
+        // 在目录下通过遍历磁盘上的多个 sfs_disk_entry 结构，匹配 name 字段来搜索文件所在的 ino
         ret = sfs_dirent_search_nolock(sfs, sin, name, &ino, slot, NULL);
     }
     unlock_sin(sin);
     if (ret == 0)
     {
 		// load the content of inode with the the NO. of disk block
-        ret = sfs_load_inode(sfs, node_store, ino);
+        // 通过上面返回的 ino 可以加载文件在磁盘上对应的 sfs_disk_inode 结构
+        ret = sfs_load_inode(sfs, node_store, ino, name);
     }
     return ret;
 }
@@ -767,16 +776,6 @@ int sfs_io_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, void *buf, off_t of
     uint32_t blkno = offset / SFS_BLKSIZE;          // The NO. of Rd/Wr begin block
     uint32_t nblks = endpos / SFS_BLKSIZE - blkno;  // The size of Rd/Wr blocks
 
-  //LAB8:EXERCISE1 YOUR CODE HINT: call sfs_bmap_load_nolock, sfs_rbuf, sfs_rblock,etc. read different kind of blocks in file
-	/*
-	 * (1) If offset isn't aligned with the first block, Rd/Wr some content from offset to the end of the first block
-	 *       NOTICE: useful function: sfs_bmap_load_nolock, sfs_buf_op
-	 *               Rd/Wr size = (nblks != 0) ? (SFS_BLKSIZE - blkoff) : (endpos - offset)
-	 * (2) Rd/Wr aligned blocks 
-	 *       NOTICE: useful function: sfs_bmap_load_nolock, sfs_block_op
-     * (3) If end position isn't aligned with the last block, Rd/Wr some content from begin to the (endpos % SFS_BLKSIZE) of the last block
-	 *       NOTICE: useful function: sfs_bmap_load_nolock, sfs_buf_op	
-	*/
     if ((blkoff = offset % SFS_BLKSIZE) != 0)
     {
         size = (nblks != 0) ? (SFS_BLKSIZE - blkoff) : (endpos - offset);
@@ -1223,6 +1222,7 @@ out_unlock:
  *              DIR, and hand back the inode for the file it
  *              refers to.
  */
+// 在当前目录 node 下，搜索文件
 int sfs_lookup(struct inode *node, char *path, struct inode **node_store)
 {
     assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
@@ -1262,7 +1262,7 @@ int sfs_create_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const char *nam
         }
         if (!excl)
         {
-            if ((ret = sfs_load_inode(sfs, &link_node, ino)) != 0)
+            if ((ret = sfs_load_inode(sfs, &link_node, ino, name)) != 0)
             {
                 return ret;
             }

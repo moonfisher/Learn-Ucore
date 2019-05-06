@@ -61,7 +61,7 @@ struct run_queue
     unsigned int proc_num;
     // 每个进程一轮占用的最多时间片
     int max_time_slice;
-    // 优先队列形式的进程容器，只在 LAB6 中使用
+    // 优先队列形式的进程容器
     skew_heap_entry_t *run_pool;
 };
 

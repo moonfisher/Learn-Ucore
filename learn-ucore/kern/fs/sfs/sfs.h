@@ -64,31 +64,34 @@
                   它的作用范围是整个 OS 空间。
  目录项（dentry）：它主要从文件系统的文件路径的角度描述了文件路径中的特定目录。
                  它的作用范围是整个 OS 空间。
- 文件（file）：它主要从进程的角度描述了一个进程在访问文件时需要了解的文件标识，文件读写的位置，文件引用情况等
-             信息。它的作用范围是某一具体进程。
+ 文件（file）：它主要从进程的角度描述了一个进程在访问文件时需要了解的文件标识，文件读写的位置，文件
+             引用情况等信息。它的作用范围是某一具体进程。
  
  ucore 使用的 sfs.img 文件是在 mksfs 里创建的
  
  文件系统通常保存在磁盘上，disk0 代表磁盘，用来存放一个 SFS 文件系统。磁盘的使用是以扇区为单位的，
- 但是在文件系统中，一般按数据块来使用磁盘，在 sfs 中，我们以4k（8 个 sector，和 page 大小相等）为一个数据块
+ 但是在文件系统中，一般按数据块来使用磁盘，在 sfs 中，我们以4k（8 个 sector，和 page 大小相等）为
+ 一个数据块
 
  ---------------------------------------------------------------------------
  superblock | root-dir inode | freemap | inode / File data / Dir data blocks
  ---------------------------------------------------------------------------
  
- 第 0 个块（4K）是超级块（superblock struct sfs_super），文件系统中第一个块被称为超级块。
- 这个块存放文件系统本身的结构信息。比如，超级块记录了每个区域的大小，超级块也存放未被使用的磁盘块的信息。
- 它包含了关于文件系统的所有关键参数，当计算机被启动或文件系统被首次接触时，超级块的内容就会被装入内存。
+ 第 0 个块（4K）是超级块（sfs.img 文件第一个 4K 字节, superblock struct sfs_super），
+ 文件系统中第一个块被称为超级块。这个块存放文件系统本身的结构信息。比如，超级块记录了每个区域的大小，
+ 超级块也存放未被使用的磁盘块的信息。它包含了关于文件系统的所有关键参数，当计算机被启动或文件系统被
+ 首次接触时，超级块的内容就会被装入内存。
  
- 第 1 个块放了一个 root-dir 的 inode，用来记录根目录的相关信息。root-dir 是 SFS 文件系统的根结点，
- 通过这个 root-dir 的 inode 信息就可以定位并查找到根目录下的所有文件信息。
+ 第 1 个块（4K）(sfs.img 文件第 2 个 4K 字节) 放了一个 root-dir 的 inode，用来记录根目录的
+ 相关信息。root-dir 是 SFS 文件系统的根结点，通过这个 root-dir 的 inode 信息就可以定位并查找到
+ 根目录下的所有文件信息。
  
- 从第 2 个块开始，根据 SFS 中所有块的数量，记录块占用情况，用 1 个 bit 来表示一个块的占用和未被占用的情况。
- 这个区域称为 SFS 的 freemap 区域，这将占用若干个块空间。为了更好地记录和管理 freemap 区域，
- 专门提供了文件 kern/fs/sfs/bitmap.c 来完成根据一个块号查找或设置对应的 bit 位的值。
+ 从第 2 个块开始，根据 SFS 中所有块的数量，记录块占用情况，用 1 个 bit 来表示一个块的占用和未被
+ 占用的情况。这个区域称为 SFS 的 freemap 区域，这将占用若干个块空间。为了更好地记录和管理 freemap
+ 区域，专门提供了文件 kern/fs/sfs/bitmap.c 来完成根据一个块号查找或设置对应的 bit 位的值。
  
  最后在剩余的磁盘空间中，存放了所有其他目录和文件的 inode 信息和内容数据信息。需要注意的是虽然
- inode 的大小小于一个块的大小（4096 B），但为了实现简单，每个 inode 都占用一个完整的 block。
+ inode 的大小小于一个块的大小（4k），但为了实现简单，每个 inode 都占用一个完整的 block。
  
  通常，一个文件占用的多个物理块在磁盘上是不连续存储的，因为如果连续存储，则经过频繁的删除、建立、
  移动文件等操作，最后磁盘上将形成大量的空洞，很快磁盘上将无空间可供使用。因此，必须提供一种方法
@@ -98,7 +101,7 @@ struct sfs_super
 {
     // magic 代表一个魔数，其值为 0x2f8dbe2a，内核用它来检查磁盘镜像是否合法
     uint32_t magic;                                 /* magic number, should be SFS_MAGIC */
-    // blocks 记录了 sfs 中 block 的数量
+    // blocks 记录了 sfs 中 block 的数量，1 block =
     uint32_t blocks;                                /* # of blocks in fs */
     // unused_block 记录了 sfs 中还没有被使用的 block 数量，其中关于物理磁盘的管理与
     // 虚拟内存的管理十分类似，每次使用物理磁盘也会有一个类似于物理内存管理的分配算法。
@@ -107,15 +110,17 @@ struct sfs_super
     char info[SFS_MAX_INFO_LEN + 1];                /* infomation for sfs  */
 };
 
-/* inode (on disk 磁盘上的 inode) */
+/* inode (on disk 磁盘上的 inode 二进制结构) */
 /*
  之前在初始化过程中讨论过 vfs 对应的索引节点，其实索引节点主要是指存在磁盘中的索引节点，
  当把磁盘中的索引节点 load 到内存中之后，在内存中也会存在一个索引节点
  
  对于磁盘索引节点，direct 指的是这个 inode 的直接索引块的索引值，它的大小是 12，所以最多能够
- 通过 direct 的方式支持最大 12 * 4096 B 的文件大小。之所以这样设计是因为我们实际的文件系统中，
- 绝大多数文件都是小文件，因此直接索引的方式能够提高小文件的存取速度，而且通过间接索引的方式还能支
- 持大文件。当使用一级间接数据块索引时，ucore 支持最大的文件大小为 12 * 4k + 1024 * 4k = 48k + 4m。
+ 通过 direct 的方式支持最大 12 * 4k 的文件大小。之所以这样设计是因为我们实际的文件系统中，
+ 绝大多数文件都是小文件，因此直接索引的方式能够提高小文件的存取速度
+ 
+ 如果要支持大文件存储，就要通过间接索引的方式。当使用一级间接数据块索引时，ucore 支持最大的文件
+ 大小为 12 * 4k + 1024 * 4k = 48k + 4m。
 */
 struct sfs_disk_inode
 {
@@ -125,15 +130,15 @@ struct sfs_disk_inode
     uint16_t type;                                  /* one of SYS_TYPE_* above */
     // 此 inode 的硬链接数
     uint16_t nlinks;                                /* # of hard links to this file */
-    // 此 inode 的数据块数的个数
+    // 此 inode 拥有的数据块的个数，如果是个目录 node，这个也表示目录下文件的个数
     uint32_t blocks;                                /* # of blocks */
-    // 此 inode 的直接数据块索引值（有 SFS_NDIRECT 个）
+    // 此 inode 的直接数据块索引值（有 SFS_NDIRECT 个)
     uint32_t direct[SFS_NDIRECT];                   /* direct blocks */
     // 此 inode 的一级间接数据块索引值
     uint32_t indirect;                              /* indirect blocks */
 };
 
-/* file entry (on disk) */
+/* file entry (on disk 磁盘上的 entry 二进制结构) */
 /*
  对于普通文件，索引值指向的 block 中保存的是文件中的数据。而对于目录，索引值指向的数据保存的
  是目录下所有的文件名以及对应的索引节点所在的索引块（磁盘块）所形成的数组
@@ -157,7 +162,7 @@ struct sfs_disk_entry
 #define sfs_dentry_size                             \
     sizeof(((struct sfs_disk_entry *)0)->name)
 
-/* inode for sfs 内存中的 inode */
+/* inode for sfs 内存中的 inode 结构 */
 /*
  内存索引节点
  内存 inode 只有在打开一个文件后才会创建，如果关机则相关信息都会消失。
@@ -166,8 +171,9 @@ struct sfs_disk_entry
 */
 struct sfs_inode
 {
-    // 通过这个硬盘 inode 完成对文件、目录的打开，读写，关闭等
+    // 磁盘上存放的二进制数据机构，通过这个 inode 完成对文件、目录的打开，读写，关闭等
     struct sfs_disk_inode *din;                     /* on-disk inode */
+    // node 节点编号，实际也是 inode 所在磁盘上第几个 block 的索引
     uint32_t ino;                                   /* inode number */
     bool dirty;                                     /* true if inode modified */
     int reclaim_count;                              /* kill inode if it hits zero */
@@ -185,6 +191,7 @@ struct sfs_inode
 */
 struct sfs_fs
 {
+    // super 超级块，这里是个结构体，不是指针
     struct sfs_super super;                         /* on-disk superblock */
     struct device *dev;                             /* device mounted on */
     struct bitmap *freemap;                         /* blocks in use are mared 0 */
@@ -228,7 +235,7 @@ int sfs_sync_super(struct sfs_fs *sfs);
 int sfs_sync_freemap(struct sfs_fs *sfs);
 int sfs_clear_block(struct sfs_fs *sfs, uint32_t blkno, uint32_t nblks);
 
-int sfs_load_inode(struct sfs_fs *sfs, struct inode **node_store, uint32_t ino);
+int sfs_load_inode(struct sfs_fs *sfs, struct inode **node_store, uint32_t ino, const char *name);
 
 #endif /* !__KERN_FS_SFS_SFS_H__ */
 

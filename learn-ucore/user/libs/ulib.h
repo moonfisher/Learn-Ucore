@@ -43,7 +43,7 @@ int __exec(const char *name, const char **argv);
 #define exec(path, ...)                         __exec0(NULL, path, ##__VA_ARGS__)
 #define nexec(name, path, ...)                  __exec0(name, path, ##__VA_ARGS__)
 
-void set_priority(uint32_t priority); //only for lab6
+void set_priority(uint32_t priority); 
 
 #endif /* !__USER_LIBS_ULIB_H__ */
 

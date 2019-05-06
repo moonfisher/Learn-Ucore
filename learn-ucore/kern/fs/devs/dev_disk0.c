@@ -142,7 +142,8 @@ void disk0_device_init(struct device *dev)
         panic("disk0 device isn't available.\n");
     }
     
-    // 设备块数 = 磁盘扇区总数 / (块大小 / 扇区大小) = (磁盘扇区总数 * 扇区大小) / 块大小
+    // 设备块数 = 磁盘扇区总数 ( ide_init 函数里获取 ) / (块大小 / 扇区大小)
+    // = (磁盘扇区总数 * 扇区大小) / 块大小
     // block = 262144 / (4096 / 512) = 32768 = 0x8000
     dev->d_blocks = ide_device_size(DISK0_DEV_NO) / DISK0_BLK_NSECT;    // 0x8000
     dev->d_blocksize = DISK0_BLKSIZE;   // 每一块大小 4k，和内存分页一样大

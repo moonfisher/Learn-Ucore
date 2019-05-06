@@ -105,7 +105,8 @@ int sysfile_read(int fd, void *base, size_t len)
             }
             unlock_mm(mm);
         }
-        if (ret != 0 || alen == 0) {
+        if (ret != 0 || alen == 0)
+        {
             goto out;
         }
     }

@@ -205,6 +205,9 @@ static int vfs_do_add(const char *devname, struct inode *devnode, struct fs *fs,
 
     list_add(&vdev_list, &(vdev->vdev_link));
     unlock_vdev_list();
+    
+    memset(devnode->name, 0, 256);
+    memcpy(devnode->name, devname, 256);
     return 0;
 
 failed_cleanup_vdev:

@@ -65,6 +65,8 @@ struct inode
     struct fs *in_fs;
     // 访问 inode 内容的函数指针，和具体文件系统相关
     const struct inode_ops *in_ops;
+    // 文件名，增加这个字段方便调试
+    char name[256];
 };
 
 #define info2node(info, type)                                       \

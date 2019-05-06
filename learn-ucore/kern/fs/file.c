@@ -10,6 +10,7 @@
 #include "dirent.h"
 #include "error.h"
 #include "assert.h"
+#include "stdio.h"
 
 #define testfd(fd)                          ((fd) >= 0 && (fd) < FILES_STRUCT_NENTRY)
 
@@ -240,6 +241,7 @@ int file_open(char *path, uint32_t open_flags)
     file->readable = readable;
     file->writable = writable;
     fd_array_open(file);
+    cprintf("file_open, fd = %d, name = %s, path = %s\n", file->fd, file->node->name, path);
     return file->fd;
 }
 
@@ -253,6 +255,7 @@ int file_close(int fd)
         return ret;
     }
     fd_array_close(file);
+    cprintf("file_close, fd = %d, name = %s\n", file->fd, file->node->name);
     return 0;
 }
 
@@ -285,6 +288,7 @@ int file_read(int fd, void *base, size_t len, size_t *copied_store)
     }
     *copied_store = copied;
     fd_array_release(file);
+//    cprintf("file_read, fd = %d, name = %s, len = %d\n", file->fd, file->node->name, len);
     return ret;
 }
 
@@ -317,6 +321,7 @@ int file_write(int fd, void *base, size_t len, size_t *copied_store)
     }
     *copied_store = copied;
     fd_array_release(file);
+//    cprintf("file_write, fd = %d, name = %s, len = %d\n", file->fd, file->node->name, len);
     return ret;
 }
 
@@ -359,7 +364,7 @@ int file_seek(int fd, off_t pos, int whence)
         {
             file->pos = pos;
         }
-//    cprintf("file_seek, pos=%d, whence=%d, ret=%d\n", pos, whence, ret);
+        cprintf("file_seek, fd = %d, name = %s, pos = %d, whence = %d, ret = %d\n", fd, file->node->name, pos, whence, ret);
     }
     fd_array_release(file);
     return ret;
@@ -380,6 +385,7 @@ int file_fstat(int fd, struct stat *stat)
     inode_check(file->node, "fstat");
     ret = file->node->in_ops->vop_fstat(file->node, stat);
     fd_array_release(file);
+//    cprintf("file_fstat, fd = %d, name = %s\n", file->fd, file->node->name);
     return ret;
 }
 
@@ -397,8 +403,8 @@ int file_fsync(int fd)
     assert(file->node != NULL && file->node->in_ops != NULL && file->node->in_ops->vop_fsync != NULL);
     inode_check(file->node, "fsync");
     ret = file->node->in_ops->vop_fsync(file->node);
-
     fd_array_release(file);
+    cprintf("file_fsync, fd = %d, name = %s\n", file->fd, file->node->name);
     return ret;
 }
 
@@ -422,6 +428,7 @@ int file_getdirentry(int fd, struct dirent *direntp)
         direntp->offset += iobuf_used(iob);
     }
     fd_array_release(file);
+    cprintf("file_getdirentry, fd = %d, name = %s\n", file->fd, file->node->name);
     return ret;
 }
 

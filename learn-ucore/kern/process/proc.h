@@ -120,12 +120,12 @@ struct proc_struct
     list_entry_t run_link;                      // the entry linked in run queue
     // 进程运行时间片
     int time_slice;                             // time slice for occupying the CPU
-    // 该进程在优先队列中的节点，仅在 LAB6 使用
-    skew_heap_entry_t run_pool;            // FOR LAB6 ONLY: the entry in the run pool
-    // 该进程的调度步进值，仅在 LAB6 使用
-    uint32_t stride;                       // FOR LAB6 ONLY: the current stride of the process
-    // 该进程的调度优先级，仅在 LAB6 使用
-    uint32_t priority;                     // FOR LAB6 ONLY: the priority of process, set by set_priority(uint32_t)
+    // 该进程在优先队列中的节点
+    skew_heap_entry_t run_pool;            // the entry in the run pool
+    // 该进程的调度步进值
+    uint32_t stride;                       // the current stride of the process
+    // 该进程的调度优先级
+    uint32_t priority;                     // the priority of process, set by set_priority(uint32_t)
     // 进程访问文件系统的接口
     struct files_struct *filesp;                // the file related info(pwd, files_count, files_array, fs_semaphore) of process
 };
@@ -158,7 +158,7 @@ int do_yield(void);
 int do_execve(const char *name, int argc, const char **argv);
 int do_wait(int pid, int *code_store);
 int do_kill(int pid);
-//FOR LAB6, set the process's priority (bigger value will get more CPU time)
+// set the process's priority (bigger value will get more CPU time)
 void set_priority(uint32_t priority);
 int do_sleep(unsigned int time);
 #endif /* !__KERN_PROCESS_PROC_H__ */

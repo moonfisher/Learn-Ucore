@@ -92,6 +92,7 @@ int vfs_lookup(char *path, struct inode **node_store)
 {
     int ret;
     struct inode *node;
+    // 先根据 path 找到当前目录，可能是根目录，也可能是当前进程所在目录
     if ((ret = get_device(path, &path, &node)) != 0)
     {
         return ret;
@@ -99,7 +100,7 @@ int vfs_lookup(char *path, struct inode **node_store)
     
     if (*path != '\0')
     {
-        // 继续搜索后续路径
+        // 找到当前目录之后，再继续搜索后续路径，搜索子目录或者文件
         assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_lookup != NULL);
         inode_check(node, "lookup");
 //        ret = node->in_ops->vop_lookup(node, path, node_store);
