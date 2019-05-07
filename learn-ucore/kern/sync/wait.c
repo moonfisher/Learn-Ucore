@@ -110,14 +110,16 @@ void wakeup_queue(wait_queue_t *queue, uint32_t wakeup_flags, bool del)
             do
             {
                 wakeup_wait(queue, wait, wakeup_flags, 1);
-            } while ((wait = wait_queue_first(queue)) != NULL);
+            }
+            while ((wait = wait_queue_first(queue)) != NULL);
         }
         else
         {
             do
             {
                 wakeup_wait(queue, wait, wakeup_flags, 0);
-            } while ((wait = wait_queue_next(queue, wait)) != NULL);
+            }
+            while ((wait = wait_queue_next(queue, wait)) != NULL);
         }
     }
 }
@@ -126,6 +128,7 @@ void wait_current_set(wait_queue_t *queue, wait_t *wait, uint32_t wait_state)
 {
     assert(current != NULL);
     wait_init(wait, current);
+    // 这里将进程标记为 sleep 状态，后续不再调度，但同时也要记录进入 sleep 状态的真正原因
     current->state = PROC_SLEEPING;
     current->wait_state = wait_state;
     wait_queue_add(queue, wait);

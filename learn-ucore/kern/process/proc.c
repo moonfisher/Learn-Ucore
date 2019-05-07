@@ -225,23 +225,26 @@ static int get_pid(void)
  即 next->kstack + KSTACKSIZE；
  设置 CR3 寄存器的值为 next 内核线程的页目录表起始地址 next->cr3，
  这实际上是完成进程间的页表切换；
- 由 switch_to 函数完成具体的两个线程的执行现场切换，即切换各个寄存器，当 switch_to 函数执行完 ret 指令后，
- 就切换到 next 执行了。
- 在页表设置方面，考虑到以后的进程有各自的页表，其起始地址各不相同，只有完成页表切换，才能确保新的进程能够正确执行。
+ 由 switch_to 函数完成具体的两个线程的执行现场切换，即切换各个寄存器，当 switch_to 函数执行
+ 完 ret 指令后，就切换到 next 执行了。
+ 在页表设置方面，考虑到以后的进程有各自的页表，其起始地址各不相同，只有完成页表切换，才能确保新的
+ 进程能够正确执行。
  */
 void proc_run(struct proc_struct *proc)
 {
     if (proc != current)
     {
         char *name = get_proc_name(proc);
-        cprintf("proc_run: pid = %d, name = \"%s\".\n", proc->pid, name);
+        cprintf("proc_run: pid = %d, name = \"%s\", runs = %d.\n", proc->pid, name, proc->runs);
         
         bool intr_flag;
         struct proc_struct *prev = current, *next = proc;
         local_intr_save(intr_flag);
         {
             current = proc;
-            // 找到当前进程内核栈顶
+            // 重新设置当前进程内核栈顶，这里实际上等于说进程每次切换之后，内核栈都重新回到栈顶的位置
+            // 那么之前进程在进入内核态之后在内核栈里用到的数据，此时都会清空
+            // 内核栈的地址通过全局 tss 获取的，进程切换的时候更新 tss。
             load_esp0(next->kstack + KSTACKSIZE);
             lcr3(next->cr3);
             switch_to(&(prev->context), &(next->context));
@@ -422,7 +425,7 @@ bad_mm:
 //             - setup the kernel entry point and stack of process
 static void copy_thread(struct proc_struct *proc, uintptr_t esp, struct trapframe *tf)
 {
-    // 在内核堆栈的顶部设置中断帧大小的一块栈空间
+    // 在内核堆栈的顶部设置中断帧大小的一块栈空间，用于存放中断桢的数据
     proc->tf = (struct trapframe *)(proc->kstack + KSTACKSIZE) - 1;
     // 拷贝在 kernel_thread 函数建立的临时中断帧的初始值
     *(proc->tf) = *tf;
@@ -524,7 +527,7 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const c
     // 当前进程不可能处于阻塞等待的状态下，还在执行 fork
     assert(current->wait_state == 0);
 
-    // 分配栈空间，2个页面，8k大小
+    // 分配内核栈空间，2个页面，8k大小，供进程切换到内核态之后使用
     if (setup_kstack(proc) != 0)
     {
         goto bad_fork_cleanup_proc;
