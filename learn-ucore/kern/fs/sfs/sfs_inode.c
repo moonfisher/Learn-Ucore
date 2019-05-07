@@ -163,11 +163,12 @@ struct inode *lookup_sfs_nolock(struct sfs_fs *sfs, uint32_t ino)
  * sfs_load_inode - If the inode isn't existed, load inode related ino disk block data into a new created inode.
  * If the inode is in memory alreadily, then do nothing
  */
+// 从磁盘上加载对应索引 ino 的节点数据，这个操作有缓存的
 int sfs_load_inode(struct sfs_fs *sfs, struct inode **node_store, uint32_t ino, const char *name)
 {
     lock_sfs_fs(sfs);
     
-    // 先看缓存链表上，有没有当前要加载的 inode 节点，有就直接返回，没有再从磁盘上读取，提高速度
+    // 先看缓存链表上，有没有当前要加载的索引为 ino 节点，有就直接返回，没有再从磁盘上读取，提高速度
     struct inode *node;
     if ((node = lookup_sfs_nolock(sfs, ino)) != NULL)
     {
@@ -193,8 +194,8 @@ int sfs_load_inode(struct sfs_fs *sfs, struct inode **node_store, uint32_t ino, 
         goto failed_cleanup_din;
     }
     
-    memset(node->name, 0, 256);
-    memcpy(node->name, name, 256);
+    memset(node->nodename, 0, 256);
+    memcpy(node->nodename, name, strlen(name));
     // 从磁盘读取的 inode 节点数据，放到缓存链表上，方便下次读取
     sfs_set_links(sfs, sfs_vop_info(node));
 
@@ -1222,7 +1223,7 @@ out_unlock:
  *              DIR, and hand back the inode for the file it
  *              refers to.
  */
-// 在当前目录 node 下，搜索文件
+// 在当前目录 node 下，搜索文件，能进这个函数，node 一定是一个目录节点
 int sfs_lookup(struct inode *node, char *path, struct inode **node_store)
 {
     assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
