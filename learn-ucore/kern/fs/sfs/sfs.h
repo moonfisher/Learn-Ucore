@@ -124,17 +124,19 @@ struct sfs_super
 */
 struct sfs_disk_inode
 {
-    // 如果 inode 表示常规文件，则 size 是文件大小
+    // 如果 inode 表示常规文件，则 size 是文件总的大小
     uint32_t size;                                  /* size of the file (in bytes) */
     // inode 的文件类型
     uint16_t type;                                  /* one of SYS_TYPE_* above */
     // 此 inode 的硬链接数
     uint16_t nlinks;                                /* # of hard links to this file */
-    // 此 inode 拥有的数据块的个数，如果是个目录 node，这个也表示目录下文件的个数
+    // 此 inode 拥有的数据块的个数(direct + indirect)，如果是个目录 node，
+    // 这个也表示目录下文件的个数
     uint32_t blocks;                                /* # of blocks */
-    // 此 inode 的直接数据块索引值（有 SFS_NDIRECT 个)
+    // 此 inode 的直接数据块索引值（有 SFS_NDIRECT 个)，这些索引对应的磁盘区域
+    // 才是文件内容真正存放的地方
     uint32_t direct[SFS_NDIRECT];                   /* direct blocks */
-    // 此 inode 的一级间接数据块索引值
+    // direct 只能存放 12 个索引，放不下的用 indirect 间接索引
     uint32_t indirect;                              /* indirect blocks */
 };
 

@@ -82,6 +82,7 @@ int sysfile_read(int fd, void *base, size_t len)
     size_t copied = 0, alen;
     while (len != 0)
     {
+        // 读取长度小于 4k，一次读取，大于 4k，分多次 4k 读取
         if ((alen = IOBUF_SIZE) > len)
         {
             alen = len;

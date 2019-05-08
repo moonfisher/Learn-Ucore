@@ -43,7 +43,7 @@ static int safe_close(int fd)
 
 void test1()
 {
-    char buffer[1024] = {0};
+    char buffer[5000] = {0};
     
     int fd = safe_open("sfs_filetest1", O_RDONLY);
     struct stat *stat1 = safe_fstat(fd);

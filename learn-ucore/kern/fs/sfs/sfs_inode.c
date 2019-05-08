@@ -727,13 +727,14 @@ int sfs_close(struct inode *node)
  * @alenp:    the length need to read (is a pointer). and will RETURN the really Rd/Wr lenght
  * @write:    BOOL, 0 read, 1 write
  */
+// 文件读取函数，走到这里，不可能是读目录了
 int sfs_io_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, void *buf, off_t offset, size_t *alenp, bool write)
 {
     struct sfs_disk_inode *din = sin->din;
     assert(din->type != SFS_TYPE_DIR);
     off_t endpos = offset + *alenp, blkoff;
     *alenp = 0;
-	// calculate the Rd/Wr end position
+	// calculate the Rd/Wr end position SFS_MAX_FILE_SIZE = 128M
     if (offset < 0 || offset >= SFS_MAX_FILE_SIZE || offset > endpos)
     {
         return -E_INVAL;
