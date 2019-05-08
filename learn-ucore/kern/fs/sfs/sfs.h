@@ -177,6 +177,7 @@ struct sfs_inode
     struct sfs_disk_inode *din;                     /* on-disk inode */
     // node 节点编号，实际也是 inode 所在磁盘上第几个 block 的索引
     uint32_t ino;                                   /* inode number */
+    // 记录内存中的文件节点信息发生变更，已经和磁盘上的数据不一致，后续需要同步到磁盘上
     bool dirty;                                     /* true if inode modified */
     int reclaim_count;                              /* kill inode if it hits zero */
     semaphore_t sem;                                /* semaphore for din */
@@ -196,7 +197,10 @@ struct sfs_fs
     // super 超级块，这里是个结构体，不是指针
     struct sfs_super super;                         /* on-disk superblock */
     struct device *dev;                             /* device mounted on */
+    // 根据 SFS 中所有块的数量，记录块占用情况，用 1 个 bit
+    // 来表示一个块的占用和未被占用的情况
     struct bitmap *freemap;                         /* blocks in use are mared 0 */
+    // 记录内存中的文件节点信息发生变更，已经和磁盘上的数据不一致，后续需要同步到磁盘上
     bool super_dirty;                               /* true if super/freemap modified */
     // 文件读写缓冲区，大小 4k
     void *sfs_buffer;                               /* buffer for non-block aligned io */

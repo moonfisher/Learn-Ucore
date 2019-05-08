@@ -1149,9 +1149,11 @@ int sfs_tryseek(struct inode *node, off_t pos)
     {
         return -E_INVAL;
     }
+    
     struct sfs_inode *sin = sfs_vop_info(node);
     if (pos > sin->din->size)
     {
+        // 如果要 seek 的位置大于文件本身大小，则需要先把文件扩容
         assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_truncate != NULL);
         inode_check(node, "truncate");
         
@@ -1163,6 +1165,7 @@ int sfs_tryseek(struct inode *node, off_t pos)
 /*
  * sfs_truncfile : reszie the file with new length
  */
+// 文件扩容
 int sfs_truncfile(struct inode *node, off_t len)
 {
     if (len < 0 || len > SFS_MAX_FILE_SIZE)
