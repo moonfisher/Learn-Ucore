@@ -143,3 +143,14 @@ int sys_dup(int fd1, int fd2)
 {
     return syscall(SYS_dup, fd1, fd2);
 }
+
+int sys_mkdir(const char *path)
+{
+    return syscall(SYS_mkdir, path);
+}
+
+int sys_chdir(const char *path)
+{
+    return syscall(SYS_chdir, path);
+}
+

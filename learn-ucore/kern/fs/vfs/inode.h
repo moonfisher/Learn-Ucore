@@ -200,6 +200,7 @@ struct inode_ops
     int (*vop_write)(struct inode *node, struct iobuf *iob);
     int (*vop_fstat)(struct inode *node, struct stat *stat);
     int (*vop_fsync)(struct inode *node);
+    int (*vop_mkdir) (struct inode * node, const char *name);
     int (*vop_namefile)(struct inode *node, struct iobuf *iob);
     int (*vop_getdirentry)(struct inode *node, struct iobuf *iob);
     int (*vop_reclaim)(struct inode *node);

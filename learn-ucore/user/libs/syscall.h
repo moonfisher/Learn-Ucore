@@ -27,7 +27,8 @@ int sys_getcwd(char *buffer, size_t len);
 int sys_getdirentry(int fd, struct dirent *dirent);
 int sys_dup(int fd1, int fd2);
 void sys_set_priority(uint32_t priority); 
-
+int sys_mkdir(const char *path);
+int sys_chdir(const char *path);
 
 #endif /* !__USER_LIBS_SYSCALL_H__ */
 

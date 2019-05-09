@@ -60,6 +60,11 @@
 		73DD7D7A226F6B0400998EEC /* stdarg.h in Sources */ = {isa = PBXBuildFile; fileRef = C4CB325F2248F5830014426C /* stdarg.h */; };
 		73DD7D7B226F6B0400998EEC /* atomic.h in Sources */ = {isa = PBXBuildFile; fileRef = C4CB32612248F5830014426C /* atomic.h */; };
 		C41EC5A32283D805006D8303 /* dev_disk1.c in Sources */ = {isa = PBXBuildFile; fileRef = C41EC5A22283D805006D8303 /* dev_disk1.c */; };
+		C41EC5A722842437006D8303 /* mkdir.c in Sources */ = {isa = PBXBuildFile; fileRef = C41EC5A622842437006D8303 /* mkdir.c */; };
+		C41EC5A9228426C2006D8303 /* pwd.c in Sources */ = {isa = PBXBuildFile; fileRef = C41EC5A8228426C2006D8303 /* pwd.c */; };
+		C41EC5AB22842B62006D8303 /* cat.c in Sources */ = {isa = PBXBuildFile; fileRef = C41EC5AA22842B61006D8303 /* cat.c */; };
+		C41EC5AD22842D7C006D8303 /* halt.c in Sources */ = {isa = PBXBuildFile; fileRef = C41EC5AC22842D7C006D8303 /* halt.c */; };
+		C41EC5B6228442BD006D8303 /* cd.c in Sources */ = {isa = PBXBuildFile; fileRef = C41EC5B5228442BC006D8303 /* cd.c */; };
 		C4CB326C2248F5830014426C /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31BD2248F5820014426C /* init.c */; };
 		C4CB326E2248F5830014426C /* default_sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C02248F5820014426C /* default_sched.c */; };
 		C4CB326F2248F5830014426C /* sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C22248F5820014426C /* sched.c */; };
@@ -149,6 +154,11 @@
 		C403E691226FEE5C00B4A959 /* kernel.ld */ = {isa = PBXFileReference; lastKnownFileType = text; path = kernel.ld; sourceTree = "<group>"; };
 		C403E692226FEE5C00B4A959 /* sign */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = sign; sourceTree = "<group>"; };
 		C41EC5A22283D805006D8303 /* dev_disk1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dev_disk1.c; sourceTree = "<group>"; };
+		C41EC5A622842437006D8303 /* mkdir.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mkdir.c; sourceTree = "<group>"; };
+		C41EC5A8228426C2006D8303 /* pwd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pwd.c; sourceTree = "<group>"; };
+		C41EC5AA22842B61006D8303 /* cat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cat.c; sourceTree = "<group>"; };
+		C41EC5AC22842D7C006D8303 /* halt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = halt.c; sourceTree = "<group>"; };
+		C41EC5B5228442BC006D8303 /* cd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cd.c; sourceTree = "<group>"; };
 		C4CB31B12248F53F0014426C /* UCore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = UCore; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4CB31BD2248F5820014426C /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = init.c; sourceTree = "<group>"; };
 		C4CB31BE2248F5820014426C /* entry.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = entry.S; sourceTree = "<group>"; };
@@ -587,6 +597,11 @@
 		C4CB32262248F5830014426C /* user */ = {
 			isa = PBXGroup;
 			children = (
+				C41EC5B5228442BC006D8303 /* cd.c */,
+				C41EC5AC22842D7C006D8303 /* halt.c */,
+				C41EC5AA22842B61006D8303 /* cat.c */,
+				C41EC5A8228426C2006D8303 /* pwd.c */,
+				C41EC5A622842437006D8303 /* mkdir.c */,
 				C4CB32272248F5830014426C /* priority.c */,
 				C4CB32282248F5830014426C /* forktree.c */,
 				C4CB32292248F5830014426C /* sleepkill.c */,
@@ -747,6 +762,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C41EC5AB22842B62006D8303 /* cat.c in Sources */,
 				73DD7D6A226F6B0400998EEC /* stdio.h in Sources */,
 				73DD7D6B226F6B0400998EEC /* string.h in Sources */,
 				73DD7D6C226F6B0400998EEC /* string.c in Sources */,
@@ -755,6 +771,7 @@
 				73DD7D6F226F6B0400998EEC /* defs.h in Sources */,
 				73DD7D70226F6B0400998EEC /* rand.c in Sources */,
 				73DD7D71226F6B0400998EEC /* unistd.h in Sources */,
+				C41EC5B6228442BD006D8303 /* cd.c in Sources */,
 				73DD7D72226F6B0400998EEC /* stat.h in Sources */,
 				73DD7D73226F6B0400998EEC /* dirent.h in Sources */,
 				73DD7D74226F6B0400998EEC /* hash.c in Sources */,
@@ -768,6 +785,7 @@
 				73DD7D47226F6A8500998EEC /* priority.c in Sources */,
 				73DD7D48226F6A8500998EEC /* forktree.c in Sources */,
 				73DD7D49226F6A8500998EEC /* sleepkill.c in Sources */,
+				C41EC5A9228426C2006D8303 /* pwd.c in Sources */,
 				73DD7D4A226F6A8500998EEC /* forktest.c in Sources */,
 				73DD7D4B226F6A8500998EEC /* hello.c in Sources */,
 				73DD7D4C226F6A8500998EEC /* ls.c in Sources */,
@@ -777,6 +795,7 @@
 				73DD7D50226F6A8500998EEC /* ulib.h in Sources */,
 				73DD7D51226F6A8500998EEC /* lock.h in Sources */,
 				73DD7D52226F6A8500998EEC /* file.h in Sources */,
+				C41EC5AD22842D7C006D8303 /* halt.c in Sources */,
 				73DD7D53226F6A8500998EEC /* panic.c in Sources */,
 				73DD7D54226F6A8500998EEC /* stdio.c in Sources */,
 				73DD7D55226F6A8500998EEC /* dir.c in Sources */,
@@ -799,6 +818,7 @@
 				73DD7D67226F6A8500998EEC /* yield.c in Sources */,
 				73DD7D68226F6A8500998EEC /* matrix.c in Sources */,
 				73DD7D69226F6A8500998EEC /* faultreadkernel.c in Sources */,
+				C41EC5A722842437006D8303 /* mkdir.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

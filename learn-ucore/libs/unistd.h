@@ -26,9 +26,13 @@
 #define SYS_seek            104
 #define SYS_fstat           110
 #define SYS_fsync           111
+#define SYS_chdir           120
 #define SYS_getcwd          121
+#define SYS_mkdir           122
 #define SYS_getdirentry     128
 #define SYS_dup             130
+#define SYS_pipe            140
+#define SYS_mkfifo          141
 
 #define SYS_set_priority 255
 

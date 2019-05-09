@@ -14,6 +14,7 @@
 #define WHITESPACE                      " \t\r\n"
 #define SYMBOLS                         "<|>&;"
 
+// 这里定义的全局变量无法实现父子进程共享，参考写时复制
 char shcwd[BUFSIZE];
 
 int gettoken(char **p1, char **p2)
@@ -151,6 +152,47 @@ int testfile(const char *name)
     return 0;
 }
 
+int precmd(char *cmd)
+{
+    const char *argv[EXEC_MAX_ARG_NUM + 1] = {0};
+    char *t = NULL;
+    int argc = 0, token = 0, ret = -999;
+
+    while (1)
+    {
+        switch (token = gettoken(&cmd, &t))
+        {
+            case 'w':
+                if (argc == EXEC_MAX_ARG_NUM)
+                {
+                    printf("sh error: too many arguments\n");
+                    return ret;
+                }
+                argv[argc ++] = t;
+                break;
+            case 0:
+                goto runit;
+        }
+    }
+    
+runit:
+    if (argc == 0)
+    {
+        return ret;
+    }
+    else if (strcmp(argv[0], "cd") == 0)
+    {
+        if (argc != 2)
+        {
+            return ret;
+        }
+        
+        ret = chdir(shcwd);
+    }
+    
+    return ret;
+}
+
 int runcmd(char *cmd)
 {
     static char argv0[BUFSIZE] = {0};
@@ -252,12 +294,16 @@ runit:
     {
         return 0;
     }
+    // cd xxx，需要切换的是 sh 所在的文件目录，这里不能用子进程 cd 去切换
+    // 子进程 cd 切换的只是 cd 当前的目录结构
     else if (strcmp(argv[0], "cd") == 0)
     {
         if (argc != 2)
         {
             return -1;
         }
+        // 当 shcwd 变量不修改时，子进程和父进程看到的是同一个变量（虚拟地址空间），但当子进程修改时，
+        // 会采用写时复制，子进程和父进程的 shcwd 在内存物理地址上不是同一个地方，相互不影响
         strcpy(shcwd, argv[1]);
         return 0;
     }
@@ -299,23 +345,28 @@ int main(int argc, char **argv)
     char *buffer;
     while ((buffer = readline((interactive) ? "$ " : NULL)) != NULL)
     {
-        shcwd[0] = '\0';
-        int pid;
-        if ((pid = fork("runcmd")) == 0)
+        ret = precmd(buffer);
+        if (ret == -999)
         {
-            ret = runcmd(buffer);
-            exit(ret);
-        }
-        assert(pid >= 0);
-        if (waitpid(pid, &ret) == 0)
-        {
-            if (ret == 0 && shcwd[0] != '\0')
+            shcwd[0] = '\0';
+            int pid;
+            if ((pid = fork("runcmd")) == 0)
             {
-                ret = 0;
+                ret = runcmd(buffer);
+                exit(ret);
             }
-            if (ret != 0)
+            assert(pid >= 0);
+            if (waitpid(pid, &ret) == 0)
             {
-                printf("error: %d - %e\n", ret, ret);
+                // 因为有写时复制，这里 shcwd 还是之前的值，子进程无法修改 shcwd
+                if (ret == 0 && shcwd[0] != '\0')
+                {
+                    ret = chdir(shcwd);
+                }
+                if (ret != 0)
+                {
+                    printf("error: %d - %e\n", ret, ret);
+                }
             }
         }
     }

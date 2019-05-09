@@ -130,5 +130,18 @@ int vfs_readlink(char *path, struct iobuf *iob)
 // unimplement
 int vfs_mkdir(char *path)
 {
-    return -E_UNIMP;
+    int ret;
+    char *name;
+    struct inode *dir;
+    if ((ret = vfs_lookup_parent(path, &dir, &name)) != 0)
+    {
+        return ret;
+    }
+    
+    assert(dir != NULL && dir->in_ops != NULL && dir->in_ops->vop_mkdir != NULL);
+    inode_check(dir, "mkdir");
+    ret = dir->in_ops->vop_mkdir(dir, path);
+    inode_ref_dec(dir);
+    return ret;
 }
+

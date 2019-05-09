@@ -232,6 +232,19 @@ int sysfile_chdir(const char *__path)
     return ret;
 }
 
+int sysfile_mkdir(const char *__path)
+{
+    int ret;
+    char *path;
+    if ((ret = copy_path(&path, __path)) != 0)
+    {
+        return ret;
+    }
+    ret = vfs_mkdir(path);
+    kfree(path);
+    return ret;
+}
+
 /* sysfile_link - link file */
 int sysfile_link(const char *__path1, const char *__path2)
 {

@@ -241,7 +241,7 @@ int file_open(char *path, uint32_t open_flags)
     file->readable = readable;
     file->writable = writable;
     fd_array_open(file);
-    cprintf("file_open, fd = %d, name = %s, path = %s\n", file->fd, file->node->nodename, path);
+//    cprintf("file_open, fd = %d, name = %s, path = %s\n", file->fd, file->node->nodename, path);
     return file->fd;
 }
 
@@ -255,7 +255,7 @@ int file_close(int fd)
         return ret;
     }
     fd_array_close(file);
-    cprintf("file_close, fd = %d, name = %s\n", file->fd, file->node->nodename);
+//    cprintf("file_close, fd = %d, name = %s\n", file->fd, file->node->nodename);
     return 0;
 }
 
@@ -364,7 +364,7 @@ int file_seek(int fd, off_t pos, int whence)
         {
             file->pos = pos;
         }
-        cprintf("file_seek, fd = %d, name = %s, pos = %d, whence = %d, ret = %d\n", fd, file->node->nodename, pos, whence, ret);
+//        cprintf("file_seek, fd = %d, name = %s, pos = %d, whence = %d, ret = %d\n", fd, file->node->nodename, pos, whence, ret);
     }
     fd_array_release(file);
     return ret;
@@ -428,7 +428,7 @@ int file_getdirentry(int fd, struct dirent *direntp)
         direntp->offset += iobuf_used(iob);
     }
     fd_array_release(file);
-    cprintf("file_getdirentry, fd = %d, name = %s\n", file->fd, file->node->nodename);
+//    cprintf("file_getdirentry, fd = %d, name = %s\n", file->fd, file->node->nodename);
     return ret;
 }
 

@@ -1327,6 +1327,77 @@ int sfs_create(struct inode *node, const char *name, bool excl, struct inode **n
     return ret;
 }
 
+static inline void sfs_dirinfo_set_parent(struct sfs_inode *sin, struct sfs_inode *parent)
+{
+    sin->dirty = 1;
+//    sin->din->dirinfo.parent = parent->ino;
+}
+
+static inline void sfs_nlinks_inc_nolock(struct sfs_inode *sin)
+{
+    sin->dirty = 1;
+    ++sin->din->nlinks;
+}
+
+static int sfs_mkdir_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const char *name)
+{
+    int ret, slot;
+    if ((ret = sfs_dirent_search_nolock(sfs, sin, name, NULL, NULL, &slot)) != -E_NOENT)
+    {
+        return (ret != 0) ? ret : -E_EXISTS;
+    }
+    
+    struct inode *link_node;
+    if ((ret = sfs_dirent_create_inode(sfs, SFS_TYPE_DIR, &link_node)) != 0)
+    {
+        return ret;
+    }
+    
+    struct sfs_inode *lnksin = sfs_vop_info(link_node);
+    if ((ret = sfs_dirent_link_nolock(sfs, sin, slot, lnksin, name)) != 0)
+    {
+        assert(lnksin->din->nlinks == 0);
+        assert(inode_ref_count(link_node) == 1 && inode_open_count(link_node) == 0);
+        goto out;
+    }
+    
+    /* set parent */
+    sfs_dirinfo_set_parent(lnksin, sin);
+    
+    /* add '.' link to itself */
+    sfs_nlinks_inc_nolock(lnksin);
+    
+    /* add '..' link to parent */
+    sfs_nlinks_inc_nolock(sin);
+    
+out:
+    inode_ref_dec(link_node);
+    return ret;
+}
+
+static int sfs_mkdir(struct inode *node, const char *name)
+{
+    if (strlen(name) > SFS_MAX_FNAME_LEN)
+    {
+        return -E_TOO_BIG;
+    }
+    if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
+    {
+        return -E_EXISTS;
+    }
+    
+    struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
+    struct sfs_inode *sin = sfs_vop_info(node);
+    int ret;
+    lock_sin(sin);
+    {
+        ret = sfs_mkdir_nolock(sfs, sin, name);
+    }
+    unlock_sin(sin);
+
+    return ret;
+}
+
 // The sfs specific DIR operations correspond to the abstract operations on a inode.
 static const struct inode_ops sfs_node_dirops = {
     .vop_magic                      = VOP_MAGIC,
@@ -1336,6 +1407,7 @@ static const struct inode_ops sfs_node_dirops = {
     .vop_write                      = NULL,
     .vop_fstat                      = sfs_fstat,
     .vop_fsync                      = sfs_fsync,
+    .vop_mkdir                      = sfs_mkdir,
     .vop_namefile                   = sfs_namefile,
     .vop_getdirentry                = sfs_getdirentry,
     .vop_reclaim                    = sfs_reclaim,
@@ -1356,6 +1428,7 @@ static const struct inode_ops sfs_node_fileops = {
     .vop_write                      = sfs_write,
     .vop_fstat                      = sfs_fstat,
     .vop_fsync                      = sfs_fsync,
+    .vop_mkdir                      = NULL,
     .vop_namefile                   = NULL,
     .vop_getdirentry                = NULL,
     .vop_reclaim                    = sfs_reclaim,
