@@ -152,47 +152,6 @@ int testfile(const char *name)
     return 0;
 }
 
-int precmd(char *cmd)
-{
-    const char *argv[EXEC_MAX_ARG_NUM + 1] = {0};
-    char *t = NULL;
-    int argc = 0, token = 0, ret = -999;
-
-    while (1)
-    {
-        switch (token = gettoken(&cmd, &t))
-        {
-            case 'w':
-                if (argc == EXEC_MAX_ARG_NUM)
-                {
-                    printf("sh error: too many arguments\n");
-                    return ret;
-                }
-                argv[argc ++] = t;
-                break;
-            case 0:
-                goto runit;
-        }
-    }
-    
-runit:
-    if (argc == 0)
-    {
-        return ret;
-    }
-    else if (strcmp(argv[0], "cd") == 0)
-    {
-        if (argc != 2)
-        {
-            return ret;
-        }
-        
-        ret = chdir(shcwd);
-    }
-    
-    return ret;
-}
-
 int runcmd(char *cmd)
 {
     static char argv0[BUFSIZE] = {0};
@@ -345,16 +304,39 @@ int main(int argc, char **argv)
     char *buffer;
     while ((buffer = readline((interactive) ? "$ " : NULL)) != NULL)
     {
-        ret = precmd(buffer);
-        if (ret == -999)
+        char cmd[1024] = {0};
+        strncpy(cmd, buffer, strlen(buffer));
+        
+        char *p = strtok(cmd, " ");
+        char *q;
+        // cd xxx，需要切换的是 sh 所在的文件目录，这里不能用子进程 cd 去切换
+        // 子进程 cd 切换的只是子进程当前的目录结构，sh 不影响
+        if (strcmp(p, "cd") == 0)
+        {
+            q = strtok(NULL, " ");
+            if (q && (strlen(q) > 0))
+            {
+                ret = chdir(q);
+                if (ret != 0)
+                {
+                    printf("change dir: [%s] not exist.\n", q);
+                }
+                else
+                {
+                    printf("change dir: [%s] success.\n", q);
+                }
+            }
+        }
+        else
         {
             shcwd[0] = '\0';
-            int pid;
+            int pid = 0;
             if ((pid = fork("runcmd")) == 0)
             {
                 ret = runcmd(buffer);
                 exit(ret);
             }
+            
             assert(pid >= 0);
             if (waitpid(pid, &ret) == 0)
             {
@@ -370,6 +352,7 @@ int main(int argc, char **argv)
             }
         }
     }
+    
     return 0;
 }
 

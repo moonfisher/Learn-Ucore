@@ -18,6 +18,7 @@ int strncmp(const char *s1, const char *s2, size_t n);
 char *strchr(const char *s, char c);
 char *strfind(const char *s, char c);
 long strtol(const char *s, char **endptr, int base);
+char *strtok(char *s, const char *demial);
 
 void *memset(void *s, char c, size_t n);
 void *memmove(void *dst, const void *src, size_t n);

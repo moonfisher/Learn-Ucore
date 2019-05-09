@@ -279,6 +279,58 @@ long strtol(const char *s, char **endptr, int base)
     return (neg ? -val : val);
 }
 
+char *strtok(char *s, const char *demial)
+{
+    static unsigned char *last;
+    unsigned char *str;
+    const unsigned char *ctrl = (const unsigned char *)demial;
+    unsigned char map[32] = {0};
+    int count = 0;
+    
+    for (count = 0; count < 32; count++)
+    {
+        map[count] = 0;
+    }
+    
+    do {
+        map[*ctrl >> 3] |= (1 << (*ctrl & 7));
+    } while (*ctrl++);
+    
+    if (s)
+    {
+        str = (unsigned char *)s;
+    }
+    else
+    {
+        str = last;
+    }
+    
+    while ((map[*str >> 3] & (1 << (*str & 7))) && *str)
+    {
+        str++;
+    }
+    
+    s = (char *)str;
+    for (; *str; str++)
+    {
+        if (map[*str >> 3] & (1 << (*str & 7)))
+        {
+            *str++ = '\0';
+            break;
+        }
+    }
+    
+    last = str;
+    if (s == (char *)str)
+    {
+        return NULL;
+    }
+    else
+    {
+        return s;
+    }
+}
+
 /* *
  * memset - sets the first @n bytes of the memory area pointed by @s
  * to the specified value @c.
