@@ -5,6 +5,7 @@
 #include "../libs/file.h"
 #include "error.h"
 #include "unistd.h"
+#include "stat.h"
 
 #define printf(...)                     fprintf(1, __VA_ARGS__)
 #define putc(c)                         printf("%c", c)
@@ -126,11 +127,26 @@ int reopen(int fd2, const char *filename, uint32_t open_flags)
 
 int testfile(const char *name)
 {
-    int ret;
+    int ret = -1;
     if ((ret = open(name, O_RDONLY)) < 0)
     {
         return ret;
     }
+    
+    struct stat __stat, *stat = &__stat;
+    if ((ret = fstat(ret, stat)) != 0)
+    {
+        close(ret);
+        return ret;
+    }
+    
+    // 如果是目录不执行
+    if (S_ISDIR(stat->st_mode))
+    {
+        close(ret);
+        return ret;
+    }
+    
     close(ret);
     return 0;
 }
@@ -245,6 +261,7 @@ runit:
         strcpy(shcwd, argv[1]);
         return 0;
     }
+    
     if ((ret = testfile(argv[0])) != 0)
     {
         if (ret != -E_NOENT)
@@ -254,6 +271,7 @@ runit:
         snprintf(argv0, sizeof(argv0), "/%s", argv[0]);
         argv[0] = argv0;
     }
+    
     argv[argc] = NULL;
     return __exec(argv[0], argv);
 }

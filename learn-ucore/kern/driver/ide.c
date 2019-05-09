@@ -62,6 +62,7 @@ static const struct {
  ide 0:      10000(sectors), 'QEMU HARDDISK'.   10000 * 512 = 5.1 M
  ide 1:     262144(sectors), 'QEMU HARDDISK'.   262144 * 512 = 134.2 M
  ide 2:     262144(sectors), 'QEMU HARDDISK'.   262144 * 512 = 134.2 M
+ ide 3:     262144(sectors), 'QEMU HARDDISK'.   262144 * 512 = 134.2 M
 */
 /*
  {
@@ -84,10 +85,10 @@ static const struct {
         model = {"QEMU HARDDISK"}
     },
     {
-        valid = 0x0,
-        sets = 0x0,
-        size = 0x0,
-        model = {0x0}
+        valid = 0x1,
+        sets = 0x74004021,
+        size = 0x40000,
+        model = {"QEMU HARDDISK"}
     }
  }
 */

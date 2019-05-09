@@ -59,6 +59,7 @@
 		73DD7D79226F6B0400998EEC /* skew_heap.h in Sources */ = {isa = PBXBuildFile; fileRef = C4CB325D2248F5830014426C /* skew_heap.h */; };
 		73DD7D7A226F6B0400998EEC /* stdarg.h in Sources */ = {isa = PBXBuildFile; fileRef = C4CB325F2248F5830014426C /* stdarg.h */; };
 		73DD7D7B226F6B0400998EEC /* atomic.h in Sources */ = {isa = PBXBuildFile; fileRef = C4CB32612248F5830014426C /* atomic.h */; };
+		C41EC5A32283D805006D8303 /* dev_disk1.c in Sources */ = {isa = PBXBuildFile; fileRef = C41EC5A22283D805006D8303 /* dev_disk1.c */; };
 		C4CB326C2248F5830014426C /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31BD2248F5820014426C /* init.c */; };
 		C4CB326E2248F5830014426C /* default_sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C02248F5820014426C /* default_sched.c */; };
 		C4CB326F2248F5830014426C /* sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C22248F5820014426C /* sched.c */; };
@@ -147,6 +148,7 @@
 		C403E690226FEE5C00B4A959 /* sign.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sign.c; sourceTree = "<group>"; };
 		C403E691226FEE5C00B4A959 /* kernel.ld */ = {isa = PBXFileReference; lastKnownFileType = text; path = kernel.ld; sourceTree = "<group>"; };
 		C403E692226FEE5C00B4A959 /* sign */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = sign; sourceTree = "<group>"; };
+		C41EC5A22283D805006D8303 /* dev_disk1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dev_disk1.c; sourceTree = "<group>"; };
 		C4CB31B12248F53F0014426C /* UCore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = UCore; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4CB31BD2248F5820014426C /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = init.c; sourceTree = "<group>"; };
 		C4CB31BE2248F5820014426C /* entry.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = entry.S; sourceTree = "<group>"; };
@@ -526,6 +528,7 @@
 				C4CB32012248F5820014426C /* dev.h */,
 				C4CB32042248F5820014426C /* dev.c */,
 				C4CB32002248F5820014426C /* dev_disk0.c */,
+				C41EC5A22283D805006D8303 /* dev_disk1.c */,
 				C4CB32022248F5820014426C /* dev_stdin.c */,
 				C4CB32032248F5820014426C /* dev_stdout.c */,
 			);
@@ -843,6 +846,7 @@
 				C4CB32C12248F5830014426C /* rand.c in Sources */,
 				C4CB326C2248F5830014426C /* init.c in Sources */,
 				C4CB32892248F5830014426C /* vfslookup.c in Sources */,
+				C41EC5A32283D805006D8303 /* dev_disk1.c in Sources */,
 				C4CB32802248F5830014426C /* swap.c in Sources */,
 				C4CB327D2248F5830014426C /* kmalloc.c in Sources */,
 				C4CB32942248F5830014426C /* sfs_lock.c in Sources */,

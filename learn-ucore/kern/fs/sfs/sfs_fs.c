@@ -276,9 +276,10 @@ int sfs_do_mount(struct device *dev, struct fs **fs_store)
 
     /* load and check superblock */
     /*
-     第 0 个块（sfs.img 文件第一个 4K 字节）是超级块（superblock struct sfs_super），
-     它包含了关于文件系统的所有关键参数，当计算机被启动或文件系统被首次接触时，超级块的内容
-     就会被装入内存。这些数据在 mksfs.c 里创建 sfs.img 的时候创建好
+     第 0 号块（sfs.img 文件第 1 个 4K 字节）是超级块（superblock struct sfs_super），
+     它包含了关于文件系统的关键参数，有多少块，空闲多少块没用。当计算机被启动或文件系统被首次
+     接触时，超级块的内容就会被装入内存。
+     这些数据在 mksfs.c 里创建 sfs.img 的时候创建好
      
      2abe 8d2f 0080 0000 ec7e 0000 7369 6d70
      6c65 2066 696c 6520 7379 7374 656d 0000
@@ -324,6 +325,11 @@ int sfs_do_mount(struct device *dev, struct fs **fs_store)
     }
 
     /* load and check freemap */
+    /*
+     第 2 号块（sfs.img 文件第 3 个 4K 字节）
+     根据 SFS 中所有块的数量，记录块占用情况，用 1 个 bit 来表示一个块的占用和未被
+     占用的情况。这个区域称为 SFS 的 freemap 区域，这将占用若干个块空间
+     */
     uint32_t freemap_size_nbits = sfs_freemap_bits(super);
     struct bitmap *freemap = bitmap_create(freemap_size_nbits);
     if ((sfs->freemap = freemap) == NULL)

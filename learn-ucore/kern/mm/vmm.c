@@ -547,6 +547,7 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr)
             // if this pte is a swap entry, then load data from disk to a page with phy addr
             // and call page_insert to map the phy addr with logical addr
             // 如果 PTE 存在 说明此时 P 位为 0 该页被换出到外存中 需要将其换入内存
+            // 该页面存放在外存什么地方呢，地址就存储在 pte 中
             if (swap_init_ok)
             {
                 // 根据 PTE 找到 换出那页所在的硬盘地址 并将其从外存中换入

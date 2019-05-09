@@ -15,6 +15,7 @@
 #include "fs.h"
 #include "vfs.h"
 #include "sysfile.h"
+#include "stat.h"
 
 /* ------------- process/thread mechanism design&implementation -------------
 (an simplified Linux process/thread mechanism )
@@ -1006,7 +1007,7 @@ int do_execve(const char *name, int argc, const char **argv)
     {
         goto execve_exit;
     }
-    
+
     // 采用 excecv 加载程序时，是先创建的进程，后加载的应用程序二进制文件
     // 所以这里先释放在 fork 创建进程时，从父进程那里继承的页面资源，页表资源
     // 等后续把程序从磁盘上读到内存里之后，再重新构建页表结构

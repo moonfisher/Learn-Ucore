@@ -9,6 +9,7 @@
 void dev_init_stdin(void);
 void dev_init_stdout(void);
 void dev_init_disk0(void);
+void dev_init_disk1(void);
 
 /*
  * dev_open - Called for each open().
@@ -163,6 +164,7 @@ void dev_init(void)
     dev_init_stdin();
     dev_init_stdout();
     dev_init_disk0();
+    dev_init_disk1();
 }
 
 /* dev_create_inode - Create inode for a vfs-level device. */

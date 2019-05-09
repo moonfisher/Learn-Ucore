@@ -27,6 +27,13 @@ unsigned int swap_in_seq_no[MAX_SEQ_NO];
 unsigned int swap_out_seq_no[MAX_SEQ_NO];
 static void check_swap(void);
 
+/*
+ swap 交换分区是磁盘上的一块分区，对应 swap.img 文件
+ swap 交换分区和 sfs 文件系统不同，swap 分区初始化是全 0，没有数据格式，里面存放什么数据完全
+ 由操作系统自己来规划使用，操作系统将 swap 划分为 4k 一页，和内存分页大小一样，将需要从内存中
+ 置换出来的页面，放到 swap 分区上，页面置换到 swap 分区上的地址，就存在 pte 页表里
+ 但 sfs 文件系统不同，有自己的数据结构和格式，相对复杂
+*/
 int swap_init(void)
 {
     swapfs_init();

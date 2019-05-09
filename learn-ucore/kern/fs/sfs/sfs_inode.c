@@ -1151,6 +1151,11 @@ int sfs_tryseek(struct inode *node, off_t pos)
     }
     
     struct sfs_inode *sin = sfs_vop_info(node);
+    if (sin->din->type == SFS_TYPE_DIR)
+    {
+        return -E_INVAL;
+    }
+    
     if (pos > sin->din->size)
     {
         // 如果要 seek 的位置大于文件本身大小，则需要先把文件扩容
@@ -1335,7 +1340,7 @@ static const struct inode_ops sfs_node_dirops = {
     .vop_getdirentry                = sfs_getdirentry,
     .vop_reclaim                    = sfs_reclaim,
     .vop_gettype                    = sfs_gettype,
-    .vop_tryseek                    = NULL,
+    .vop_tryseek                    = sfs_tryseek,
     .vop_truncate                   = NULL,
     .vop_create                     = sfs_create,
     .vop_lookup                     = sfs_lookup,
