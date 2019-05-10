@@ -998,7 +998,7 @@ int do_execve(const char *name, int argc, const char **argv)
     unlock_mm(mm);
     
     // 父进程在 fork 之前，关联的文件子进程都能继承，父子进程指向同样的文件节点，只是文件节点的引用次数增加
-    // 但这里因为要执行 execve，运行新的用户程序，所以先把从父进程那里继承到的文件全部关闭，解除引用
+    // 但这里因为要执行 execve，运行新的用户程序，所以先把从父进程那里继承到的文件全部关闭（除 stdin，stdout）
     files_closeall(current->filesp);
 
     /* sysfile_open will check the first argument path, thus we have to use a user-space pointer, and argv[0] may be incorrect */    

@@ -114,13 +114,12 @@ void usage(void)
 
 int reopen(int fd2, const char *filename, uint32_t open_flags)
 {
-    int ret, fd1;
-    close(fd2);
-    ret = open(filename, open_flags);
-    if (ret >= 0 && ret != fd2)
+    int fd1 = 0;
+    int ret = 0;
+    fd1 = open(filename, open_flags);
+    if (fd1 >= 0 && fd1 != fd2)
     {
         close(fd2);
-        fd1 = ret;
         ret = dup2(fd1, fd2);
         close(fd1);
     }
@@ -130,26 +129,27 @@ int reopen(int fd2, const char *filename, uint32_t open_flags)
 int testfile(const char *name)
 {
     int ret = -1;
-    if ((ret = open(name, O_RDONLY)) < 0)
+    int fd = 0;
+    if ((fd = open(name, O_RDONLY)) < 0)
     {
-        return ret;
+        return fd;
     }
     
     struct stat __stat, *stat = &__stat;
-    if ((ret = fstat(ret, stat)) != 0)
+    if ((ret = fstat(fd, stat)) != 0)
     {
-        close(ret);
+        close(fd);
         return ret;
     }
     
     // 如果是目录不执行
     if (S_ISDIR(stat->st_mode))
     {
-        close(ret);
+        close(fd);
         return ret;
     }
     
-    close(ret);
+    close(fd);
     return 0;
 }
 

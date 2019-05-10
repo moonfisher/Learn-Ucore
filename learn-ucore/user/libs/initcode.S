@@ -7,9 +7,9 @@ _start:
     movl $0x0, %ebp
 
     # load argc and argv
+    # 从堆栈里先取出 argc 和 argv，这个之前在 load_icode 里设置好了
     movl (%esp), %ebx
     lea 0x4(%esp), %ecx
-
 
     # move down the esp register
     # since it may cause page fault in backtrace

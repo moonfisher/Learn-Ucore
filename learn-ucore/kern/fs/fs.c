@@ -89,6 +89,7 @@ void files_closeall(struct files_struct *filesp)
     int i;
     struct file *file = filesp->fd_array;
     //skip the stdin & stdout
+    // 关闭除 stdin 和 stdout 之外的，从父进程那里继承过来的文件
     for (i = 2, file += 2; i < FILES_STRUCT_NENTRY; i ++, file ++)
     {
         if (file->status == FD_OPENED)

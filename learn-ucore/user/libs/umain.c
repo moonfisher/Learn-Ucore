@@ -23,7 +23,9 @@ static int initfd(int fd2, const char *path, uint32_t open_flags)
 
 void umain(int argc, char *argv[])
 {
-    int fd;
+    int fd = 0;
+    
+    // 用户程序运行一开始就把 stdin 和 stdout 打开，并映射到 0 和 1 两个文件描述符上
     if ((fd = initfd(0, "stdin:", O_RDONLY)) < 0)
     {
         warn("open <stdin> failed: %e.\n", fd);
