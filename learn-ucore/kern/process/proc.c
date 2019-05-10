@@ -895,7 +895,7 @@ static int load_icode(int fd, int argc, char **kargv)
     tf->tf_cs = USER_CS;
     tf->tf_ds = tf->tf_es = tf->tf_ss = USER_DS;
     tf->tf_esp = stacktop; // 用户态堆栈地址
-    tf->tf_eip = elf->e_entry;
+    tf->tf_eip = elf->e_entry;  // e_entry 实际是 initcode.S 里的 _start
     tf->tf_eflags = FL_IF;
     ret = 0;
 out:
@@ -1197,9 +1197,10 @@ static int user_main(void *arg)
 #endif
 #else
 //    KERNEL_EXECVE(sh);
-    const char *argv[] = {"sh", NULL};
-    cprintf("user_main execve: pid = %d, name = \"%s\".\n", current->pid, "sh");
-    kernel_execve("sh", argv);
+    char *name = "sh";
+    const char *argv[] = {name, NULL};
+    cprintf("user_main execve: pid = %d, name = \"%s\".\n", current->pid, name);
+    kernel_execve(name, argv);
 #endif
     panic("user_main execve failed.\n");
 }

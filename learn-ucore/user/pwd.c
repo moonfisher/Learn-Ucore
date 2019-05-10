@@ -9,12 +9,12 @@
 // 因为 pwd 的父进程是 sh，进程 fork 的时候 pwd 复制了 sh 进程当前的目录
 int main(int argc, char **argv)
 {
-	int ret;
-	static char cwdbuf[BUFSIZE];
-	if ((ret = getcwd(cwdbuf, sizeof(cwdbuf))) != 0)
-    {
-		return ret;
-	}
-	printf("current dir is [%s].\n", cwdbuf);
+//    int ret;
+//    static char cwdbuf[BUFSIZE];
+//    if ((ret = getcwd(cwdbuf, sizeof(cwdbuf))) != 0)
+//    {
+//        return ret;
+//    }
+//    printf("current dir is [%s].\n", cwdbuf);
 	return 0;
 }

@@ -1361,6 +1361,9 @@ static int sfs_mkdir_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const cha
         goto out;
     }
     
+    memset(link_node->nodename, 0, 256);
+    memcpy(link_node->nodename, name, strlen(name));
+    
     /* set parent */
     sfs_dirinfo_set_parent(lnksin, sin);
     

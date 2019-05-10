@@ -128,7 +128,7 @@ struct inode *sfs_get_root(struct fs *fs)
     assert(fs != NULL && (fs->fs_type == fs_type_sfs_info));
     struct sfs_fs *sfs = &(fs->fs_info.__sfs_info);
     
-    int ret = sfs_load_inode(sfs, &node, SFS_BLKN_ROOT, "root");
+    int ret = sfs_load_inode(sfs, &node, SFS_BLKN_ROOT, "/");
     if (ret != 0)
     {
         panic("load sfs root failed: %e", ret);

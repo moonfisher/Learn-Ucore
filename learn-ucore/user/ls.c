@@ -13,11 +13,16 @@
 static char getmode(uint32_t st_mode)
 {
     char mode = '?';
-    if (S_ISREG(st_mode)) mode = '-';
-    if (S_ISDIR(st_mode)) mode = 'd';
-    if (S_ISLNK(st_mode)) mode = 'l';
-    if (S_ISCHR(st_mode)) mode = 'c';
-    if (S_ISBLK(st_mode)) mode = 'b';
+    if (S_ISREG(st_mode))
+        mode = '-';
+    if (S_ISDIR(st_mode))
+        mode = 'd';
+    if (S_ISLNK(st_mode))
+        mode = 'l';
+    if (S_ISCHR(st_mode))
+        mode = 'c';
+    if (S_ISBLK(st_mode))
+        mode = 'b';
     return mode;
 }
 
@@ -45,9 +50,17 @@ void lsstat(struct stat *stat, const char *filename)
 int lsdir(const char *path)
 {
     struct stat __stat, *stat = &__stat;
+    static char cwdbuf[BUFSIZE];
     int ret;
+    if ((ret = getcwd(cwdbuf, BUFSIZE)) != 0)
+    {
+        return ret;
+    }
+    if ((ret = chdir(path)) != 0)
+    {
+        return ret;
+    }
     DIR *dirp = opendir(".");
-    
     if (dirp == NULL)
     {
         return -1;
@@ -61,11 +74,12 @@ int lsdir(const char *path)
         }
         lsstat(stat, direntp->name);
     }
-    printf("lsdir: step 4\n");
     closedir(dirp);
-    return 0;
+    return chdir(cwdbuf);
+    
 failed:
     closedir(dirp);
+    chdir(cwdbuf);
     return ret;
 }
 
@@ -75,9 +89,10 @@ int ls(const char *path)
     int ret, type;
     if ((ret = getstat(path, stat)) != 0)
     {
+        printf("unknow file %s.\n", path);
         return ret;
     }
-
+    
     static const char *filetype[] = {
         " [  file   ]",
         " [directory]",
@@ -88,14 +103,26 @@ int ls(const char *path)
     };
     switch (getmode(stat->st_mode))
     {
-        case '0': type = 0; break;
-        case 'd': type = 1; break;
-        case 'l': type = 2; break;
-        case 'c': type = 3; break;
-        case 'b': type = 4; break;
-        default:  type = 5; break;
+        case '-':
+            type = 0;
+            break;
+        case 'd':
+            type = 1;
+            break;
+        case 'l':
+            type = 2;
+            break;
+        case 'c':
+            type = 3;
+            break;
+        case 'b':
+            type = 4;
+            break;
+        default:
+            type = 5;
+            break;
     }
-
+    
     printf(" @ is %s", filetype[type]);
     printf(" %d(hlinks)", stat->st_nlinks);
     printf(" %d(blocks)", stat->st_blocks);
@@ -116,7 +143,7 @@ int main(int argc, char **argv)
     else
     {
         int i, ret;
-        for (i = 1; i < argc; i ++)
+        for (i = 1; i < argc; i++)
         {
             if ((ret = ls(argv[i])) != 0)
             {
@@ -126,4 +153,3 @@ int main(int argc, char **argv)
     }
     return 0;
 }
-

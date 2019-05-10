@@ -116,7 +116,8 @@ int reopen(int fd2, const char *filename, uint32_t open_flags)
 {
     int ret, fd1;
     close(fd2);
-    if ((ret = open(filename, open_flags)) >= 0 && ret != fd2)
+    ret = open(filename, open_flags);
+    if (ret >= 0 && ret != fd2)
     {
         close(fd2);
         fd1 = ret;
@@ -311,7 +312,7 @@ int main(int argc, char **argv)
         char *q;
         // cd xxx，需要切换的是 sh 所在的文件目录，这里不能用子进程 cd 去切换
         // 子进程 cd 切换的只是子进程当前的目录结构，sh 不影响
-        if (strcmp(p, "cd") == 0)
+        if (p && (strcmp(p, "cd") == 0))
         {
             q = strtok(NULL, " ");
             if (q && (strlen(q) > 0))
@@ -331,7 +332,13 @@ int main(int argc, char **argv)
         {
             shcwd[0] = '\0';
             int pid = 0;
-            if ((pid = fork("runcmd")) == 0)
+            char *name = "runcmd";
+            if (p)
+            {
+                name = p;
+            }
+            
+            if ((pid = fork(name)) == 0)
             {
                 ret = runcmd(buffer);
                 exit(ret);
