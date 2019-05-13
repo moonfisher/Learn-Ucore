@@ -16,6 +16,7 @@ void closedir(DIR *dirp);
 int chdir(const char *path);
 int getcwd(char *buffer, size_t len);
 int mkdir(const char *path);
+int rename(const char *old_path, const char *new_path);
 
 #endif /* !__USER_LIBS_DIR_H__ */
 

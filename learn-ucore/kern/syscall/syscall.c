@@ -40,6 +40,18 @@ static int sys_exec(uint32_t arg[])
     return do_execve(name, argc, argv);
 }
 
+static int sys_clone(uint32_t arg[])
+{
+    struct trapframe *tf = current->tf;
+    uint32_t clone_flags = (uint32_t) arg[0];
+    uintptr_t stack = (uintptr_t) arg[1];
+    if (stack == 0)
+    {
+        stack = tf->tf_esp;
+    }
+    return do_fork(clone_flags, stack, tf, "");
+}
+
 static int sys_yield(uint32_t arg[])
 {
     return do_yield();
@@ -55,6 +67,27 @@ static int sys_getpid(uint32_t arg[])
 {
     return current->pid;
 }
+
+//static uint32_t sys_brk(uint32_t arg[])
+//{
+//    uintptr_t *brk_store = (uintptr_t *)arg[0];
+//    return do_brk(brk_store);
+//}
+//
+//static uint32_t sys_mmap(uint32_t arg[])
+//{
+//    uintptr_t *addr_store = (uintptr_t *)arg[0];
+//    size_t len = (size_t) arg[1];
+//    uint32_t mmap_flags = (uint32_t) arg[2];
+//    return do_mmap(addr_store, len, mmap_flags);
+//}
+//
+//static uint32_t sys_munmap(uint32_t arg[])
+//{
+//    uintptr_t addr = (uintptr_t)arg[0];
+//    size_t len = (size_t) arg[1];
+//    return do_munmap(addr, len);
+//}
 
 static int sys_putc(uint32_t arg[])
 {
@@ -170,11 +203,32 @@ static int sys_dup(uint32_t arg[])
     return sysfile_dup(fd1, fd2);
 }
 
+static int sys_rename(uint32_t arg[])
+{
+    const char *path1 = (const char *)arg[0];
+    const char *path2 = (const char *)arg[1];
+    return sysfile_rename(path1, path2);
+}
+
+static int sys_pipe(uint32_t arg[])
+{
+    int *fd_store = (int *)arg[0];
+    return sysfile_pipe(fd_store);
+}
+
+static int sys_mkfifo(uint32_t arg[])
+{
+    const char *name = (const char *)arg[0];
+    uint32_t open_flags = (uint32_t) arg[1];
+    return sysfile_mkfifo(name, open_flags);
+}
+
 static int (*syscalls[])(uint32_t arg[]) = {
     [SYS_exit]              = sys_exit,
     [SYS_fork]              = sys_fork,
     [SYS_wait]              = sys_wait,
     [SYS_exec]              = sys_exec,
+    [SYS_clone]             = sys_clone,
     [SYS_yield]             = sys_yield,
     [SYS_kill]              = sys_kill,
     [SYS_getpid]            = sys_getpid,
@@ -193,8 +247,11 @@ static int (*syscalls[])(uint32_t arg[]) = {
     [SYS_chdir]             = sys_chdir,
     [SYS_getcwd]            = sys_getcwd,
     [SYS_mkdir]             = sys_mkdir,
+    [SYS_rename]            = sys_rename,
     [SYS_getdirentry]       = sys_getdirentry,
     [SYS_dup]               = sys_dup,
+    [SYS_pipe]              = sys_pipe,
+    [SYS_mkfifo]            = sys_mkfifo,
 };
 
 #define NUM_SYSCALLS        ((sizeof(syscalls)) / (sizeof(syscalls[0])))

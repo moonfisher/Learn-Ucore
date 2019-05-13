@@ -29,6 +29,9 @@ int sys_dup(int fd1, int fd2);
 void sys_set_priority(uint32_t priority); 
 int sys_mkdir(const char *path);
 int sys_chdir(const char *path);
+int sys_rename(const char *path1, const char *path2);
+int sys_pipe(int *fd_store);
+int sys_mkfifo(const char *name, uint32_t open_flags);
 
 #endif /* !__USER_LIBS_SYSCALL_H__ */
 

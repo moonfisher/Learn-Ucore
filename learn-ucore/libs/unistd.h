@@ -29,6 +29,7 @@
 #define SYS_chdir           120
 #define SYS_getcwd          121
 #define SYS_mkdir           122
+#define SYS_rename          124
 #define SYS_getdirentry     128
 #define SYS_dup             130
 #define SYS_pipe            140

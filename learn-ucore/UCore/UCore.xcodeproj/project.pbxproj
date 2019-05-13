@@ -67,6 +67,8 @@
 		C41EC5B6228442BD006D8303 /* cd.c in Sources */ = {isa = PBXBuildFile; fileRef = C41EC5B5228442BC006D8303 /* cd.c */; };
 		C41ED99422854301006D8303 /* echo.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED99322854301006D8303 /* echo.c */; };
 		C41ED996228544C3006D8303 /* touch.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED995228544C3006D8303 /* touch.c */; };
+		C41ED9BB22894803006D8303 /* cp.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9BA22894803006D8303 /* cp.c */; };
+		C41ED9BD2289535F006D8303 /* rename.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9BC2289535E006D8303 /* rename.c */; };
 		C4CB326C2248F5830014426C /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31BD2248F5820014426C /* init.c */; };
 		C4CB326E2248F5830014426C /* default_sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C02248F5820014426C /* default_sched.c */; };
 		C4CB326F2248F5830014426C /* sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C22248F5820014426C /* sched.c */; };
@@ -163,6 +165,8 @@
 		C41EC5B5228442BC006D8303 /* cd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cd.c; sourceTree = "<group>"; };
 		C41ED99322854301006D8303 /* echo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = echo.c; sourceTree = "<group>"; };
 		C41ED995228544C3006D8303 /* touch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = touch.c; sourceTree = "<group>"; };
+		C41ED9BA22894803006D8303 /* cp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cp.c; sourceTree = "<group>"; };
+		C41ED9BC2289535E006D8303 /* rename.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rename.c; sourceTree = "<group>"; };
 		C4CB31B12248F53F0014426C /* UCore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = UCore; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4CB31BD2248F5820014426C /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = init.c; sourceTree = "<group>"; };
 		C4CB31BE2248F5820014426C /* entry.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = entry.S; sourceTree = "<group>"; };
@@ -601,6 +605,8 @@
 		C4CB32262248F5830014426C /* user */ = {
 			isa = PBXGroup;
 			children = (
+				C41ED9BC2289535E006D8303 /* rename.c */,
+				C41ED9BA22894803006D8303 /* cp.c */,
 				C41ED995228544C3006D8303 /* touch.c */,
 				C41ED99322854301006D8303 /* echo.c */,
 				C41EC5B5228442BC006D8303 /* cd.c */,
@@ -640,17 +646,17 @@
 			isa = PBXGroup;
 			children = (
 				C4CB32312248F5830014426C /* ulib.h */,
+				C4CB323B2248F5830014426C /* ulib.c */,
+				C4CB323C2248F5830014426C /* syscall.h */,
+				C4CB32372248F5830014426C /* syscall.c */,
 				C4CB32322248F5830014426C /* lock.h */,
 				C4CB32332248F5830014426C /* file.h */,
+				C4CB323A2248F5830014426C /* file.c */,
 				C4CB32342248F5830014426C /* panic.c */,
 				C4CB32352248F5830014426C /* stdio.c */,
 				C4CB32362248F5830014426C /* dir.c */,
-				C4CB32372248F5830014426C /* syscall.c */,
 				C4CB32382248F5830014426C /* umain.c */,
 				C4CB32392248F5830014426C /* initcode.S */,
-				C4CB323A2248F5830014426C /* file.c */,
-				C4CB323B2248F5830014426C /* ulib.c */,
-				C4CB323C2248F5830014426C /* syscall.h */,
 				C4CB323D2248F5830014426C /* dir.h */,
 			);
 			path = libs;
@@ -770,6 +776,7 @@
 			files = (
 				C41EC5AB22842B62006D8303 /* cat.c in Sources */,
 				73DD7D6A226F6B0400998EEC /* stdio.h in Sources */,
+				C41ED9BD2289535F006D8303 /* rename.c in Sources */,
 				73DD7D6B226F6B0400998EEC /* string.h in Sources */,
 				73DD7D6C226F6B0400998EEC /* string.c in Sources */,
 				73DD7D6D226F6B0400998EEC /* error.h in Sources */,
@@ -780,6 +787,7 @@
 				C41EC5B6228442BD006D8303 /* cd.c in Sources */,
 				73DD7D72226F6B0400998EEC /* stat.h in Sources */,
 				73DD7D73226F6B0400998EEC /* dirent.h in Sources */,
+				C41ED9BB22894803006D8303 /* cp.c in Sources */,
 				73DD7D74226F6B0400998EEC /* hash.c in Sources */,
 				73DD7D75226F6B0400998EEC /* x86.h in Sources */,
 				73DD7D76226F6B0400998EEC /* elf.h in Sources */,

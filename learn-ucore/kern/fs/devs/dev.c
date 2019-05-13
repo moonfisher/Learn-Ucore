@@ -140,6 +140,11 @@ static int dev_lookup(struct inode *node, char *path, struct inode **node_store)
     return 0;
 }
 
+static int dev_fsync(struct inode *node)
+{
+    return -E_INVAL;
+}
+
 /*
  * Function table for device inodes.
  */
@@ -154,6 +159,7 @@ static const struct inode_ops dev_node_ops = {
     .vop_gettype                    = dev_gettype,
     .vop_tryseek                    = dev_tryseek,
     .vop_lookup                     = dev_lookup,
+    .vop_fsync                      = dev_fsync,
 };
 
 /* dev_init - Initialization functions for builtin vfs-level devices. */

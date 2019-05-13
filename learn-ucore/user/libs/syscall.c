@@ -154,3 +154,19 @@ int sys_chdir(const char *path)
     return syscall(SYS_chdir, path);
 }
 
+int sys_rename(const char *path1, const char *path2)
+{
+    return syscall(SYS_rename, path1, path2);
+}
+
+int sys_pipe(int *fd_store)
+{
+    return syscall(SYS_pipe, fd_store);
+}
+
+int sys_mkfifo(const char *name, uint32_t open_flags)
+{
+    return syscall(SYS_mkfifo, name, open_flags);
+}
+
+
