@@ -74,6 +74,37 @@ struct vma_struct *vma_create(uintptr_t vm_start, uintptr_t vm_end, uint32_t vm_
     return vma;
 }
 
+// vma_destroy - free vma_struct
+static void vma_destroy(struct vma_struct *vma)
+{
+    if (vma->vm_flags & VM_SHARE)
+    {
+//        if (shmem_ref_dec(vma->shmem) == 0)
+//        {
+//            shmem_destroy(vma->shmem);
+//        }
+    }
+    kfree(vma);
+}
+
+static void vma_resize(struct vma_struct *vma, uintptr_t start, uintptr_t end)
+{
+    assert(start % PGSIZE == 0 && end % PGSIZE == 0);
+    assert(vma->vm_start <= start && start < end && end <= vma->vm_end);
+    if (vma->vm_flags & VM_SHARE)
+    {
+//        vma->shmem_off += start - vma->vm_start;
+    }
+#ifdef UCONFIG_BIONIC_LIBC
+    if (vma->mfile.file != NULL)
+    {
+        vma->mfile.offset += start - vma->vm_start;
+    }
+#endif //UCONFIG_BIONIC_LIBC
+    
+    vma->vm_start = start, vma->vm_end = end;
+}
+
 // find_vma - find a vma  (vma->vm_start <= addr <= vma_vm_end)
 // 根据输入参数 addr 和 mm 变量，查找在 mm 变量中的 mmap_list 双向链表中某个 vma 包含此 addr，
 // 即 vma->vm_start <= addr end
@@ -155,6 +186,23 @@ void insert_vma_struct(struct mm_struct *mm, struct vma_struct *vma)
     mm->map_count++;
 }
 
+// remove_vma_struct - remove vma from mm's rb tree link & list link
+static int remove_vma_struct(struct mm_struct *mm, struct vma_struct *vma)
+{
+    assert(mm == vma->vm_mm);
+//    if (mm->mmap_tree != NULL)
+//    {
+//        rb_delete(mm->mmap_tree, &(vma->rb_link));
+//    }
+    list_del(&(vma->list_link));
+    if (vma == mm->mmap_cache)
+    {
+        mm->mmap_cache = NULL;
+    }
+    mm->map_count--;
+    return 0;
+}
+
 // mm_destroy - free mm and mm internal fields
 void mm_destroy(struct mm_struct *mm)
 {
@@ -203,6 +251,86 @@ int mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags,
 
 out:
     return ret;
+}
+
+int mm_unmap(struct mm_struct *mm, uintptr_t addr, size_t len)
+{
+    uintptr_t start = ROUNDDOWN(addr, PGSIZE), end = ROUNDUP(addr + len, PGSIZE);
+    if (!USER_ACCESS(start, end))
+    {
+        return -E_INVAL;
+    }
+    
+    assert(mm != NULL);
+    
+    struct vma_struct *vma;
+    if ((vma = find_vma(mm, start)) == NULL || end <= vma->vm_start)
+    {
+        return 0;
+    }
+    
+    if (vma->vm_start < start && end < vma->vm_end)
+    {
+        struct vma_struct *nvma;
+        if ((nvma = vma_create(vma->vm_start, start, vma->vm_flags)) == NULL)
+        {
+            return -E_NO_MEM;
+        }
+#ifdef UCONFIG_BIONIC_LIBC
+        vma_copymapfile(nvma, vma);
+#endif //UCONFIG_BIONIC_LIBC
+        vma_resize(vma, end, vma->vm_end);
+        insert_vma_struct(mm, nvma);
+        unmap_range(mm->pgdir, start, end);
+        return 0;
+    }
+    
+    list_entry_t free_list, *le;
+    list_init(&free_list);
+    while (vma->vm_start < end)
+    {
+        le = list_next(&(vma->list_link));
+        remove_vma_struct(mm, vma);
+        list_add(&free_list, &(vma->list_link));
+        if (le == &(mm->mmap_list))
+        {
+            break;
+        }
+        vma = le2vma(le, list_link);
+    }
+    
+    le = list_next(&free_list);
+    while (le != &free_list)
+    {
+        vma = le2vma(le, list_link);
+        le = list_next(le);
+        uintptr_t un_start, un_end;
+        if (vma->vm_start < start)
+        {
+            un_start = start, un_end = vma->vm_end;
+            vma_resize(vma, vma->vm_start, un_start);
+            insert_vma_struct(mm, vma);
+        }
+        else
+        {
+            un_start = vma->vm_start, un_end = vma->vm_end;
+            if (end < un_end)
+            {
+                un_end = end;
+                vma_resize(vma, un_end, vma->vm_end);
+                insert_vma_struct(mm, vma);
+            }
+            else
+            {
+#ifdef UCONFIG_BIONIC_LIBC
+                vma_unmapfile(vma);
+#endif //UCONFIG_BIONIC_LIBC
+                vma_destroy(vma);
+            }
+        }
+        unmap_range(mm->pgdir, un_start, un_end);
+    }
+    return 0;
 }
 
 /*
@@ -254,6 +382,33 @@ void exit_mmap(struct mm_struct *mm)
         struct vma_struct *vma = le2vma(le, list_link);
         exit_range(pgdir, vma->vm_start, vma->vm_end);
     }
+}
+
+uintptr_t get_unmapped_area(struct mm_struct * mm, size_t len)
+{
+    if (len == 0 || len > USERTOP)
+    {
+        return 0;
+    }
+    uintptr_t start = USERTOP - len;
+    list_entry_t *list = &(mm->mmap_list), *le = list;
+    while ((le = list_prev(le)) != list)
+    {
+        struct vma_struct *vma = le2vma(le, list_link);
+        if (start >= vma->vm_end)
+        {
+            return start;
+        }
+        if (start + len > vma->vm_start)
+        {
+            if (len >= vma->vm_start)
+            {
+                return 0;
+            }
+            start = vma->vm_start - len;
+        }
+    }
+    return (start >= USERBASE) ? start : 0;
 }
 
 bool copy_from_user(struct mm_struct *mm, void *dst, const void *src, size_t len, bool writable)

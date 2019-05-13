@@ -35,6 +35,7 @@ struct vma_struct
 #define VM_WRITE                0x00000002
 #define VM_EXEC                 0x00000004
 #define VM_STACK                0x00000008
+#define VM_SHARE                0x00000010
 
 // the control struct for a set of vma using the same PDT
 /*

@@ -1183,6 +1183,77 @@ const char *argv[] = {path, ##__VA_ARGS__, NULL};       \
 
 #define KERNEL_EXECVE3(x, s, ...)               __KERNEL_EXECVE3(x, s, ##__VA_ARGS__)
 
+// do_mmap - add a vma with addr, len and flags(VM_READ/M_WRITE/VM_STACK)
+int do_mmap(uintptr_t *addr_store, size_t len, uint32_t mmap_flags)
+{
+    struct mm_struct *mm = current->mm;
+    if (mm == NULL)
+    {
+        panic("kernel thread call mmap!!.\n");
+    }
+    if (addr_store == NULL || len == 0)
+    {
+        return -E_INVAL;
+    }
+    
+    int ret = -E_INVAL;
+    
+    uintptr_t addr;
+    
+    lock_mm(mm);
+    if (!copy_from_user(mm, &addr, addr_store, sizeof(uintptr_t), 1))
+    {
+        goto out_unlock;
+    }
+    
+    uintptr_t start = ROUNDDOWN(addr, PGSIZE), end = ROUNDUP(addr + len, PGSIZE);
+    addr = start;
+    len = end - start;
+    
+    uint32_t vm_flags = VM_READ;
+    if (mmap_flags & MMAP_WRITE)
+        vm_flags |= VM_WRITE;
+    if (mmap_flags & MMAP_STACK)
+        vm_flags |= VM_STACK;
+    
+    ret = -E_NO_MEM;
+    if (addr == 0)
+    {
+        if ((addr = get_unmapped_area(mm, len)) == 0)
+        {
+            goto out_unlock;
+        }
+    }
+    if ((ret = mm_map(mm, addr, len, vm_flags, NULL)) == 0)
+    {
+        copy_to_user(mm, addr_store, &addr, sizeof(uintptr_t));
+    }
+out_unlock:
+    unlock_mm(mm);
+    return ret;
+}
+
+// do_munmap - delete vma with addr & len
+int do_munmap(uintptr_t addr, size_t len)
+{
+    struct mm_struct *mm = current->mm;
+    if (mm == NULL)
+    {
+        panic("kernel thread call munmap!!.\n");
+    }
+    if (len == 0)
+    {
+        return -E_INVAL;
+    }
+    int ret;
+    lock_mm(mm);
+    {
+        ret = mm_unmap(mm, addr, len);
+    }
+    unlock_mm(mm);
+    return ret;
+}
+
 // user_main - kernel thread used to exec a user program
 // 通过内核线程来执行一个用户程序，并切换到用户态，这里是直接用 user_main 来执行 sh，
 // 这里是先创建了 proc task（user_main）然后再去加载执行 sh 代码文件，

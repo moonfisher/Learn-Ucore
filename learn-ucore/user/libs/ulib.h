@@ -35,6 +35,9 @@ int getpid(void);
 void print_pgdir(void);
 int sleep(unsigned int time);
 unsigned int gettime_msec(void);
+int mmap(uintptr_t * addr_store, size_t len, uint32_t mmap_flags);
+int munmap(uintptr_t addr, size_t len);
+int clone(uint32_t clone_flags, uintptr_t stack, int (*fn) (void *), void *arg);
 int __exec(const char *name, const char **argv);
 
 #define __exec0(name, path, ...)                \
@@ -44,6 +47,7 @@ int __exec(const char *name, const char **argv);
 #define nexec(name, path, ...)                  __exec0(name, path, ##__VA_ARGS__)
 
 void set_priority(uint32_t priority); 
+void halt(void);
 
 #endif /* !__USER_LIBS_ULIB_H__ */
 

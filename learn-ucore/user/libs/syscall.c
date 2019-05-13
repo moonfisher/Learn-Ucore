@@ -89,6 +89,21 @@ size_t sys_gettime(void)
     return syscall(SYS_gettime);
 }
 
+int sys_brk(uintptr_t * brk_store)
+{
+    return syscall(SYS_brk, brk_store);
+}
+
+int sys_mmap(uintptr_t * addr_store, size_t len, uint32_t mmap_flags)
+{
+    return syscall(SYS_mmap, addr_store, len, mmap_flags);
+}
+
+int sys_munmap(uintptr_t addr, size_t len)
+{
+    return syscall(SYS_munmap, addr, len);
+}
+
 int sys_exec(const char *name, int argc, const char **argv)
 {
     return syscall(SYS_exec, name, argc, argv);
@@ -168,5 +183,4 @@ int sys_mkfifo(const char *name, uint32_t open_flags)
 {
     return syscall(SYS_mkfifo, name, open_flags);
 }
-
 

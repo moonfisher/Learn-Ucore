@@ -77,6 +77,28 @@ unsigned int gettime_msec(void)
     return (unsigned int)sys_gettime();
 }
 
+int mmap(uintptr_t * addr_store, size_t len, uint32_t mmap_flags)
+{
+    return sys_mmap(addr_store, len, mmap_flags);
+}
+
+int munmap(uintptr_t addr, size_t len)
+{
+    return sys_munmap(addr, len);
+}
+
+// 汇编实现
+//int __clone(uint32_t clone_flags, uintptr_t stack, int (*fn) (void *), void *arg);
+
+int clone(uint32_t clone_flags, uintptr_t stack, int (*fn) (void *), void *arg)
+{
+    int ret = 0;
+    lock_fork();
+//    ret = __clone(clone_flags, stack, fn, arg);
+    unlock_fork();
+    return ret;
+}
+
 int __exec(const char *name, const char **argv)
 {
     int argc = 0;
@@ -86,3 +108,9 @@ int __exec(const char *name, const char **argv)
     }
     return sys_exec(name, argc, argv);
 }
+
+void halt()
+{
+//    sys_halt();
+}
+

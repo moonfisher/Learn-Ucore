@@ -158,6 +158,8 @@ int do_yield(void);
 int do_execve(const char *name, int argc, const char **argv);
 int do_wait(int pid, int *code_store);
 int do_kill(int pid);
+int do_mmap(uintptr_t * addr_store, size_t len, uint32_t mmap_flags);
+int do_munmap(uintptr_t addr, size_t len);
 // set the process's priority (bigger value will get more CPU time)
 void set_priority(uint32_t priority);
 int do_sleep(unsigned int time);

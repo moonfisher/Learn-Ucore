@@ -68,26 +68,27 @@ static int sys_getpid(uint32_t arg[])
     return current->pid;
 }
 
-//static uint32_t sys_brk(uint32_t arg[])
-//{
+static int sys_brk(uint32_t arg[])
+{
 //    uintptr_t *brk_store = (uintptr_t *)arg[0];
 //    return do_brk(brk_store);
-//}
-//
-//static uint32_t sys_mmap(uint32_t arg[])
-//{
-//    uintptr_t *addr_store = (uintptr_t *)arg[0];
-//    size_t len = (size_t) arg[1];
-//    uint32_t mmap_flags = (uint32_t) arg[2];
-//    return do_mmap(addr_store, len, mmap_flags);
-//}
-//
-//static uint32_t sys_munmap(uint32_t arg[])
-//{
-//    uintptr_t addr = (uintptr_t)arg[0];
-//    size_t len = (size_t) arg[1];
-//    return do_munmap(addr, len);
-//}
+    return 0;
+}
+
+static int sys_mmap(uint32_t arg[])
+{
+    uintptr_t *addr_store = (uintptr_t *)arg[0];
+    size_t len = (size_t) arg[1];
+    uint32_t mmap_flags = (uint32_t) arg[2];
+    return do_mmap(addr_store, len, mmap_flags);
+}
+
+static int sys_munmap(uint32_t arg[])
+{
+    uintptr_t addr = (uintptr_t)arg[0];
+    size_t len = (size_t) arg[1];
+    return do_munmap(addr, len);
+}
 
 static int sys_putc(uint32_t arg[])
 {
@@ -232,6 +233,9 @@ static int (*syscalls[])(uint32_t arg[]) = {
     [SYS_yield]             = sys_yield,
     [SYS_kill]              = sys_kill,
     [SYS_getpid]            = sys_getpid,
+    [SYS_brk]               = sys_brk,
+    [SYS_mmap]              = sys_mmap,
+    [SYS_munmap]            = sys_munmap,
     [SYS_putc]              = sys_putc,
     [SYS_pgdir]             = sys_pgdir,
     [SYS_gettime]           = sys_gettime,
