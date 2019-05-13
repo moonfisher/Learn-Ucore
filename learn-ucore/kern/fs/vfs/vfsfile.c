@@ -100,31 +100,116 @@ int vfs_close(struct inode *node)
 // unimplement
 int vfs_unlink(char *path)
 {
-    return -E_UNIMP;
+    int ret;
+    char *name;
+    struct inode *dir;
+    if ((ret = vfs_lookup_parent(path, &dir, &name)) != 0)
+    {
+        return ret;
+    }
+    
+    assert(dir != NULL && dir->in_ops != NULL && dir->in_ops->vop_unlink != NULL);
+    inode_check(dir, "unlink");
+    ret = dir->in_ops->vop_unlink(dir, name);
+    inode_ref_dec(dir);
+    return ret;
 }
 
 // unimplement
 int vfs_rename(char *old_path, char *new_path)
 {
-    return -E_UNIMP;
+    int ret;
+    char *old_name, *new_name;
+    struct inode *old_dir, *new_dir;
+    if ((ret = vfs_lookup_parent(old_path, &old_dir, &old_name)) != 0)
+    {
+        return ret;
+    }
+    if ((ret = vfs_lookup_parent(new_path, &new_dir, &new_name)) != 0)
+    {
+        inode_ref_dec(old_dir);
+        return ret;
+    }
+    
+    if (old_dir->in_fs == NULL || old_dir->in_fs != new_dir->in_fs)
+    {
+        ret = -E_XDEV;
+    }
+    else
+    {
+        assert(old_dir != NULL && old_dir->in_ops != NULL && old_dir->in_ops->vop_rename != NULL);
+        inode_check(old_dir, "rename");
+        ret = old_dir->in_ops->vop_rename(old_dir, old_name, new_dir, new_name);
+    }
+    inode_ref_dec(old_dir);
+    inode_ref_dec(new_dir);
+    return ret;
 }
 
 // unimplement
 int vfs_link(char *old_path, char *new_path)
 {
-    return -E_UNIMP;
+    int ret;
+    char *new_name;
+    struct inode *old_node, *new_dir;
+    if ((ret = vfs_lookup(old_path, &old_node)) != 0)
+    {
+        return ret;
+    }
+    if ((ret = vfs_lookup_parent(new_path, &new_dir, &new_name)) != 0)
+    {
+        inode_ref_dec(old_node);
+        return ret;
+    }
+    
+    if (old_node->in_fs == NULL || old_node->in_fs != new_dir->in_fs)
+    {
+        ret = -E_XDEV;
+    }
+    else
+    {
+        assert(new_dir != NULL && new_dir->in_ops != NULL && new_dir->in_ops->vop_link != NULL);
+        inode_check(new_dir, "link");
+        ret = new_dir->in_ops->vop_link(new_dir, new_name, old_node);
+    }
+    inode_ref_dec(old_node);
+    inode_ref_dec(new_dir);
+    return ret;
 }
 
 // unimplement
 int vfs_symlink(char *old_path, char *new_path)
 {
-    return -E_UNIMP;
+    int ret;
+    char *new_name;
+    struct inode *new_dir;
+    if ((ret = vfs_lookup_parent(new_path, &new_dir, &new_name)) != 0)
+    {
+        return ret;
+    }
+    
+    assert(new_dir != NULL && new_dir->in_ops != NULL && new_dir->in_ops->vop_symlink != NULL);
+    inode_check(new_dir, "symlink");
+    ret = new_dir->in_ops->vop_symlink(new_dir, new_name, old_path);
+    inode_ref_dec(new_dir);
+    return ret;
 }
 
 // unimplement
 int vfs_readlink(char *path, struct iobuf *iob)
 {
-    return -E_UNIMP;
+    int ret;
+    struct inode *node;
+    if ((ret = vfs_lookup(path, &node)) != 0)
+    {
+        return ret;
+    }
+    
+    assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_readlink != NULL);
+    inode_check(node, "readlink");
+    ret = node->in_ops->vop_readlink(node, iob);
+    inode_ref_dec(node);
+    return ret;
 }
 
 // unimplement

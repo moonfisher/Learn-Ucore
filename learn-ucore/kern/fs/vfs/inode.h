@@ -201,6 +201,10 @@ struct inode_ops
     int (*vop_fstat)(struct inode *node, struct stat *stat);
     int (*vop_fsync)(struct inode *node);
     int (*vop_mkdir) (struct inode * node, const char *name);
+    int (*vop_rename) (struct inode * node, const char *name, struct inode * new_node, const char *new_name);
+    int (*vop_link) (struct inode * node, const char *name, struct inode * link_node);
+    int (*vop_readlink) (struct inode * node, struct iobuf * iob);
+    int (*vop_symlink) (struct inode * node, const char *name, const char *path);
     int (*vop_namefile)(struct inode *node, struct iobuf *iob);
     int (*vop_getdirentry)(struct inode *node, struct iobuf *iob);
     int (*vop_reclaim)(struct inode *node);
@@ -210,6 +214,7 @@ struct inode_ops
     int (*vop_create)(struct inode *node, const char *name, bool excl, struct inode **node_store);
     int (*vop_lookup)(struct inode *node, char *path, struct inode **node_store);
     int (*vop_ioctl)(struct inode *node, int op, void *data);
+    int (*vop_unlink) (struct inode * node, const char *name);
 };
 
 /*

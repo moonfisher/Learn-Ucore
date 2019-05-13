@@ -126,6 +126,8 @@ struct sfs_disk_inode
 {
     // 如果 inode 表示常规文件，则 size 是文件总的大小
     uint32_t size;                                  /* size of the file (in bytes) */
+    uint32_t slots;                                 /* # of entries in this directory */
+    uint32_t parent;                                /* parent inode number */
     // inode 的文件类型
     uint16_t type;                                  /* one of SYS_TYPE_* above */
     // 此 inode 的硬链接数
