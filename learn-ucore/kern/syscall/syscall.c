@@ -224,6 +224,19 @@ static int sys_mkfifo(uint32_t arg[])
     return sysfile_mkfifo(name, open_flags);
 }
 
+static int sys_link(uint32_t arg[])
+{
+    const char *path1 = (const char *)arg[0];
+    const char *path2 = (const char *)arg[1];
+    return sysfile_link(path1, path2);
+}
+
+static int sys_unlink(uint32_t arg[])
+{
+    const char *name = (const char *)arg[0];
+    return sysfile_unlink(name);
+}
+
 static int (*syscalls[])(uint32_t arg[]) = {
     [SYS_exit]              = sys_exit,
     [SYS_fork]              = sys_fork,
@@ -251,7 +264,9 @@ static int (*syscalls[])(uint32_t arg[]) = {
     [SYS_chdir]             = sys_chdir,
     [SYS_getcwd]            = sys_getcwd,
     [SYS_mkdir]             = sys_mkdir,
+    [SYS_link]              = sys_link,
     [SYS_rename]            = sys_rename,
+    [SYS_unlink]            = sys_unlink,
     [SYS_getdirentry]       = sys_getdirentry,
     [SYS_dup]               = sys_dup,
     [SYS_pipe]              = sys_pipe,

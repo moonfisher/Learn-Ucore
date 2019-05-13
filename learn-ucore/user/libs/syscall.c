@@ -184,3 +184,12 @@ int sys_mkfifo(const char *name, uint32_t open_flags)
     return syscall(SYS_mkfifo, name, open_flags);
 }
 
+int sys_link(const char *path1, const char *path2)
+{
+    return syscall(SYS_link, path1, path2);
+}
+
+int sys_unlink(const char *path)
+{
+    return syscall(SYS_unlink, path);
+}

@@ -161,6 +161,8 @@ struct cache_inode
     struct inode
     {
         uint32_t size;
+        uint32_t slots;
+        uint32_t parent;                                
         uint16_t type;
         uint16_t nlinks;
         uint32_t blocks;

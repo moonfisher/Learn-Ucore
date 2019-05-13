@@ -35,6 +35,8 @@ int sys_chdir(const char *path);
 int sys_rename(const char *path1, const char *path2);
 int sys_pipe(int *fd_store);
 int sys_mkfifo(const char *name, uint32_t open_flags);
+int sys_link(const char *path1, const char *path2);
+int sys_unlink(const char *path);
 
 #endif /* !__USER_LIBS_SYSCALL_H__ */
 
