@@ -57,6 +57,11 @@ int mkdir(const char *path)
     return sys_mkdir(path);
 }
 
+int rm(const char *path)
+{
+    return sys_rm(path);
+}
+
 int rename(const char *old_path, const char *new_path)
 {
     return sys_rename(old_path, new_path);

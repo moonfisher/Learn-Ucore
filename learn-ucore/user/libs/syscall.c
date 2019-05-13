@@ -164,6 +164,11 @@ int sys_mkdir(const char *path)
     return syscall(SYS_mkdir, path);
 }
 
+int sys_rm(const char *path)
+{
+    return syscall(SYS_mkdir, path);
+}
+
 int sys_chdir(const char *path)
 {
     return syscall(SYS_chdir, path);

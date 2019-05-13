@@ -71,6 +71,7 @@
 		C41ED9BD2289535F006D8303 /* rename.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9BC2289535E006D8303 /* rename.c */; };
 		C41ED9C3228979EA006D8303 /* link.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9C1228979E9006D8303 /* link.c */; };
 		C41ED9C4228979EA006D8303 /* unlink.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9C2228979E9006D8303 /* unlink.c */; };
+		C41ED9C6228982BF006D8303 /* rm.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9C5228982BE006D8303 /* rm.c */; };
 		C4CB326C2248F5830014426C /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31BD2248F5820014426C /* init.c */; };
 		C4CB326E2248F5830014426C /* default_sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C02248F5820014426C /* default_sched.c */; };
 		C4CB326F2248F5830014426C /* sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C22248F5820014426C /* sched.c */; };
@@ -171,6 +172,7 @@
 		C41ED9BC2289535E006D8303 /* rename.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rename.c; sourceTree = "<group>"; };
 		C41ED9C1228979E9006D8303 /* link.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = link.c; sourceTree = "<group>"; };
 		C41ED9C2228979E9006D8303 /* unlink.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = unlink.c; sourceTree = "<group>"; };
+		C41ED9C5228982BE006D8303 /* rm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rm.c; sourceTree = "<group>"; };
 		C4CB31B12248F53F0014426C /* UCore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = UCore; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4CB31BD2248F5820014426C /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = init.c; sourceTree = "<group>"; };
 		C4CB31BE2248F5820014426C /* entry.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = entry.S; sourceTree = "<group>"; };
@@ -609,6 +611,7 @@
 		C4CB32262248F5830014426C /* user */ = {
 			isa = PBXGroup;
 			children = (
+				C41ED9C5228982BE006D8303 /* rm.c */,
 				C41ED9C1228979E9006D8303 /* link.c */,
 				C41ED9C2228979E9006D8303 /* unlink.c */,
 				C41ED9BC2289535E006D8303 /* rename.c */,
@@ -832,6 +835,7 @@
 				73DD7D5D226F6A8500998EEC /* sleep.c in Sources */,
 				73DD7D5E226F6A8500998EEC /* badsegment.c in Sources */,
 				73DD7D5F226F6A8500998EEC /* waitkill.c in Sources */,
+				C41ED9C6228982BF006D8303 /* rm.c in Sources */,
 				73DD7D60226F6A8500998EEC /* sh.c in Sources */,
 				73DD7D61226F6A8500998EEC /* divzero.c in Sources */,
 				73DD7D62226F6A8500998EEC /* faultread.c in Sources */,

@@ -675,6 +675,44 @@ int sfs_dirent_unlink_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, int slot
     return 0;
 }
 
+int sfs_link_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, struct sfs_inode *lnksin, const char *name)
+{
+    int ret, slot;
+    if ((ret = sfs_dirent_search_nolock(sfs, sin, name, NULL, NULL, &slot)) != -E_NOENT)
+    {
+        return (ret != 0) ? ret : -E_EXISTS;
+    }
+    return sfs_dirent_link_nolock(sfs, sin, slot, lnksin, name);
+}
+
+int sfs_link(struct inode *node, const char *name, struct inode *link_node)
+{
+    if (strlen(name) > SFS_MAX_FNAME_LEN)
+    {
+        return -E_TOO_BIG;
+    }
+    if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
+    {
+        return -E_EXISTS;
+    }
+    
+    struct sfs_inode *lnksin = sfs_vop_info(link_node);
+    if (lnksin->din->type == SFS_TYPE_DIR)
+    {
+        return -E_ISDIR;
+    }
+    
+    struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
+    struct sfs_inode *sin = sfs_vop_info(node);
+    int ret;
+    lock_sin(sin);
+    {
+        ret = sfs_link_nolock(sfs, sin, lnksin, name);
+    }
+    unlock_sin(sin);
+    return ret;
+}
+
 int sfs_unlink_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const char *name)
 {
     int ret, slot;
@@ -1378,11 +1416,12 @@ int sfs_truncfile(struct inode *node, off_t len)
     {
         return -E_INVAL;
     }
+    
     assert(((node)->in_fs) != NULL && (((node)->in_fs)->fs_type == fs_type_sfs_info));
     struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
     struct sfs_inode *sin = sfs_vop_info(node);
     struct sfs_disk_inode *din = sin->din;
-
+    
     int ret = 0;
 	//new number of disk blocks of file
     uint32_t nblks, tblks = ROUNDUP_DIV(len, SFS_BLKSIZE);
@@ -1590,53 +1629,83 @@ int sfs_mkdir(struct inode *node, const char *name)
     return ret;
 }
 
+/* *
+ * null_vop_* - null vop functions
+ * */
+int null_vop_pass(void)
+{
+    return 0;
+}
+
+int null_vop_inval(void)
+{
+    return -E_INVAL;
+}
+
+int null_vop_unimp(void)
+{
+    return -E_UNIMP;
+}
+
+int null_vop_isdir(void)
+{
+    return -E_ISDIR;
+}
+
+int null_vop_notdir(void)
+{
+    return -E_NOTDIR;
+}
+
 // The sfs specific DIR operations correspond to the abstract operations on a inode.
 static const struct inode_ops sfs_node_dirops = {
-    .vop_magic                      = VOP_MAGIC,
-    .vop_open                       = sfs_opendir,
-    .vop_close                      = sfs_close,
-    .vop_read                       = NULL,
-    .vop_write                      = NULL,
-    .vop_fstat                      = sfs_fstat,
-    .vop_fsync                      = sfs_fsync,
-    .vop_mkdir                      = sfs_mkdir,
-    .vop_rename                     = sfs_rename,
-    .vop_namefile                   = sfs_namefile,
-    .vop_getdirentry                = sfs_getdirentry,
-    .vop_reclaim                    = sfs_reclaim,
-    .vop_gettype                    = sfs_gettype,
-    .vop_tryseek                    = sfs_tryseek,
-    .vop_truncate                   = NULL,
-    .vop_create                     = sfs_create,
-    .vop_lookup                     = sfs_lookup,
-    .vop_ioctl                      = NULL,
-    .vop_link                       = NULL,
-    .vop_unlink                     = sfs_unlink,
-    .vop_readlink                   = NULL,
-    .vop_symlink                    = NULL,
+    .vop_magic          = VOP_MAGIC,
+    .vop_open           = sfs_opendir,
+    .vop_close          = sfs_close,
+    .vop_read           = (void *)null_vop_isdir,
+    .vop_write          = (void *)null_vop_isdir,
+    .vop_fstat          = sfs_fstat,
+    .vop_fsync          = sfs_fsync,
+    .vop_mkdir          = sfs_mkdir,
+    .vop_link           = sfs_link,
+    .vop_rename         = sfs_rename,
+    .vop_readlink       = (void *)null_vop_isdir,
+    .vop_symlink        = (void *)null_vop_unimp,
+    .vop_namefile       = sfs_namefile,
+    .vop_getdirentry    = sfs_getdirentry,
+    .vop_reclaim        = sfs_reclaim,
+    .vop_ioctl          = (void *)null_vop_inval,
+    .vop_gettype        = sfs_gettype,
+    .vop_tryseek        = (void *)null_vop_isdir,
+    .vop_truncate       = (void *)null_vop_isdir,
+    .vop_create         = sfs_create,
+    .vop_unlink         = sfs_unlink,
+    .vop_lookup         = sfs_lookup,
 };
 
 /// The sfs specific FILE operations correspond to the abstract operations on a inode.
 static const struct inode_ops sfs_node_fileops = {
-    .vop_magic                      = VOP_MAGIC,
-    .vop_open                       = sfs_openfile,
-    .vop_close                      = sfs_close,
-    .vop_read                       = sfs_read,
-    .vop_write                      = sfs_write,
-    .vop_fstat                      = sfs_fstat,
-    .vop_fsync                      = sfs_fsync,
-    .vop_mkdir                      = NULL,
-    .vop_namefile                   = NULL,
-    .vop_getdirentry                = NULL,
-    .vop_reclaim                    = sfs_reclaim,
-    .vop_gettype                    = sfs_gettype,
-    .vop_tryseek                    = sfs_tryseek,
-    .vop_truncate                   = sfs_truncfile,
-    .vop_create                     = NULL,
-    .vop_lookup                     = NULL,
-    .vop_ioctl                      = NULL,
-    .vop_link                       = NULL,
-    .vop_readlink                   = NULL,
-    .vop_symlink                    = NULL,
+    .vop_magic          = VOP_MAGIC,
+    .vop_open           = sfs_openfile,
+    .vop_close          = sfs_close,
+    .vop_read           = sfs_read,
+    .vop_write          = sfs_write,
+    .vop_fstat          = sfs_fstat,
+    .vop_fsync          = sfs_fsync,
+    .vop_mkdir          = (void *)null_vop_notdir,
+    .vop_link           = (void *)null_vop_notdir,
+    .vop_rename         = (void *)null_vop_notdir,
+    .vop_readlink       = (void *)null_vop_notdir,
+    .vop_symlink        = (void *)null_vop_notdir,
+    .vop_namefile       = (void *)null_vop_notdir,
+    .vop_getdirentry    = (void *)null_vop_notdir,
+    .vop_reclaim        = sfs_reclaim,
+    .vop_ioctl          = (void *)null_vop_inval,
+    .vop_gettype        = sfs_gettype,
+    .vop_tryseek        = sfs_tryseek,
+    .vop_truncate       = sfs_truncfile,
+    .vop_create         = (void *)null_vop_notdir,
+    .vop_unlink         = (void *)null_vop_notdir,
+    .vop_lookup         = (void *)null_vop_notdir,
 };
 
