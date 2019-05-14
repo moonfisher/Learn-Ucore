@@ -48,6 +48,18 @@
 #define CLONE_FS            0x00000800  // set if shared between processes
 
 /* VFS flags */
+/*
+ O_RDONLY   只读打开
+ O_WRONLY   只写打开
+ O_RDWR     读写打开
+ 以上三个常量只能选一个，下面的则可以多选：
+ 
+ O_APPEND   每次写时都追加到文件的尾端。
+ O_CREAT    若此文件不存在，则创建它。使用此选项时，需要第三个参数 mode，用其指定新文件的访问权限。
+ O_EXCL     如果同时制定了 O_CREAT, 而文件已经存在，则会报错。因此可以测试一个文件是否存在，如果不存在，
+            则创建此文件，这使测试和创建两者成为一个原子操作。
+ O_TRUNC    如果此文件存在，而且为只读或读写成功打开，则将其长度截短为0。
+*/
 // flags for open: choose one of these
 #define O_RDONLY            0           // open for reading only
 #define O_WRONLY            1           // open for writing only

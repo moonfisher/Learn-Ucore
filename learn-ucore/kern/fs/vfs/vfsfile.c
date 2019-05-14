@@ -78,6 +78,7 @@ int vfs_open(char *path, uint32_t open_flags, struct inode **node_store)
         assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_truncate != NULL);
         inode_check(node, "truncate");
    
+        // 则将其长度截短为 0
         if ((ret = node->in_ops->vop_truncate(node, 0)) != 0)
         {
             inode_open_dec(node);

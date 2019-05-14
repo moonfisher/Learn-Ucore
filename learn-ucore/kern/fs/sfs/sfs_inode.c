@@ -107,6 +107,7 @@ bool sfs_block_inuse(struct sfs_fs *sfs, uint32_t ino)
 /*
  * sfs_block_alloc -  check and get a free disk block
  */
+// 从 freemap 里分配一块空闲的 block
 int sfs_block_alloc(struct sfs_fs *sfs, uint32_t *ino_store)
 {
     int ret;
