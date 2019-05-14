@@ -32,6 +32,7 @@ void inode_init(struct inode *node, const struct inode_ops *ops, struct fs *fs)
     node->in_ops = ops;
     node->in_fs = fs;
     memset(node->nodename, 0, 256);
+    // 节点一创建好就设置引用计数为 1
     inode_ref_inc(node);
 }
 
@@ -69,7 +70,7 @@ int inode_ref_dec(struct inode *node)
     node->ref_count -= 1;
     ref_count = node->ref_count;
     
-    // 引用计数为 0，文件节点资源回收，同时把内存节点最新数据同步到磁盘上
+    // 引用计数为 0，文件节点资源回收（文件真正删除），同时把内存节点最新数据同步到磁盘上
     if (ref_count == 0)
     {
         assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_reclaim != NULL);

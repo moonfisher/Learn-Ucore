@@ -57,7 +57,7 @@ struct inode
         inode_type_sfs_inode_info,
     } in_type;
     
-    // 此 inode 的引用计数，说明有关联关系，通过文件引用计数实现文件共享
+    // 此 inode 的引用计数，说明有关联关系，通过文件引用计数实现文件共享，ref_count 为 0 文件真正删除
     int ref_count;
     // 此 inode 被 open 打开的次数，被引用不代表当前被打开了
     int open_count;

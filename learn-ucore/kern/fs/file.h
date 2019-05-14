@@ -36,7 +36,7 @@ struct file
     int fd;
     // 访问文件的当前位置，也就是上次读取完的地方，用于记录分多次读取
     off_t pos;
-    // 该文件对应的内存 inode 指针
+    // 该文件对应的内存 inode 指针，之前 open 时通过搜索 entry 目录项获取到的，后续可以直接访问
     struct inode *node;
     // 文件打开计数
     int open_count;

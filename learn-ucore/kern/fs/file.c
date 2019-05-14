@@ -238,6 +238,7 @@ int file_open(char *path, uint32_t open_flags)
         file->pos = stat->st_size;
     }
 
+    // 搜索到文件 inode 节点后直接放到 file 里，方便进程后续读取
     file->node = node;
     file->readable = readable;
     file->writable = writable;

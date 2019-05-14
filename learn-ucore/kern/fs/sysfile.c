@@ -303,7 +303,8 @@ int sysfile_unlink(const char *__path)
 int sysfile_getcwd(char *buf, size_t len)
 {
     struct mm_struct *mm = current->mm;
-    if (len == 0) {
+    if (len == 0)
+    {
         return -E_INVAL;
     }
 
