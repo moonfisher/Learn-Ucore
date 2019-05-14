@@ -1602,10 +1602,23 @@ int sfs_mkdir_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const char *name
     sfs_dirinfo_set_parent(lnksin, sin);
     
     /* add '.' link to itself */
-    sfs_nlinks_inc_nolock(lnksin);
+//    sfs_nlinks_inc_nolock(lnksin);
     
-    /* add '..' link to parent */
-    sfs_nlinks_inc_nolock(sin);
+//    struct inode *node_store;
+//    lock_sin(lnksin);
+//    {
+//        ret = sfs_create_nolock(sfs, lnksin, ".", O_RDONLY, &node_store);
+//    }
+//    unlock_sin(lnksin);
+//
+//    /* add '..' link to parent */
+////    sfs_nlinks_inc_nolock(sin);
+//
+//    lock_sin(lnksin);
+//    {
+//        ret = sfs_create_nolock(sfs, lnksin, "..", O_RDONLY, &node_store);
+//    }
+//    unlock_sin(lnksin);
     
 out:
     inode_ref_dec(link_node);
