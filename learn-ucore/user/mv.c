@@ -6,7 +6,7 @@
 
 void usage(void)
 {
-	printf("usage: rename from to\n");
+	printf("usage: mv from to\n");
 }
 
 int main(int argc, char **argv)

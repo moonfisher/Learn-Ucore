@@ -68,7 +68,7 @@
 		C41ED99422854301006D8303 /* echo.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED99322854301006D8303 /* echo.c */; };
 		C41ED996228544C3006D8303 /* touch.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED995228544C3006D8303 /* touch.c */; };
 		C41ED9BB22894803006D8303 /* cp.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9BA22894803006D8303 /* cp.c */; };
-		C41ED9BD2289535F006D8303 /* rename.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9BC2289535E006D8303 /* rename.c */; };
+		C41ED9BD2289535F006D8303 /* mv.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9BC2289535E006D8303 /* mv.c */; };
 		C41ED9C3228979EA006D8303 /* link.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9C1228979E9006D8303 /* link.c */; };
 		C41ED9C4228979EA006D8303 /* unlink.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9C2228979E9006D8303 /* unlink.c */; };
 		C41ED9C6228982BF006D8303 /* rm.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9C5228982BE006D8303 /* rm.c */; };
@@ -169,7 +169,7 @@
 		C41ED99322854301006D8303 /* echo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = echo.c; sourceTree = "<group>"; };
 		C41ED995228544C3006D8303 /* touch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = touch.c; sourceTree = "<group>"; };
 		C41ED9BA22894803006D8303 /* cp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cp.c; sourceTree = "<group>"; };
-		C41ED9BC2289535E006D8303 /* rename.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rename.c; sourceTree = "<group>"; };
+		C41ED9BC2289535E006D8303 /* mv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mv.c; sourceTree = "<group>"; };
 		C41ED9C1228979E9006D8303 /* link.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = link.c; sourceTree = "<group>"; };
 		C41ED9C2228979E9006D8303 /* unlink.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = unlink.c; sourceTree = "<group>"; };
 		C41ED9C5228982BE006D8303 /* rm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rm.c; sourceTree = "<group>"; };
@@ -614,7 +614,7 @@
 				C41ED9C5228982BE006D8303 /* rm.c */,
 				C41ED9C1228979E9006D8303 /* link.c */,
 				C41ED9C2228979E9006D8303 /* unlink.c */,
-				C41ED9BC2289535E006D8303 /* rename.c */,
+				C41ED9BC2289535E006D8303 /* mv.c */,
 				C41ED9BA22894803006D8303 /* cp.c */,
 				C41ED995228544C3006D8303 /* touch.c */,
 				C41ED99322854301006D8303 /* echo.c */,
@@ -785,7 +785,7 @@
 			files = (
 				C41EC5AB22842B62006D8303 /* cat.c in Sources */,
 				73DD7D6A226F6B0400998EEC /* stdio.h in Sources */,
-				C41ED9BD2289535F006D8303 /* rename.c in Sources */,
+				C41ED9BD2289535F006D8303 /* mv.c in Sources */,
 				73DD7D6B226F6B0400998EEC /* string.h in Sources */,
 				73DD7D6C226F6B0400998EEC /* string.c in Sources */,
 				73DD7D6D226F6B0400998EEC /* error.h in Sources */,

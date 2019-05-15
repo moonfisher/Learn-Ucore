@@ -6,7 +6,9 @@
 
 struct dirent
 {
+    // 在目录文件中的偏移 
     off_t offset;
+    // 文件名
     char name[FS_MAX_FNAME_LEN + 1];
 };
 
