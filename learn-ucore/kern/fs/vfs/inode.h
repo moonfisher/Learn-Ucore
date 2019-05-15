@@ -43,7 +43,7 @@ struct iobuf;
 */
 struct inode
 {
-    // 包括了不同文件系统特定 inode 信息的 union 成员信息，这里是结构体
+    // 无论是设备节点，还是文件节点，都用 inode 结构来描述，下面是联合体
     union
     {
         struct device __device_info;
@@ -61,7 +61,7 @@ struct inode
     int ref_count;
     // 此 inode 被 open 打开的次数，被引用不代表当前被打开了
     int open_count;
-    // inode 所属的文件系统
+    // inode 所属的文件系统，同一个文件下同下的所有 inode 节点，都指向同一个 fs 内存结构
     struct fs *in_fs;
     // 访问 inode 内容的函数指针，和具体文件系统相关
     const struct inode_ops *in_ops;

@@ -128,15 +128,16 @@ struct sfs_disk_inode
     uint32_t size;                                  /* size of the file (in bytes) */
     uint32_t slots;                                 /* # of entries in this directory */
     uint32_t parent;                                /* parent inode number */
-    // inode 的文件类型
+    // inode 的文件类型，是普通文件，还是目录
     uint16_t type;                                  /* one of SYS_TYPE_* above */
     // 此 inode 的硬链接数
     uint16_t nlinks;                                /* # of hard links to this file */
     // 此 inode 拥有的数据块的个数(direct + indirect)，如果是个目录 node，
     // 这个也表示目录下文件的个数
     uint32_t blocks;                                /* # of blocks */
-    // 此 inode 的直接数据块索引值（有 SFS_NDIRECT 个)，这些索引对应的磁盘区域
-    // 才是文件内容真正存放的地方
+    // 此 inode 的直接数据块索引值（有 SFS_NDIRECT 个)
+    // 如果 type 是目录，这些索引指向当前目录下的所有目录项所在的 block
+    // 如果 type 是文件，这些索引指向文件数据内容真正存放的 block
     uint32_t direct[SFS_NDIRECT];                   /* direct blocks */
     // direct 只能存放 12 个索引，放不下的用 indirect 间接索引
     uint32_t indirect;                              /* indirect blocks */

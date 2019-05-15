@@ -8,7 +8,102 @@
 #include "error.h"
 
 static semaphore_t bootfs_sem;
-// 当前文件系统根目录 “/” 对应的 inode
+/*
+ 当前文件系统根目录 “/” 对应的 inode
+ {
+    in_info = {
+        __device_info = {
+            d_blocks = 3228318056,
+            d_blocksize = 1,
+            d_open = 0x0,
+            d_close = 0x1,
+            d_io = 0x1,
+            d_ioctl = 0xc06c39cc
+        },
+        __sfs_inode_info = {
+            din = 0xc06c3968,
+            ino = 1,
+            dirty = 0,
+            reclaim_count = 1,
+            sem = {
+                value = 1,
+                wait_queue = {
+                    wait_head = {
+                        prev = 0xc06c39cc,
+                        next = 0xc06c39cc
+                    }
+                }
+            },
+            inode_link = {
+                prev = 0xc06c3828,
+                next = 0xc06c3828
+            },
+            hash_link = {
+                prev = 0xc06d73c0,
+                next = 0xc06d73c0
+            }
+        }
+    },
+    in_type = inode_type_sfs_inode_info,
+    ref_count = 5,
+    open_count = 0,
+    in_fs = {
+        fs_info = {
+            __sfs_info = {
+                super = {
+                    magic = 797818410,
+                    blocks = 32768,
+                    unused_blocks = 32311,
+                    info = "simple file system", '\000' <repeats 13 times>
+                },
+                dev = 0xc06c34b8,
+                freemap = 0xc06c3870,
+                super_dirty = 0,
+                sfs_buffer = 0xc06d5000,
+                fs_sem = {
+                    value = 1,
+                    wait_queue = {
+                        wait_head = {
+                            prev = 0xc06c3808,
+                            next = 0xc06c3808
+                        }
+                    }
+                },
+                io_sem = {
+                    value = 1,
+                    wait_queue = {
+                        wait_head = {
+                            prev = 0xc06c3814,
+                            next = 0xc06c3814
+                        }
+                    }
+                },
+                mutex_sem = {
+                    value = 1,
+                    wait_queue = {
+                        wait_head = {
+                            prev = 0xc06c3820,
+                            next = 0xc06c3820
+                        }
+                    }
+                },
+                inode_list = {
+                    prev = 0xc06c39d4,
+                    next = 0xc06c39d4
+                },
+                hash_list = 0xc06d6000
+            }
+        },
+        fs_type = fs_type_sfs_info,
+        fs_sync = 0xc011203a <sfs_sync>,
+        fs_get_root = 0xc0112180 <sfs_get_root>,
+        fs_unmount = 0xc01121f0 <sfs_unmount>,
+        fs_cleanup = 0xc01122b6 <sfs_cleanup>
+    },
+    in_ops = 0xc011ac40 <sfs_node_dirops>,
+    nodename = "/", '\000' <repeats 254 times>
+ }
+*/
 static struct inode *bootfs_node = NULL;
 
 extern void vfs_devlist_init(void);
