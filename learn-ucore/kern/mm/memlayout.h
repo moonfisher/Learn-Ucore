@@ -17,6 +17,33 @@
 #define GD_UDATA    ((SEG_UDATA) << 3)      // user data                0x20
 #define GD_TSS      ((SEG_TSS) << 3)        // task segment selector    0x28
 
+/*
+ https://blog.csdn.net/qq_37414405/article/details/84535145
+ CPL、DPL 和 RPL
+
+ CPL：当前任务特权（Current Privilege Level） 是当前执行的程序或任务的特权级。
+ 它被存储在 CS 和 SS 的第 0 位和第 1 位上。
+ 通常情况下，CPL 代表代码所在的段的特权级。当程序转移到不同特权级的代码段时，处理器将改变 CPL。
+ 只有 0 和 3 两个值，分别表示用户态和内核态。
+
+ DPL：描述符特权（Descriptor Privilege Level） 表示段或门的特权级。
+ 存储在描述符中的权限位，用于描述代码的所属的特权等级，也就是代码本身真正的特权级。
+ 一个程序可以使用多个段 (Data，Code，Stack) 也可以只用一个 code 段等。正常的情况下，当程序的
+ 环境建立好后，段描述符都不需要改变, 当然 DPL 也不需要改变，因此每个段的 DPL 值是固定。
+ 当前代码段试图访问一个段或者门，DPL 将会和 CPL 以及段或者门选择子的 RPL 相比较，根据段或者门类
+ 型的不同，DPL 将会区别对待。
+ 
+ RPL：请求特权级 RPL(Request Privilege Level) 是通过段选择子的第 0 和第 1 位表现出来的。
+ RPL 保存在选择子的最低两位。 RPL 说明的是进程对段访问的请求权限，意思是当前进程想要的请求权限。
+ RPL 的值由程序员自己来自由的设置，并不一定 RPL >= CPL，但是当 RPL < CPL 时，实际起作用的就是
+ CPL 了，因为访问时的特权检查是判断：EPL = max(RPL, CPL) <= DPL 是否成立，所以 RPL 可以看成
+ 是每次访问时的附加限制，RPL = 0 时附加限制最小，RPL = 3 时附加限制最大。所以你不要想通过来随便
+ 设置一个 RPL 来访问一个比 CPL 更内层的段。
+ 
+ 因为你不可能得到比自己更高的权限，你申请的权限一定要比你实际权限低才能通过 CPU 的审查，才能对你放行。
+ 所以实际上 RPL 的作用是程序员可以把自己的程序降级运行, 有些时候为了更好的安全性, 程序可以在适当的
+ 时机把自身降低权限（RPL 设成更大的值）。
+*/
 #define DPL_KERNEL  (0)
 #define DPL_USER    (3)
 

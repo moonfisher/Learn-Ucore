@@ -67,16 +67,34 @@ void idt_init(void)
     int i = 0;
     for (i = 0; i < sizeof(idt) / sizeof(struct gatedesc); i ++)
     {
-        SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], DPL_KERNEL);
+//        SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], DPL_KERNEL);
+        idt[i].gd_off_15_0 = (uint32_t)(__vectors[i]) & 0xffff;
+        idt[i].gd_ss = GD_KTEXT;
+        idt[i].gd_args = 0;
+        idt[i].gd_rsv1 = 0;
+        idt[i].gd_type = STS_IG32;
+        idt[i].gd_s = 0;
+        idt[i].gd_dpl = DPL_KERNEL;
+        idt[i].gd_p = 1;
+        idt[i].gd_off_31_16 = (uint32_t)(__vectors[i]) >> 16;
     }
     
     // T_SYSCALL = int 0x80，80 中断设置的权限是 DPL_USER
     // 这是用户进程可以切换到内核态，执行内核代码的唯一入口，如果改成 DPL_KERNEL 则
     // 会触发 T_GPFLT general protection fault 中断，导致异常
-    SETGATE(idt[T_SYSCALL], 1, GD_KTEXT, __vectors[T_SYSCALL], DPL_USER);
+//    SETGATE(idt[T_SYSCALL], 1, GD_KTEXT, __vectors[T_SYSCALL], DPL_USER);
+    idt[T_SYSCALL].gd_off_15_0 = (uint32_t)(__vectors[T_SYSCALL]) & 0xffff;
+    idt[T_SYSCALL].gd_ss = GD_KTEXT;
+    idt[T_SYSCALL].gd_args = 0;
+    idt[T_SYSCALL].gd_rsv1 = 0;
+    idt[T_SYSCALL].gd_type = STS_TG32;
+    idt[T_SYSCALL].gd_s = 0;
+    idt[T_SYSCALL].gd_dpl = DPL_USER;
+    idt[T_SYSCALL].gd_p = 1;
+    idt[T_SYSCALL].gd_off_31_16 = (uint32_t)(__vectors[T_SYSCALL]) >> 16;
     
     // set for switch from user to kernel
-    SETGATE(idt[T_SWITCH_TOK], 0, GD_KTEXT, __vectors[T_SWITCH_TOK], DPL_USER);
+//    SETGATE(idt[T_SWITCH_TOK], 0, GD_KTEXT, __vectors[T_SWITCH_TOK], DPL_USER);
     
     lidt(&idt_pd);
 }

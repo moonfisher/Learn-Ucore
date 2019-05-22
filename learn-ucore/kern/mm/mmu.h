@@ -80,40 +80,6 @@ struct gatedesc
     unsigned gd_off_31_16 : 16;     // high bits of offset in segment
 };
 
-/* *
- * Set up a normal interrupt/trap gate descriptor
- *   - istrap: 1 for a trap (= exception) gate, 0 for an interrupt gate
- *   - sel: Code segment selector for interrupt/trap handler
- *   - off: Offset in code segment for interrupt/trap handler
- *   - dpl: Descriptor Privilege Level - the privilege level required
- *          for software to invoke this interrupt/trap gate explicitly
- *          using an int instruction.
- * */
-#define SETGATE(gate, istrap, sel, off, dpl) {               \
-        (gate).gd_off_15_0 = (uint32_t)(off) & 0xffff;      \
-        (gate).gd_ss = (sel);                                \
-        (gate).gd_args = 0;                                 \
-        (gate).gd_rsv1 = 0;                                 \
-        (gate).gd_type = (istrap) ? STS_TG32 : STS_IG32;    \
-        (gate).gd_s = 0;                                    \
-        (gate).gd_dpl = (dpl);                              \
-        (gate).gd_p = 1;                                    \
-        (gate).gd_off_31_16 = (uint32_t)(off) >> 16;        \
-    }
-
-/* Set up a call gate descriptor */
-#define SETCALLGATE(gate, ss, off, dpl) {                   \
-        (gate).gd_off_15_0 = (uint32_t)(off) & 0xffff;      \
-        (gate).gd_ss = (ss);                                \
-        (gate).gd_args = 0;                                 \
-        (gate).gd_rsv1 = 0;                                 \
-        (gate).gd_type = STS_CG32;                          \
-        (gate).gd_s = 0;                                    \
-        (gate).gd_dpl = (dpl);                              \
-        (gate).gd_p = 1;                                    \
-        (gate).gd_off_31_16 = (uint32_t)(off) >> 16;        \
-    }
-
 /* segment descriptors */
 struct segdesc
 {
@@ -140,14 +106,6 @@ struct segdesc
         ((lim) >> 12) & 0xffff, (base) & 0xffff,            \
         ((base) >> 16) & 0xff, type, 1, dpl, 1,             \
         (unsigned)(lim) >> 28, 0, 0, 1, 1,                  \
-        (unsigned) (base) >> 24                             \
-    }
-
-#define SEGTSS(type, base, lim, dpl)                        \
-    (struct segdesc) {                                      \
-        (lim) & 0xffff, (base) & 0xffff,                    \
-        ((base) >> 16) & 0xff, type, 0, dpl, 1,             \
-        (unsigned) (lim) >> 16, 0, 0, 1, 0,                 \
         (unsigned) (base) >> 24                             \
     }
 

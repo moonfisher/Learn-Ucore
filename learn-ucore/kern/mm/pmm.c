@@ -367,7 +367,20 @@ static void gdt_init(void)
     ts.ts_ss0 = KERNEL_DS;
 
     // initialize the TSS filed of the gdt
-    gdt[SEG_TSS] = SEGTSS(STS_T32A, (uintptr_t)&ts, sizeof(ts), DPL_KERNEL);
+//    gdt[SEG_TSS] = SEGTSS(STS_T32A, (uintptr_t)&ts, sizeof(ts), DPL_KERNEL);    
+    gdt[SEG_TSS].sd_lim_15_0 = (sizeof(ts)) & 0xffff;
+    gdt[SEG_TSS].sd_base_15_0 = ((uintptr_t)&ts) & 0xffff;
+    gdt[SEG_TSS].sd_base_23_16 = (((uintptr_t)&ts) >> 16) & 0xff;
+    gdt[SEG_TSS].sd_type = STS_T32A;
+    gdt[SEG_TSS].sd_s = 0;
+    gdt[SEG_TSS].sd_dpl = DPL_KERNEL;
+    gdt[SEG_TSS].sd_p = 1;
+    gdt[SEG_TSS].sd_lim_19_16 = (unsigned)(sizeof(ts)) >> 16;
+    gdt[SEG_TSS].sd_avl = 0;
+    gdt[SEG_TSS].sd_rsv1 = 0;
+    gdt[SEG_TSS].sd_db = 1;
+    gdt[SEG_TSS].sd_g = 0;
+    gdt[SEG_TSS].sd_base_31_24 = (unsigned)((uintptr_t)&ts) >> 24;
 
     // reload all segment registers
     lgdt(&gdt_pd);
