@@ -86,14 +86,57 @@ struct segdesc
     unsigned sd_lim_15_0 : 16;      // low bits of segment limit
     unsigned sd_base_15_0 : 16;     // low bits of segment base address
     unsigned sd_base_23_16 : 8;     // middle bits of segment base address
+    /*
+     sd_type 指明段或者门的类型，确定段的范围权限和增长方向。
+     如何解释这个域，取决于该描述符是应用描述符(代码或数据)还是系统描述符，
+     这由描述符类型标志(S 标记)所确定。代码段，数据段和系统段对类型域有不同的意义。
+     
+     对于一致代码段(C 位为 1)，也就是共享的段，一致代码段就是系统用来共享、提供给低特权级
+     的程序使用调用的代码
+     特权级高的程序不允许访问特权级低的数据，核心态不允许调用用户态的数据.
+     特权级低的程序可以访问到特权级高的数据，但是特权级不会改变，用户态还是用户态.
+     
+     对于普通代码段(C 位为 0)，也就是非一致代码段，为了避免被低特权级程序访问而被系统保护起来的代码。
+     只允许同级间访问，DPL 规定了可以访问该段的特权级，如果 DPL 为 1，那么只有运行在 CPL
+     为 1 的程序才有权访问它。
+     绝对禁止不同级访问，核心态不用用户态，用户态也不使用核心态.
+     
+     绝大多数代码段都是不一致的（non conforming），这些代码只能在同优先级的代码中调用，除非
+     使用调用门（call gate）。
+    */
     unsigned sd_type : 4;           // segment type (see STS_ constants)
+    /*
+     sd_s 确定段描述符是系统描述符(S 标记为 0)或者代码，数据段描述符(S 标记为 1)
+     系统段描述符指的就是 LDT 描述符和 TSS 描述符，LDT 描述符和 TSS 描述符也放在全局描述
+     符 GDT 中。每个任务都有自己的局部描述符表 LDT 和任务状态段 TSS，LDT 和 TSS 是内存中
+     特殊的段，它们有起始地址、大小和属性，也用描述符来描述它们，所有有 LDT 描述符和 TSS 描述符
+    */
     unsigned sd_s : 1;              // 0 = system, 1 = application
+    // sd_dpl 指明该段的特权级。特权级从 0~3，0 为最高特权级。DPL 用来控制对该段的访问
     unsigned sd_dpl : 2;            // descriptor Privilege Level
+    /*
+     sd_p 标志指出该段当前是否在内存中(1 表示在内存中，0 表示不在)。当指向该段描述符的
+     段选择符装载人段寄存器时，如果这个标志为 0，处理器会产生一个段不存在异常(NP)。 内存
+     管理软件可以通过这个标志，来控制在某个特定时间有哪些段是真正的被载入物理内存，这样对于
+     管理虚拟内存而言，除了分页机制还提供了另一种控制方法。
+    */
     unsigned sd_p : 1;              // present
     unsigned sd_lim_19_16 : 4;      // high bits of segment limit
     unsigned sd_avl : 1;            // unused (available for software use)
     unsigned sd_rsv1 : 1;           // reserved
+    /*
+     sd_db 根据这个段描述符所指的是一个可执行代码段，一个向下扩展的数据段还是一个堆栈段，
+     这个标志完成不同的功能。(对32位的代码和数据段，这个标志总是被置为1，而 16位的代码和
+     数据段，这个标志总是被置为0)
+    */
     unsigned sd_db : 1;             // 0 = 16-bit segment, 1 = 32-bit segment
+    /*
+     sd_g 确定段限长扩展的增量。
+     当 G 标志为 0，段限长以字节为单位;
+     G 标志为 1，段限长以 4KB 为单位。(这个标志不影响段基址的粒度，段基址的粒度永远是字节)
+     如果G标志为 1， 那么当检测偏移量是否超越段限长时，不用测试偏移量的低 12 位。
+     例如，如果 G 标志为 1， 0 段限长意味着有效偏移量为从 0 到 4095。
+    */
     unsigned sd_g : 1;              // granularity: limit scaled by 4K when set
     unsigned sd_base_31_24 : 8;     // high bits of segment base address
 };

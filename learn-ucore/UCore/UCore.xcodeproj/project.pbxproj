@@ -410,8 +410,8 @@
 		C4CB31BC2248F5820014426C /* init */ = {
 			isa = PBXGroup;
 			children = (
-				C4CB31BD2248F5820014426C /* init.c */,
 				C4CB31BE2248F5820014426C /* entry.S */,
+				C4CB31BD2248F5820014426C /* init.c */,
 			);
 			path = init;
 			sourceTree = "<group>";
@@ -674,9 +674,9 @@
 		C4CB324B2248F5830014426C /* boot */ = {
 			isa = PBXGroup;
 			children = (
-				C4CB324C2248F5830014426C /* bootmain.c */,
 				C4CB324D2248F5830014426C /* asm.h */,
 				C4CB324E2248F5830014426C /* bootasm.S */,
+				C4CB324C2248F5830014426C /* bootmain.c */,
 			);
 			name = boot;
 			path = ../boot;

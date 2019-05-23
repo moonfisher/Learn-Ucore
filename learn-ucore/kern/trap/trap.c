@@ -73,7 +73,7 @@ void idt_init(void)
         idt[i].gd_args = 0;
         idt[i].gd_rsv1 = 0;
         idt[i].gd_type = STS_IG32;
-        idt[i].gd_s = 0;
+        idt[i].gd_s = 0;    // 中断是系统段，这里必须为 0
         idt[i].gd_dpl = DPL_KERNEL;
         idt[i].gd_p = 1;
         idt[i].gd_off_31_16 = (uint32_t)(__vectors[i]) >> 16;
@@ -88,7 +88,7 @@ void idt_init(void)
     idt[T_SYSCALL].gd_args = 0;
     idt[T_SYSCALL].gd_rsv1 = 0;
     idt[T_SYSCALL].gd_type = STS_TG32;
-    idt[T_SYSCALL].gd_s = 0;
+    idt[T_SYSCALL].gd_s = 0;    // 中断是系统段，这里必须为 0
     idt[T_SYSCALL].gd_dpl = DPL_USER;
     idt[T_SYSCALL].gd_p = 1;
     idt[T_SYSCALL].gd_off_31_16 = (uint32_t)(__vectors[T_SYSCALL]) >> 16;

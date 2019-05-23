@@ -49,6 +49,7 @@
 
 #define KERNEL_CS   ((GD_KTEXT) | DPL_KERNEL)   // 0x8
 #define KERNEL_DS   ((GD_KDATA) | DPL_KERNEL)   // 0x10
+
 #define USER_CS     ((GD_UTEXT) | DPL_USER)     // 0x1B
 #define USER_DS     ((GD_UDATA) | DPL_USER)     // 0x23
 

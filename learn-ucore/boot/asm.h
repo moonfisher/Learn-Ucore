@@ -8,11 +8,11 @@
     .word 0, 0;                                                 \
     .byte 0, 0, 0, 0
 
+// 这里面 0x90 实际是设置了 sd_s = 1，sd_p = 1
 #define SEG_ASM(type,base,lim)                                  \
     .word (((lim) >> 12) & 0xffff), ((base) & 0xffff);          \
     .byte (((base) >> 16) & 0xff), (0x90 | (type)),             \
         (0xC0 | (((lim) >> 28) & 0xf)), (((base) >> 24) & 0xff)
-
 
 /* Application segment type bits */
 #define STA_X       0x8     // Executable segment
