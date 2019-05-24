@@ -99,7 +99,7 @@ struct trapframe
     uint16_t tf_padding4;
     uint32_t tf_eflags;
     /* below here only when crossing rings, such as from user to kernel */
-    /* 下面 2 个参数，记录 int x 中断执行之前的堆栈 esp 地址，中断执行完之后还要回到之前的堆栈
+    /* 下面 2 个参数，记录 int x 中断执行之前的进程用户态堆栈 esp 地址，中断执行完之后还要回到之前的堆栈
        这 2 个只在用户态切换到内核态，发生特权转换的时候才会用到，此时 cpu 会把用户栈切换为内核栈，
        并将当前进程在用户态下的 ss 和 esp 压到新的内核栈中保存起来（因为栈发生切换，如果不保存，中
        断处理完之后无法回到之前的用户栈地址）。内核栈的地址通过全局 tss 获取的，进程切换的时候更新 tss。

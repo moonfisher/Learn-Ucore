@@ -72,24 +72,30 @@ void idt_init(void)
         idt[i].gd_ss = GD_KTEXT;
         idt[i].gd_args = 0;
         idt[i].gd_rsv1 = 0;
-        idt[i].gd_type = STS_IG32;
-        idt[i].gd_s = 0;    // 中断是系统段，这里必须为 0
+        idt[i].gd_type = STS_IG32;  // 这是中断门
+        idt[i].gd_s = 0;            // 中断是系统段，这里必须为 0
         idt[i].gd_dpl = DPL_KERNEL;
         idt[i].gd_p = 1;
         idt[i].gd_off_31_16 = (uint32_t)(__vectors[i]) >> 16;
     }
     
+    /*
+     中断门与陷阱门在使用上的区别
+     并不在于中断是由外部产生的或是由cpu本身产生的，
+     而是在于通过中断门进入中断服务程序时cpu会自动将中断关闭，也就是将cpu中eflags寄存器中IF标志复位，
+     防止嵌套中断的发生；而通过陷阱门进入服务程序时则维持IF标志不变
+    */
     // T_SYSCALL = int 0x80，80 中断设置的权限是 DPL_USER
     // 这是用户进程可以切换到内核态，执行内核代码的唯一入口，如果改成 DPL_KERNEL 则
     // 会触发 T_GPFLT general protection fault 中断，导致异常
 //    SETGATE(idt[T_SYSCALL], 1, GD_KTEXT, __vectors[T_SYSCALL], DPL_USER);
     idt[T_SYSCALL].gd_off_15_0 = (uint32_t)(__vectors[T_SYSCALL]) & 0xffff;
-    idt[T_SYSCALL].gd_ss = GD_KTEXT;
+    idt[T_SYSCALL].gd_ss = GD_KTEXT;    // 段选择子指向内核段，中断之后特权级提升
     idt[T_SYSCALL].gd_args = 0;
     idt[T_SYSCALL].gd_rsv1 = 0;
-    idt[T_SYSCALL].gd_type = STS_TG32;
-    idt[T_SYSCALL].gd_s = 0;    // 中断是系统段，这里必须为 0
-    idt[T_SYSCALL].gd_dpl = DPL_USER;
+    idt[T_SYSCALL].gd_type = STS_TG32;  // 这是陷阱门，系统调动是通过陷阱门来实现
+    idt[T_SYSCALL].gd_s = 0;            // 中断是系统段，这里必须为 0
+    idt[T_SYSCALL].gd_dpl = DPL_USER;   // 陷阱门是提供给用户进程使用的，这里要设置为 DPL_USER
     idt[T_SYSCALL].gd_p = 1;
     idt[T_SYSCALL].gd_off_31_16 = (uint32_t)(__vectors[T_SYSCALL]) >> 16;
     

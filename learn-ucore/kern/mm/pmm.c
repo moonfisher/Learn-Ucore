@@ -354,10 +354,10 @@ void load_esp0(uintptr_t esp0)
  
  CPU 会根据 CPL 和中断服务例程的段描述符的 DPL 信息确认是否发生了特权级的转换。
  比如当前程序正运行在用户态，而中断程序是运行在内核态的，则意味着发生了特权级的转换，
- 这时 CPU 会从当前程序的 TSS 信息（该信息在内存中的起始地址存在 TR 寄存器中）里取得该程序的内核栈地址，
- 即包括内核态的 ss 和 esp 的值，并立即将系统当前使用的栈切换成新的内核栈。
+ 这时 CPU 会从当前进程的 TSS 信息（该信息在内存中的起始地址存在 TR 寄存器中）里取得该进程的内核栈地址，
+ 即包括内核态的 ss 和 esp 的值，并立即将系统当前使用的栈切换成该进程的内核栈。
  这个栈就是即将运行的中断服务程序要使用的栈。
- 紧接着就将当前程序使用的用户态的 ss 和 esp 压到新的内核栈中保存起来。
+ 紧接着就将当前进程正在使用的用户态的 ss 和 esp 压到进程的内核栈中保存起来，中断处理结束后还要返回到用户栈
 */
 static void gdt_init(void)
 {
@@ -371,7 +371,7 @@ static void gdt_init(void)
     gdt[SEG_TSS].sd_lim_15_0 = (sizeof(ts)) & 0xffff;
     gdt[SEG_TSS].sd_base_15_0 = ((uintptr_t)&ts) & 0xffff;
     gdt[SEG_TSS].sd_base_23_16 = (((uintptr_t)&ts) >> 16) & 0xff;
-    gdt[SEG_TSS].sd_type = STS_T32A;
+    gdt[SEG_TSS].sd_type = STS_T32A;    // 说明这个段是 tss 段
     gdt[SEG_TSS].sd_s = 0;
     gdt[SEG_TSS].sd_dpl = DPL_KERNEL;
     gdt[SEG_TSS].sd_p = 1;

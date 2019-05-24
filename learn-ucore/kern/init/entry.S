@@ -52,7 +52,7 @@ spin:
 .data
 .align PGSIZE
     .globl bootstack
-bootstack: # 0xC0152000 内核栈，供内核代码，以及用户进程陷入内核态之后使用
+bootstack: # 0xC0152000 内核栈，供内核代码，以及 idle 进程使用
     .space KSTACKSIZE # (KSTACKPAGE * PGSIZE) = 8k = 0x2000
     .globl bootstacktop
 bootstacktop: # 0xC0154000

@@ -3,7 +3,7 @@
 Special kernel symbols:
   kern_entry           0xc0100000 (phys)
   kern_init            0xc0100040 (phys)
-  etext                0xc0116610 (phys)
+  etext                0xc0116613 (phys)
   __STAB_BEGIN__       0xc011b640 (phys)
   ___STAB_END__        0xc014c408 (phys)
   __STABSTR_BEGIN__    0xc014c409 (phys)
@@ -72,9 +72,9 @@ ebp:0xc015bf78 eip:0xc0100b40 args:0x00000000 0x00000000 0x00000000 0xc015bfac
     kern/debug/kdebug.c:379: print_stackframe+28
 ebp:0xc015bf98 eip:0xc0100eaf args:0xc0119afb 0x0000000e 0xc0119ae1 0x00000028 
     kern/debug/panic.c:30: __panic+107
-ebp:0xc015bfb8 eip:0xc010f135 args:0x01701038 0x0000000b 0x00002710 0x00040400 
+ebp:0xc015bfb8 eip:0xc010f138 args:0x01701038 0x0000000b 0x00002710 0x00040400 
     kern/fs/swap/swapfs.c:14: swapfs_init+42
-ebp:0xc015bfd8 eip:0xc0106a5c args:0x00000000 0x00000000 0x00000000 0xc0116620 
+ebp:0xc015bfd8 eip:0xc0106a5f args:0x00000000 0x00000000 0x00000000 0xc0116620 
     kern/mm/swap.c:39: swap_init+10
 ebp:0xc015bff8 eip:0xc01000b4 args:0xc0116918 0xc0116920 0xc0100dc6 0xc011693f 
     kern/init/init.c:53: kern_init+115

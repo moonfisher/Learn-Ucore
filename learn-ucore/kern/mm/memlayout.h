@@ -11,11 +11,11 @@
 #define SEG_TSS     5
 
 /* global descrptor numbers */
-#define GD_KTEXT    ((SEG_KTEXT) << 3)      // kernel text              0x8
-#define GD_KDATA    ((SEG_KDATA) << 3)      // kernel data              0x10
-#define GD_UTEXT    ((SEG_UTEXT) << 3)      // user text                0x18
-#define GD_UDATA    ((SEG_UDATA) << 3)      // user data                0x20
-#define GD_TSS      ((SEG_TSS) << 3)        // task segment selector    0x28
+#define GD_KTEXT    ((SEG_KTEXT) << 3)      // kernel text              0x8     00001 0 00
+#define GD_KDATA    ((SEG_KDATA) << 3)      // kernel data              0x10    00010 0 00
+#define GD_UTEXT    ((SEG_UTEXT) << 3)      // user text                0x18    00011 0 00
+#define GD_UDATA    ((SEG_UDATA) << 3)      // user data                0x20    00100 0 00
+#define GD_TSS      ((SEG_TSS) << 3)        // task segment selector    0x28    00101 0 00
 
 /*
  https://blog.csdn.net/qq_37414405/article/details/84535145
@@ -45,13 +45,13 @@
  时机把自身降低权限（RPL 设成更大的值）。
 */
 #define DPL_KERNEL  (0)
-#define DPL_USER    (3)
+#define DPL_USER    (3) // DPL_USER 设置为 1 或者 2 也可以
 
-#define KERNEL_CS   ((GD_KTEXT) | DPL_KERNEL)   // 0x8
-#define KERNEL_DS   ((GD_KDATA) | DPL_KERNEL)   // 0x10
+#define KERNEL_CS   ((GD_KTEXT) | DPL_KERNEL)   // 0x8      00001 0 00
+#define KERNEL_DS   ((GD_KDATA) | DPL_KERNEL)   // 0x10     00010 0 00
 
-#define USER_CS     ((GD_UTEXT) | DPL_USER)     // 0x1B
-#define USER_DS     ((GD_UDATA) | DPL_USER)     // 0x23
+#define USER_CS     ((GD_UTEXT) | DPL_USER)     // 0x1B     00011 0 11
+#define USER_DS     ((GD_UDATA) | DPL_USER)     // 0x23     00100 0 11
 
 /* *
  * Virtual memory map base on 512M physical memory:             Permissions

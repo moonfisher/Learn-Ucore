@@ -5,9 +5,9 @@
 # memory at physical address 0x7c00 and starts executing in real mode
 # with %cs=0 %ip=7c00.
 
-.set PROT_MODE_CSEG,        0x8                     # kernel code segment selector
-.set PROT_MODE_DSEG,        0x10                    # kernel data segment selector
-.set CR0_PE_ON,             0x1                     # protected mode enable flag
+.set PROT_MODE_CSEG,        0x8             # 00001 0 00    kernel code segment selector
+.set PROT_MODE_DSEG,        0x10            # 00010 0 00    kernel data segment selector
+.set CR0_PE_ON,             0x1             # protected mode enable flag
 .set SMAP,                  0x534d4150
 
 # start address should be 0:7c00, in real mode, the beginning address of the running bootloader
@@ -110,11 +110,12 @@ spin:
 
 .data
 # Bootstrap GDT
+# 这里内核代码段和内核数据段都没有设置 STA_C，所以是非一致性代码段，不共享，只有 dpl = cpl 才能访问
 .p2align 2                                          # force 4 byte alignment
 gdt:
     SEG_NULLASM                                     # null seg
-    SEG_ASM(STA_X|STA_R, 0x0, 0xffffffff)           # code seg for bootloader and kernel
-    SEG_ASM(STA_W, 0x0, 0xffffffff)                 # data seg for bootloader and kernel
+    SEG_ASM(STA_X | STA_R , 0x0, 0xffffffff)        # code seg for bootloader and kernel
+    SEG_ASM(STA_W , 0x0, 0xffffffff)                # data seg for bootloader and kernel
 
 gdtdesc:
     .word 0x17                                      # sizeof(gdt) - 1
