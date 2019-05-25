@@ -144,28 +144,49 @@ struct segdesc
 #define SEG_NULL                                            \
     (struct segdesc) {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
-#define SEG(type, base, lim, dpl)                           \
-    (struct segdesc) {                                      \
-        ((lim) >> 12) & 0xffff, (base) & 0xffff,            \
-        ((base) >> 16) & 0xff, type, 1, dpl, 1,             \
-        (unsigned)(lim) >> 28, 0, 0, 1, 1,                  \
-        (unsigned) (base) >> 24                             \
-    }
-
 /* task state segment format (as described by the Pentium architecture book) */
-// 这个结构根据 tss 来定义
+/*
+ TSS的用途
+ 
+ 保存 0 环、1 环和 2 环的栈段选择子和栈顶指针
+ 在跨段提权的时候，需要切换栈，CPU 会通过 tr 寄存器找到 TSS，取出其中的 SS0 和 ESP0 复制到 ss 和 esp
+ 寄存器中。这只是 TSS 的一个用途，也是现代操作系统使用到的功能。
+ 
+ 一次性切换一堆寄存器
+ TSS 不仅存储了不同特权级下的 SS 和 ESP，还有 cs, esp, ss, esp 等等，有着各自的用途。
+ 可以通过 call / jmp + TSS 段选择子指令一次性把这些值加载到 CPU 对应的寄存器中。旧值将保存在旧的 TSS 中。
+ 
+ GDT 表中可以存放多个 TSS 描述符，这意味着内存中可以存在多份不同的 TSS。总有一个 TSS 是在当前使用中的，
+ 也就是 tr 寄存器指向的那个 TSS。当使用 call / jmp + TSS 段选择子的时候，CPU 做了以下几件事情:
+ 
+ 1) 把当前所有寄存器（TSS 结构中有的那些寄存器）的值填写到当前 tr 段寄存器指向的 TSS 中
+ 2) 把新的 TSS 段选择子指向的段描述符加载到 tr 段寄存器中
+ 3) 把新的 TSS 段中的值覆盖到当前所有寄存器（TSS 结构中有的那些寄存器）中
+ 
+ 虽然 Intel 设计的初衷是用 tss 来做任务切换，然而，在现代操作系统中（无论是 Windows 还是 Linux），
+ 都没有使用这种方式来执行任务切换，比如线程切换和进程切换。主要原因是这种切换速度非常慢，一条指令要消耗
+ 200多个时钟周期。
+*/
 struct taskstate
 {
+    // 保存前一个 TSS 段选择子，使用 call 指令切换寄存器的时候由CPU填写
     uint32_t ts_link;       // old ts selector
+    // 保存 0 环栈指针
     uintptr_t ts_esp0;      // stack pointers and segment selectors
+    // 保存 0 环栈段选择子
     uint16_t ts_ss0;        // after an increase in privilege level
     uint16_t ts_padding1;
+    // 保存 1 环栈指针
     uintptr_t ts_esp1;
+    // 保存 1 环栈段选择子
     uint16_t ts_ss1;
     uint16_t ts_padding2;
+    // 保存 2 环栈指针
     uintptr_t ts_esp2;
+    // 保存 2 环栈段选择子
     uint16_t ts_ss2;
     uint16_t ts_padding3;
+    // 下面这些都是用来做切换寄存器值用的，切换寄存器的时候由 CPU 自动填写。
     uintptr_t ts_cr3;       // page directory base
     uintptr_t ts_eip;       // saved state from last task switch
     uint32_t ts_eflags;
@@ -192,6 +213,15 @@ struct taskstate
     uint16_t ts_ldt;
     uint16_t ts_padding10;
     uint16_t ts_t;          // trap on task switch
+    /*
+     当用户态进程试图通过 in 或 out 指令访问一个 I/O 端口时，CPU 需要访问存放在 TSS 中的 I/O 许可位图以检查
+     该进程是否有访问端口的权利。
+     
+     更确切的说，当进程在用户态执行 in 或 out 指令时，控制单元执行下列操作：
+     检查 eflags 寄存器中的 2 位 IOPL 字段，如果字段的值为 3，控制单元就执行 I/O 指令。否则，执行下一个检查。
+     访问 tr 寄存器以确定当前的 TSS 和相应的 I/O 许可权位图。
+     检查 I/O 指令中指定的 I/O 端口在 I/O 许可权位图中对应的位，如果该位清，这条指令就执行，否则控制单元产生一个异常。
+    */
     uint16_t ts_iomb;       // i/o map base address
 } __attribute__((packed));
 

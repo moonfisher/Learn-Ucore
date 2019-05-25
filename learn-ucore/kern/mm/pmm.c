@@ -251,11 +251,12 @@ pde_t * const vpd = (pde_t *)PGADDR(PDX(VPT), PDX(VPT), 0); // 0xFAFEB000
  */
 static struct segdesc gdt[] = {
     SEG_NULL,
-    [SEG_KTEXT] = SEG(STA_X | STA_R, 0x0, 0xFFFFFFFF, DPL_KERNEL),
-    [SEG_KDATA] = SEG(STA_W, 0x0, 0xFFFFFFFF, DPL_KERNEL),
-    [SEG_UTEXT] = SEG(STA_X | STA_R, 0x0, 0xFFFFFFFF, DPL_USER),
-    [SEG_UDATA] = SEG(STA_W, 0x0, 0xFFFFFFFF, DPL_USER),
+    [SEG_KTEXT] = SEG_NULL,
+    [SEG_KDATA] = SEG_NULL,
+    [SEG_UTEXT] = SEG_NULL,
+    [SEG_UDATA] = SEG_NULL,
     [SEG_TSS]   = SEG_NULL,
+    [SEG_CALL]  = SEG_NULL,
 };
 
 /*
@@ -361,18 +362,112 @@ void load_esp0(uintptr_t esp0)
 */
 static void gdt_init(void)
 {
+    // 第一个段描述符必须为全 0
+    gdt[0].sd_lim_15_0 = 0;
+    gdt[0].sd_base_15_0 = 0;
+    gdt[0].sd_base_23_16 = 0;
+    gdt[0].sd_type = 0;
+    gdt[0].sd_s = 0;
+    gdt[0].sd_dpl = 0;
+    gdt[0].sd_p = 0;
+    gdt[0].sd_lim_19_16 = 0;
+    gdt[0].sd_avl = 0;
+    gdt[0].sd_rsv1 = 0;
+    gdt[0].sd_db = 0;
+    gdt[0].sd_g = 0;
+    gdt[0].sd_base_31_24 = 0;
+ 
+    // 内核代码段描述符
+    gdt[SEG_KTEXT].sd_lim_15_0 = 0xFFFF;
+    gdt[SEG_KTEXT].sd_base_15_0 = 0;
+    gdt[SEG_KTEXT].sd_base_23_16 = 0;
+    gdt[SEG_KTEXT].sd_type = STA_X | STA_R;
+    gdt[SEG_KTEXT].sd_s = 1;    // 内核也是应用段，这里为 1
+    gdt[SEG_KTEXT].sd_dpl = DPL_KERNEL;
+    gdt[SEG_KTEXT].sd_p = 1;
+    gdt[SEG_KTEXT].sd_lim_19_16 = 0xF;
+    gdt[SEG_KTEXT].sd_avl = 0;
+    gdt[SEG_KTEXT].sd_rsv1 = 0;
+    gdt[SEG_KTEXT].sd_db = 1;
+    gdt[SEG_KTEXT].sd_g = 1;
+    gdt[SEG_KTEXT].sd_base_31_24 = 0;
+    
+    // 内核数据段描述符
+    gdt[SEG_KDATA].sd_lim_15_0 = 0xFFFF;
+    gdt[SEG_KDATA].sd_base_15_0 = 0;
+    gdt[SEG_KDATA].sd_base_23_16 = 0;
+    gdt[SEG_KDATA].sd_type = STA_W;
+    gdt[SEG_KDATA].sd_s = 1;    // 内核也是应用段，这里为 1
+    gdt[SEG_KDATA].sd_dpl = DPL_KERNEL;
+    gdt[SEG_KDATA].sd_p = 1;
+    gdt[SEG_KDATA].sd_lim_19_16 = 0xF;
+    gdt[SEG_KDATA].sd_avl = 0;
+    gdt[SEG_KDATA].sd_rsv1 = 0;
+    gdt[SEG_KDATA].sd_db = 1;
+    gdt[SEG_KDATA].sd_g = 1;
+    gdt[SEG_KDATA].sd_base_31_24 = 0;
+    
+    // 用户代码段描述符
+    gdt[SEG_UTEXT].sd_lim_15_0 = 0xFFFF;
+    gdt[SEG_UTEXT].sd_base_15_0 = 0;
+    gdt[SEG_UTEXT].sd_base_23_16 = 0;
+    gdt[SEG_UTEXT].sd_type = STA_X | STA_R;
+    gdt[SEG_UTEXT].sd_s = 1;    // 用户段也是应用段，这里为 1
+    gdt[SEG_UTEXT].sd_dpl = DPL_USER;
+    gdt[SEG_UTEXT].sd_p = 1;
+    gdt[SEG_UTEXT].sd_lim_19_16 = 0xF;
+    gdt[SEG_UTEXT].sd_avl = 0;
+    gdt[SEG_UTEXT].sd_rsv1 = 0;
+    gdt[SEG_UTEXT].sd_db = 1;
+    gdt[SEG_UTEXT].sd_g = 1;
+    gdt[SEG_UTEXT].sd_base_31_24 = 0;
+    
+    // 用户数据段描述符
+    gdt[SEG_UDATA].sd_lim_15_0 = 0xFFFF;
+    gdt[SEG_UDATA].sd_base_15_0 = 0;
+    gdt[SEG_UDATA].sd_base_23_16 = 0;
+    gdt[SEG_UDATA].sd_type = STA_W;
+    gdt[SEG_UDATA].sd_s = 1;    // 用户段也是应用段，这里为 1
+    gdt[SEG_UDATA].sd_dpl = DPL_USER;
+    gdt[SEG_UDATA].sd_p = 1;
+    gdt[SEG_UDATA].sd_lim_19_16 = 0xF;
+    gdt[SEG_UDATA].sd_avl = 0;
+    gdt[SEG_UDATA].sd_rsv1 = 0;
+    gdt[SEG_UDATA].sd_db = 1;
+    gdt[SEG_UDATA].sd_g = 1;
+    gdt[SEG_UDATA].sd_base_31_24 = 0;
+    
+    /*
+     调用门虽然是 CPU 提供给使用者提权的一种手段，但是 linux 中却并未使用。在 linux 中，大量使用了中断门来进
+     行提权，包括后面的系统调用，都是采用中断的方式实现。
+     另外，所谓的后门，其实有很多，比如中断门，陷阱门，任务门。它们都可以实现提权。
+     和中断门稍稍有点不一样的地方是，调用门提权会在堆栈中少压入一个值 EFLAGS.
+    */
+    gdt[SEG_CALL].sd_lim_15_0 = 0xFFFF;
+    gdt[SEG_CALL].sd_base_15_0 = 0;
+    gdt[SEG_CALL].sd_base_23_16 = 0;
+    gdt[SEG_CALL].sd_type = STS_CG32;   // 调用门
+    gdt[SEG_CALL].sd_s = 0;             // 调用门是系统段，这里为 0
+    gdt[SEG_CALL].sd_dpl = DPL_USER;
+    gdt[SEG_CALL].sd_p = 1;
+    gdt[SEG_CALL].sd_lim_19_16 = 0xF;
+    gdt[SEG_CALL].sd_avl = 0;
+    gdt[SEG_CALL].sd_rsv1 = 0;
+    gdt[SEG_CALL].sd_db = 1;
+    gdt[SEG_CALL].sd_g = 1;
+    gdt[SEG_CALL].sd_base_31_24 = 0;
+    
     // set boot kernel stack and default SS0
     // 设置内核栈顶
     load_esp0((uintptr_t)bootstacktop);
     ts.ts_ss0 = KERNEL_DS;
 
     // initialize the TSS filed of the gdt
-//    gdt[SEG_TSS] = SEGTSS(STS_T32A, (uintptr_t)&ts, sizeof(ts), DPL_KERNEL);    
     gdt[SEG_TSS].sd_lim_15_0 = (sizeof(ts)) & 0xffff;
     gdt[SEG_TSS].sd_base_15_0 = ((uintptr_t)&ts) & 0xffff;
     gdt[SEG_TSS].sd_base_23_16 = (((uintptr_t)&ts) >> 16) & 0xff;
     gdt[SEG_TSS].sd_type = STS_T32A;    // 说明这个段是 tss 段
-    gdt[SEG_TSS].sd_s = 0;
+    gdt[SEG_TSS].sd_s = 0;              // tss 是系统段，这里必须为 0
     gdt[SEG_TSS].sd_dpl = DPL_KERNEL;
     gdt[SEG_TSS].sd_p = 1;
     gdt[SEG_TSS].sd_lim_19_16 = (unsigned)(sizeof(ts)) >> 16;

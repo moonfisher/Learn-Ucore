@@ -61,7 +61,7 @@ struct pushregs
 // 中断桢 trapframe 很重要，无论是中断，还是进程切换，还是用户态和内核态的切换都是通过更新中断桢来实现的
 // 在 __alltraps 函数里通过压栈的方式构造 trapframe 结构给 c 函数传参
 // 这里面有很多 padding 字段，是为了占位，__alltraps 通过 pushl 来压栈参数，
-// 一次压栈4字节，但实际只有2字节是有用的
+// 一次压栈 4 字节，但实际只有 2 字节是有用的
 /*
  CF(Carry Flag)：    进位标志位；
  PF(Parity Flag)：   奇偶标志位；
@@ -72,7 +72,9 @@ struct pushregs
                      复位IF位则禁止中断，IF位对不可屏蔽外部中断和故障中断的识别没有任何作用；
  DF(Direction Flag)：向量标志位，由CLD，STD两条指令来控制；
  OF(Overflow Flag)： 溢出标志位；
- IOPL(I/O Privilege Level)：I/O特权级字段，它的宽度为2位,它指定了I/O指令的特权级。如果当前的特权级别在数值上小于或等于IOPL，那么I/O指令可执行。否则，将发生一个保护性故障中断；
+ IOPL(I/O Privilege Level)：I/O 特权级字段，它的宽度为 2 位,它指定了 I/O 指令的特权级。
+                    如果当前的特权级别在数值上小于或等于 IOPL，那么 I/O 指令可执行。否则，将发生一个保护
+                    性故障中断；
  NT(Nested Task)：   控制中断返回指令IRET，它宽度为1位。若NT=0，则用堆栈中保存的值恢复EFLAGS，
                     CS和EIP从而实现中断返回；若NT=1，则通过任务切换实现中断返回。在ucore中，设置NT为0。
  */

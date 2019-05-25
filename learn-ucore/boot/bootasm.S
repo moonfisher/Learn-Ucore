@@ -84,6 +84,9 @@ finish_probe:
     # Jump to next instruction, but in 32-bit code segment.
     # Switches processor into 32-bit mode.
     # 长跳转才能修改 cs 寄存器，这步执行之后，cs 寄存器就指向内核代码段 0x8
+    # 指令 jmp 可以实现跨段执行代码，但是它并不能提权（无法改变当权特权级），
+    # 也就是说，即便你跨到了 DPL = 0 的段，你的 CPL 也不会发生任何改变。 除非你原来就是 0.
+    # 使用 jmp 跨到 0 环代码段，也是有要求的，除非这个0环代码段描述符同意（这就是所谓的一致代码段）。
     ljmp $PROT_MODE_CSEG, $protcseg # jmpf 0x0008:0x7C6D
 
 .code32                                             # Assemble for 32-bit mode

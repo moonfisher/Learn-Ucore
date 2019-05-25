@@ -9,6 +9,7 @@
 #define SEG_UTEXT   3
 #define SEG_UDATA   4
 #define SEG_TSS     5
+#define SEG_CALL    6
 
 /* global descrptor numbers */
 #define GD_KTEXT    ((SEG_KTEXT) << 3)      // kernel text              0x8     00001 0 00

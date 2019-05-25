@@ -18,7 +18,8 @@
 #include "proc.h"
 #include "string.h"
 
-#define TICK_NUM 5000
+#define TICK_NUM        5000
+#define T_TASKGATE      0x90
 
 static void print_ticks()
 {
@@ -50,7 +51,9 @@ static struct gatedesc idt[256] = {{0}};    // 0xC0158780
 #endif
 
 /* idt_init - initialize IDT to each of the entry points in kern/trap/vectors.S */
-/* 在执行 INT 指令时，实际完成了以下几条操作：
+/*
+ IDT 表中只可以安装 3 种门：中断门、陷阱门和任务门
+ 在执行 INT 指令时，实际完成了以下几条操作：
 （1） 由于 INT 指令发生了不同优先级之间的控制转移，所以首先从 TSS（任务状态段）中获取
      高优先级的内核堆栈信息（SS 和 ESP）
 （2） 把低优先级堆栈信息（SS 和 ESP）保留到高优先级堆栈（即内核栈）中
@@ -69,7 +72,7 @@ void idt_init(void)
     {
 //        SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], DPL_KERNEL);
         idt[i].gd_off_15_0 = (uint32_t)(__vectors[i]) & 0xffff;
-        idt[i].gd_ss = GD_KTEXT;
+        idt[i].gd_ss = GD_KTEXT;    // 段选择子指向内核段，中断之后特权级提升，堆栈切换
         idt[i].gd_args = 0;
         idt[i].gd_rsv1 = 0;
         idt[i].gd_type = STS_IG32;  // 这是中断门
@@ -81,16 +84,16 @@ void idt_init(void)
     
     /*
      中断门与陷阱门在使用上的区别
-     并不在于中断是由外部产生的或是由cpu本身产生的，
-     而是在于通过中断门进入中断服务程序时cpu会自动将中断关闭，也就是将cpu中eflags寄存器中IF标志复位，
-     防止嵌套中断的发生；而通过陷阱门进入服务程序时则维持IF标志不变
+     并不在于中断是由外部产生的或是由 cpu 本身产生的，而是在于通过中断门进入中断服务程序时 cpu
+     会自动将中断关闭，也就是将 cpu 中 eflags 寄存器中 IF 标志复位至 0，防止嵌套中断的发生
+     而通过陷阱门进入服务程序时则维持 IF 标志不变
     */
     // T_SYSCALL = int 0x80，80 中断设置的权限是 DPL_USER
     // 这是用户进程可以切换到内核态，执行内核代码的唯一入口，如果改成 DPL_KERNEL 则
     // 会触发 T_GPFLT general protection fault 中断，导致异常
 //    SETGATE(idt[T_SYSCALL], 1, GD_KTEXT, __vectors[T_SYSCALL], DPL_USER);
     idt[T_SYSCALL].gd_off_15_0 = (uint32_t)(__vectors[T_SYSCALL]) & 0xffff;
-    idt[T_SYSCALL].gd_ss = GD_KTEXT;    // 段选择子指向内核段，中断之后特权级提升
+    idt[T_SYSCALL].gd_ss = GD_KTEXT;    // 段选择子指向内核段，中断之后特权级提升，堆栈切换
     idt[T_SYSCALL].gd_args = 0;
     idt[T_SYSCALL].gd_rsv1 = 0;
     idt[T_SYSCALL].gd_type = STS_TG32;  // 这是陷阱门，系统调动是通过陷阱门来实现
@@ -98,6 +101,17 @@ void idt_init(void)
     idt[T_SYSCALL].gd_dpl = DPL_USER;   // 陷阱门是提供给用户进程使用的，这里要设置为 DPL_USER
     idt[T_SYSCALL].gd_p = 1;
     idt[T_SYSCALL].gd_off_31_16 = (uint32_t)(__vectors[T_SYSCALL]) >> 16;
+    
+    // 任务门
+    idt[T_TASKGATE].gd_off_15_0 = (uint32_t)(__vectors[T_SYSCALL]) & 0xffff;
+    idt[T_TASKGATE].gd_ss = GD_TSS;     // 段选择子指向内核段，中断之后特权级提升，堆栈切换
+    idt[T_TASKGATE].gd_args = 0;
+    idt[T_TASKGATE].gd_rsv1 = 0;
+    idt[T_TASKGATE].gd_type = STS_TG;    // 这是任务门
+    idt[T_TASKGATE].gd_s = 0;            // 任务门是系统段，这里必须为 0
+    idt[T_TASKGATE].gd_dpl = DPL_USER;   // 陷阱门是提供给用户进程使用的，这里要设置为 DPL_USER
+    idt[T_TASKGATE].gd_p = 1;
+    idt[T_TASKGATE].gd_off_31_16 = (uint32_t)(__vectors[T_SYSCALL]) >> 16;
     
     // set for switch from user to kernel
 //    SETGATE(idt[T_SWITCH_TOK], 0, GD_KTEXT, __vectors[T_SWITCH_TOK], DPL_USER);
