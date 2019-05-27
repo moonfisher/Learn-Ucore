@@ -289,6 +289,15 @@ extern struct mm_struct *check_mm_struct;
 /* temporary trapframe or pointer to trapframe */
 struct trapframe switchk2u, *switchu2k;
 
+void proc_call_gate(struct trapframe *tf)
+{
+    uint32_t arg[5] = {0};
+    arg[0] = tf->tf_regs.reg_edx;
+    arg[1] = tf->tf_regs.reg_ecx;
+    arg[2] = tf->tf_regs.reg_ebx;
+    print_trapframe(tf);
+}
+
 static void trap_dispatch(struct trapframe *tf)
 {
     char c;
@@ -325,11 +334,7 @@ static void trap_dispatch(struct trapframe *tf)
             
         case T_CALLGATE:
             cprintf("handle call gate.\n");
-            uint32_t arg[5];
-            arg[0] = tf->tf_regs.reg_edx;
-            arg[1] = tf->tf_regs.reg_ecx;
-            arg[2] = tf->tf_regs.reg_ebx;
-            print_trapframe(tf);
+            proc_call_gate(tf);
             break;
             
         case IRQ_OFFSET + IRQ_TIMER:

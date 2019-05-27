@@ -3,11 +3,11 @@
 Special kernel symbols:
   kern_entry           0xc0100000 (phys)
   kern_init            0xc0100040 (phys)
-  etext                0xc0116a10 (phys)
-  __STAB_BEGIN__       0xc011ba40 (phys)
-  ___STAB_END__        0xc014cc40 (phys)
-  __STABSTR_BEGIN__    0xc014cc41 (phys)
-  __STABSTR_END__      0xc0159b7d (phys)
+  etext                0xc0116a79 (phys)
+  __STAB_BEGIN__       0xc011baa0 (phys)
+  ___STAB_END__        0xc014cd3c (phys)
+  __STABSTR_BEGIN__    0xc014cd3d (phys)
+  __STABSTR_END__      0xc0159c92 (phys)
   bootstack            0xc015a000 (phys)
   bootstacktop         0xc015c000 (phys)
   __vectors            0xc015c5e0 (phys)
@@ -18,7 +18,7 @@ Special kernel symbols:
   Kernel executable memory footprint: 1289KB
 ebp:0xc015bf48 eip:0xc0100b40 args:0xc0100203 0xffff6ad9 0xc015bf78 0xc01000dc 
     kern/debug/kdebug.c:379: print_stackframe+28
-ebp:0xc015bf58 eip:0xc0100e3c args:0x00000000 0x00000000 0x00000000 0xc0116a41 
+ebp:0xc015bf58 eip:0xc0100e3c args:0x00000000 0x00000000 0x00000000 0xc0116aa1 
     kern/debug/kmonitor.c:141: mon_backtrace+10
 ebp:0xc015bf78 eip:0xc01000dc args:0x00000000 0xc015bfa0 0xffff0000 0xc015bfa4 
     kern/init/init.c:64: grade_backtrace2+19
@@ -26,9 +26,9 @@ ebp:0xc015bf98 eip:0xc01000fe args:0x00000000 0xffff0000 0xc015bfc4 0x0000002d
     kern/init/init.c:69: grade_backtrace1+27
 ebp:0xc015bfb8 eip:0xc010011b args:0x00000000 0xc0100040 0xffff0000 0xc010007f 
     kern/init/init.c:74: grade_backtrace0+19
-ebp:0xc015bfd8 eip:0xc010013c args:0x00000000 0x00000000 0x00000000 0xc0116a20 
+ebp:0xc015bfd8 eip:0xc010013c args:0x00000000 0x00000000 0x00000000 0xc0116a80 
     kern/init/init.c:79: grade_backtrace+26
-ebp:0xc015bff8 eip:0xc010008c args:0xc0116d18 0xc0116d20 0xc0100dc6 0xc0116d3f 
+ebp:0xc015bff8 eip:0xc010008c args:0xc0116d78 0xc0116d80 0xc0100dc6 0xc0116d9f 
     kern/init/init.c:41: kern_init+75
 memory management: default_pmm_manager
 e820map:
@@ -44,3 +44,40 @@ npage: 00001ff0, pages: c0243000
 freemem: 0028adc0.
 begin: 0028b000
 end: 01ff0000
+check_alloc_page() succeeded!
+check_pgdir() succeeded!
+check_boot_pgdir() succeeded!
+-------------------- BEGIN --------------------
+PDE(0e0) c0000000-f8000000 38000000 urw
+  |-- PTE(38000) c0000000-f8000000 38000000 -rw
+PDE(001) fac00000-fb000000 00400000 -rw
+  |-- PTE(000e0) faf00000-fafe0000 000e0000 urw
+  |-- PTE(00001) fafeb000-fafec000 00001000 -rw
+--------------------- END ---------------------
+use SLOB allocator
+check_slab() success
+kmalloc_init() succeeded!
+check_vma_struct() succeeded!
+check_pgfault() succeeded!
+check_vmm() succeeded.
+sched class: stride_scheduler
+do_fork: name = "init_main", kstack = c015a000.
+wakeup_proc: pid = 1, name = "init_main".
+ide 0:      10000(sectors), 'Generic 1234'.
+kernel panic at kern/fs/swap/swapfs.c:14:
+    swap fs isn't available.
+
+stack trackback:
+ebp:0xc015bf78 eip:0xc0100b40 args:0x00000000 0x00000000 0x00000000 0xc015bfac 
+    kern/debug/kdebug.c:379: print_stackframe+28
+ebp:0xc015bf98 eip:0xc0100eaf args:0xc0119f5b 0x0000000e 0xc0119f41 0x00000028 
+    kern/debug/panic.c:30: __panic+107
+ebp:0xc015bfb8 eip:0xc010f59e args:0x01701098 0x0000000b 0x00002710 0x00040400 
+    kern/fs/swap/swapfs.c:14: swapfs_init+42
+ebp:0xc015bfd8 eip:0xc0106ec5 args:0x00000000 0x00000000 0x00000000 0xc0116a80 
+    kern/mm/swap.c:39: swap_init+10
+ebp:0xc015bff8 eip:0xc01000b4 args:0xc0116d78 0xc0116d80 0xc0100dc6 0xc0116d9f 
+    kern/init/init.c:53: kern_init+115
+Welcome to the kernel debug monitor!!
+Type 'help' for a list of commands.
+K> 

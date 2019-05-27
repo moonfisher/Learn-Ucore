@@ -484,8 +484,7 @@ static void gdt_init(void)
     callgate.gd_s = 0;              // 调用门是系统段，这里必须为 0
     callgate.gd_dpl = DPL_USER;     // 这里要设置为 DPL_USER
     callgate.gd_p = 1;
-    callgate.gd_off_31_16 = (uint32_t)(__vectors[T_CALLGATE]) >> 16;
-    
+    callgate.gd_off_31_16 = (uint32_t)(__vectors[T_CALLGATE]) >> 16;    
     memcpy(&gdt[SEG_CALL], &callgate, sizeof(callgate));
 
     // reload all segment registers

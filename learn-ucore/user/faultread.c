@@ -64,7 +64,7 @@ void test_call_gate(void)
     asm volatile("mov $0x77, %ebx;");
     asm volatile("mov $0x88, %ecx;");
     asm volatile("mov $0x99, %edx;");
-    asm volatile("call $0x33, $0;");
+    asm volatile("call $0x30, $0;");
     cprintf("call gate.\n");
 }
 
