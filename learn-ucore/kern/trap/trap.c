@@ -103,15 +103,24 @@ void idt_init(void)
     idt[T_SYSCALL].gd_off_31_16 = (uint32_t)(__vectors[T_SYSCALL]) >> 16;
     
     // 任务门
-    idt[T_TASKGATE].gd_off_15_0 = (uint32_t)(__vectors[T_SYSCALL]) & 0xffff;
+    struct taskstate ts = {0};
+    ts.ts_link = 0xffff;
+    ts.ts_esp0 = 0xffff;
+    ts.ts_ss0 = KERNEL_DS;
+    ts.ts_eax = 0x1111;
+    ts.ts_ebx = 0x2222;
+    ts.ts_ecx = 0x3333;
+    ts.ts_edx = 0x4444;
+    
+    idt[T_TASKGATE].gd_off_15_0 = ((uintptr_t)&ts) & 0xffff;
     idt[T_TASKGATE].gd_ss = GD_TSS;     // 段选择子指向内核段，中断之后特权级提升，堆栈切换
     idt[T_TASKGATE].gd_args = 0;
     idt[T_TASKGATE].gd_rsv1 = 0;
-    idt[T_TASKGATE].gd_type = STS_TG;    // 这是任务门
-    idt[T_TASKGATE].gd_s = 0;            // 任务门是系统段，这里必须为 0
-    idt[T_TASKGATE].gd_dpl = DPL_USER;   // 陷阱门是提供给用户进程使用的，这里要设置为 DPL_USER
+    idt[T_TASKGATE].gd_type = STS_TG;   // 这是任务门
+    idt[T_TASKGATE].gd_s = 0;           // 任务门是系统段，这里必须为 0
+    idt[T_TASKGATE].gd_dpl = DPL_USER;  // 陷阱门是提供给用户进程使用的，这里要设置为 DPL_USER
     idt[T_TASKGATE].gd_p = 1;
-    idt[T_TASKGATE].gd_off_31_16 = (uint32_t)(__vectors[T_SYSCALL]) >> 16;
+    idt[T_TASKGATE].gd_off_31_16 = ((uintptr_t)&ts) >> 16;
     
     // set for switch from user to kernel
 //    SETGATE(idt[T_SWITCH_TOK], 0, GD_KTEXT, __vectors[T_SWITCH_TOK], DPL_USER);
@@ -157,6 +166,11 @@ static const char *trapname(int trapno)
     if (trapno == T_SYSCALL)
     {
         return "Soft Int";
+    }
+    
+    if (trapno == T_CALLGATE)
+    {
+        return "Call Gate";
     }
     
     return "(unknown trap)";
@@ -307,6 +321,15 @@ static void trap_dispatch(struct trapframe *tf)
             
         case T_SYSCALL:
             syscall();
+            break;
+            
+        case T_CALLGATE:
+            cprintf("handle call gate.\n");
+            uint32_t arg[5];
+            arg[0] = tf->tf_regs.reg_edx;
+            arg[1] = tf->tf_regs.reg_ecx;
+            arg[2] = tf->tf_regs.reg_ebx;
+            print_trapframe(tf);
             break;
             
         case IRQ_OFFSET + IRQ_TIMER:

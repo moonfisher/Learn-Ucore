@@ -38,12 +38,15 @@
 #define IRQ_ERROR               19
 #define IRQ_SPURIOUS            31
 
+// 调用门
+#define T_CALLGATE              0x90
+
 /* *
  * These are arbitrarily chosen, but with care not to overlap
  * processor defined exceptions or interrupt vectors.
  * */
-#define T_SWITCH_TOU                120    // user/kernel switch
-#define T_SWITCH_TOK                121    // user/kernel switch
+#define T_SWITCH_TOU            120    // user/kernel switch
+#define T_SWITCH_TOK            121    // user/kernel switch
 
 /* registers as pushed by pushal */
 struct pushregs

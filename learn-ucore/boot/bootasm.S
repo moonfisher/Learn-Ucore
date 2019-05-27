@@ -112,7 +112,7 @@ spin:
     jmp spin
 
 .data
-# Bootstrap GDT
+# Bootstrap GDT，临时 GDT，内核加载之后重新设置 GDT
 # 这里内核代码段和内核数据段都没有设置 STA_C，所以是非一致性代码段，不共享，只有 dpl = cpl 才能访问
 .p2align 2                                          # force 4 byte alignment
 gdt:

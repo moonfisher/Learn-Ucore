@@ -11,6 +11,8 @@
 #include "swap.h"
 #include "vmm.h"
 #include "kmalloc.h"
+#include "unistd.h"
+#include "trap.h"
 
 // 内核栈，内核栈顶
 #if ASM_NO_64
@@ -81,6 +83,9 @@
 }
 */
 static struct taskstate ts = {0};
+
+// 调用门描述符
+static struct gatedesc callgate = {0};
 
 // virtual address of physicall page array 0xC015D000
 struct Page *pages;
@@ -437,32 +442,12 @@ static void gdt_init(void)
     gdt[SEG_UDATA].sd_g = 1;
     gdt[SEG_UDATA].sd_base_31_24 = 0;
     
-    /*
-     调用门虽然是 CPU 提供给使用者提权的一种手段，但是 linux 中却并未使用。在 linux 中，大量使用了中断门来进
-     行提权，包括后面的系统调用，都是采用中断的方式实现。
-     另外，所谓的后门，其实有很多，比如中断门，陷阱门，任务门。它们都可以实现提权。
-     和中断门稍稍有点不一样的地方是，调用门提权会在堆栈中少压入一个值 EFLAGS.
-    */
-    gdt[SEG_CALL].sd_lim_15_0 = 0xFFFF;
-    gdt[SEG_CALL].sd_base_15_0 = 0;
-    gdt[SEG_CALL].sd_base_23_16 = 0;
-    gdt[SEG_CALL].sd_type = STS_CG32;   // 调用门
-    gdt[SEG_CALL].sd_s = 0;             // 调用门是系统段，这里为 0
-    gdt[SEG_CALL].sd_dpl = DPL_USER;
-    gdt[SEG_CALL].sd_p = 1;
-    gdt[SEG_CALL].sd_lim_19_16 = 0xF;
-    gdt[SEG_CALL].sd_avl = 0;
-    gdt[SEG_CALL].sd_rsv1 = 0;
-    gdt[SEG_CALL].sd_db = 1;
-    gdt[SEG_CALL].sd_g = 1;
-    gdt[SEG_CALL].sd_base_31_24 = 0;
-    
     // set boot kernel stack and default SS0
     // 设置内核栈顶
     load_esp0((uintptr_t)bootstacktop);
     ts.ts_ss0 = KERNEL_DS;
 
-    // initialize the TSS filed of the gdt
+    // tss 任务描述符
     gdt[SEG_TSS].sd_lim_15_0 = (sizeof(ts)) & 0xffff;
     gdt[SEG_TSS].sd_base_15_0 = ((uintptr_t)&ts) & 0xffff;
     gdt[SEG_TSS].sd_base_23_16 = (((uintptr_t)&ts) >> 16) & 0xff;
@@ -474,8 +459,34 @@ static void gdt_init(void)
     gdt[SEG_TSS].sd_avl = 0;
     gdt[SEG_TSS].sd_rsv1 = 0;
     gdt[SEG_TSS].sd_db = 1;
-    gdt[SEG_TSS].sd_g = 0;
+    gdt[SEG_TSS].sd_g = 0;  // tss 段界限粒度是字节，不是 4k
     gdt[SEG_TSS].sd_base_31_24 = (unsigned)((uintptr_t)&ts) >> 24;
+
+    /*
+     调用门虽然是 CPU 提供给使用者提权的一种手段，通过调用门也可以实现各种系统调用，但是
+     linux 中却并未使用。
+     在 linux 中，大量使用了中断门来进行提权，包括后面的系统调用，都是采用中断的方式实现。
+     另外，所谓的后门，其实有很多，比如中断门，陷阱门，任务门。它们都可以实现提权。
+     和中断门稍稍有点不一样的地方是，调用门提权会在堆栈中少压入一个值 EFLAGS.
+     调用门描述符可以在 GDT 或 LDT 中，但是不能在中断描述符(IDT)中
+     */
+#if ASM_NO_64
+    extern uintptr_t __vectors[];
+#else
+    uintptr_t __vectors[1];
+#endif
+    // 这里是一个门结构，不是段结构
+    callgate.gd_off_15_0 = (uint32_t)(__vectors[T_CALLGATE]) & 0xffff;
+    callgate.gd_ss = GD_KTEXT;      // 段选择子指向内核段，调用之后特权级提升，堆栈切换
+    callgate.gd_args = 3;
+    callgate.gd_rsv1 = 0;
+    callgate.gd_type = STS_CG32;    // 这是调用门
+    callgate.gd_s = 0;              // 调用门是系统段，这里必须为 0
+    callgate.gd_dpl = DPL_USER;     // 这里要设置为 DPL_USER
+    callgate.gd_p = 1;
+    callgate.gd_off_31_16 = (uint32_t)(__vectors[T_CALLGATE]) >> 16;
+    
+    memcpy(&gdt[SEG_CALL], &callgate, sizeof(callgate));
 
     // reload all segment registers
     lgdt(&gdt_pd);

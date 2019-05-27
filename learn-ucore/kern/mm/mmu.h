@@ -67,6 +67,7 @@
 #include "defs.h"
 
 /* Gate descriptors for interrupts and traps */
+// 门描述符，8字节，64位
 struct gatedesc
 {
     unsigned gd_off_15_0 : 16;      // low 16 bits of offset in segment
@@ -81,9 +82,20 @@ struct gatedesc
 };
 
 /* segment descriptors */
+// 段描述符，8字节，64位
 struct segdesc
 {
+    /* sd_lim 段界限 20 位
+     段界限表示段边界的扩展极值，即最大扩展到多少或最小扩展到多少。
+     扩展方向只有上下两种，对于数据段和代码段，段的扩展方向是向上，即从低地址向高地址扩展，
+     此时的段界限用来表示段内偏移的最大值（上界）；
+     对于栈段，段的扩展方向是向下，即从高地址向低地址扩展，此时的段界限表示段内偏移的最小值（下界）。
+     无论是向上还是向下，段界限都表示段的边界。段界限字段给出的只是数值，其单位（或称粒度）则在 G 位
+     中给出，G 位为 0 则粒度为 B，为 1 则为 4KB。因此段界限边界值的计算公式为：
+     （段界限字段值 + 1）*（粒度大小）- 1
+    */
     unsigned sd_lim_15_0 : 16;      // low bits of segment limit
+    // sd_base  段基址 32 位，地址空间范围 0 ~ 4G
     unsigned sd_base_15_0 : 16;     // low bits of segment base address
     unsigned sd_base_23_16 : 8;     // middle bits of segment base address
     /*
@@ -134,7 +146,7 @@ struct segdesc
      sd_g 确定段限长扩展的增量。
      当 G 标志为 0，段限长以字节为单位;
      G 标志为 1，段限长以 4KB 为单位。(这个标志不影响段基址的粒度，段基址的粒度永远是字节)
-     如果G标志为 1， 那么当检测偏移量是否超越段限长时，不用测试偏移量的低 12 位。
+     如果 G 标志为 1， 那么当检测偏移量是否超越段限长时，不用测试偏移量的低 12 位。
      例如，如果 G 标志为 1， 0 段限长意味着有效偏移量为从 0 到 4095。
     */
     unsigned sd_g : 1;              // granularity: limit scaled by 4K when set
