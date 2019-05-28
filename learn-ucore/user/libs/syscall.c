@@ -47,17 +47,24 @@ static inline int syscall(int num, ...)
 //    }
 //    va_end(ap);
 //
-//    asm volatile (
-//                  "call $0x30, $0;"
-//                  : "=a" (ret)
-//                  : "i" (T_CALLGATE),
-//                  "a" (num),
-//                  "d" (a[0]),
-//                  "c" (a[1]),
-//                  "b" (a[2]),
-//                  "D" (a[3]),
-//                  "S" (a[4])
-//                  : "cc", "memory");
+//    asm volatile ("mov %0, %%eax" :: "r" (num) : "memory");
+//    asm volatile ("mov %0, %%edx" :: "r" (a[0]) : "memory");
+//    asm volatile ("mov %0, %%ecx" :: "r" (a[1]) : "memory");
+//    asm volatile ("mov %0, %%ebx" :: "r" (a[2]) : "memory");
+//    asm volatile ("mov %0, %%edi" :: "r" (a[3]) : "memory");
+//    asm volatile ("mov %0, %%esi" :: "r" (a[4]) : "memory");
+//    asm volatile ("call $0x30, $0;");
+//    asm volatile ("mov %%eax, %0" : "=r" (ret) :: "memory");
+////    asm volatile (
+////                  "call $0x30, $0;"
+////                  : "=a" (ret)
+////                  : "a" (num),
+////                  "d" (a[0]),
+////                  "c" (a[1]),
+////                  "b" (a[2]),
+////                  "D" (a[3]),
+////                  "S" (a[4])
+////                  : "cc", "memory");
 //    return ret;
 //}
 

@@ -57,16 +57,41 @@ void test_task_gate(void)
     cprintf("task gate.\n");
 }
 
-int test_call_gate(int a, int b, int c)
+int test_call_gate(int num, ...)
 {
+#define MAX_ARGS            5
+    va_list ap;
+    va_start(ap, num);
+    uint32_t a[MAX_ARGS];
+    int i, ret;
+    for (i = 0; i < MAX_ARGS; i ++)
+    {
+        a[i] = va_arg(ap, uint32_t);
+    }
+    va_end(ap);
+    
     // 通过系统提供的调用门的方式来访问内核函数
     // 0x30 = 00110 0 00 调用门段选择子
-    asm volatile("push %0;" :: "r" (a));
-    asm volatile("push %0;" :: "r" (b));
-    asm volatile("push %0;" :: "r" (c));
+    asm volatile("push %0;" :: "r" (a[0]));
+    asm volatile("push %0;" :: "r" (a[1]));
+    asm volatile("push %0;" :: "r" (a[2]));
     asm volatile("call $0x30, $0;");
+//    asm volatile ("mov %%eax, %0" : "=r" (ret) :: "memory");
     cprintf("call gate.\n");
-    return 0;
+    return ret;
+    
+//    asm volatile (
+//                  "call $0x30, $0;"
+//                  : "=a" (ret)
+//                  : "a" (num),
+//                  "d" (a[0]),
+//                  "c" (a[1]),
+//                  "b" (a[2]),
+//                  "D" (a[3]),
+//                  "S" (a[4])
+//                  : "cc", "memory");
+//    cprintf("call gate.\n");
+//    return ret;
 }
 
 int main(void)

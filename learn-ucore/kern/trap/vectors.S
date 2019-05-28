@@ -1,3 +1,5 @@
+#include "memlayout.h"
+
 # handler
 # 这底下有很多 pushl $0 指令，是因为对于不同的中断指令而言，cpu 表现不同
 # 有些中断，cpu 除了会往堆栈里压入 cs，ip 之外，还会压入 error code，有些则不会
@@ -725,10 +727,10 @@ vector143:
   pushl $143
   jmp __alltraps
 .globl vector144
-vector144:  // 这个用于处理调用门
+vector144:
   pushl $0
   pushl $144
-  jmp __callgateproc
+  jmp __alltraps
 .globl vector145
 vector145:
   pushl $0
@@ -1285,6 +1287,18 @@ vector255:
   pushl $255
   jmp __alltraps
 
+// 调用门也可以用来实现系统调用
+.globl __callgate
+__callgate:
+    popl %fs
+    popl %gs
+    pushfl
+    pushl %gs
+    pushl %fs
+    pushl $0
+    pushl $128
+    jmp __alltraps
+
 # vector table 0xC0102CDA
 .data
 .globl __vectors
@@ -1545,3 +1559,4 @@ __vectors:
   .long vector253
   .long vector254
   .long vector255
+  .long __callgate

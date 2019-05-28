@@ -2,8 +2,6 @@
 #define __LIBS_UNISTD_H__
 
 #define T_SYSCALL           0x80
-// 调用门
-#define T_CALLGATE          0x90
 
 /* syscall number */
 #define SYS_exit            1

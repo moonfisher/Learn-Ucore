@@ -45,6 +45,9 @@
 #define T_SWITCH_TOU            120    // user/kernel switch
 #define T_SWITCH_TOK            121    // user/kernel switch
 
+// 调用门
+#define T_CALLGATE              256
+
 /* registers as pushed by pushal */
 struct pushregs
 {
