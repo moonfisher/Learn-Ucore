@@ -725,10 +725,10 @@ vector143:
   pushl $143
   jmp __alltraps
 .globl vector144
-vector144:
+vector144:  // 这个用于处理调用门
   pushl $0
   pushl $144
-  jmp __alltraps
+  jmp __callgateproc
 .globl vector145
 vector145:
   pushl $0

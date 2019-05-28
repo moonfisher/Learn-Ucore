@@ -1032,7 +1032,7 @@ int do_execve(const char *name, int argc, const char **argv)
     // load_icode 函数里已经重新设置了用户进程相关 mm 页表，用户进程页表里 name，argv 是非法地址
     put_kargv(argc, kargv);
     set_proc_name(current, local_name);
-    cprintf("do_execve: name = \"%s\", kstack = %x.\n", local_name, current->kstack);
+    cprintf("do_execve: name = \"%s\", kstack = %x, kstacktop = %x.\n", local_name, current->kstack, current->kstack + KSTACKSIZE);
     print_trapframe(current->tf);
     return 0;
 

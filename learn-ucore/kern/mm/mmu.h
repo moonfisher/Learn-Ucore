@@ -72,6 +72,13 @@ struct gatedesc
 {
     unsigned gd_off_15_0 : 16;      // low 16 bits of offset in segment
     unsigned gd_ss : 16;            // segment selector
+    /*
+     调用门在调用之后，CPU 会把用户栈上的的参数计数域所指定个数的参数，从进程用户栈拷贝到进程
+     内核栈上
+     gd_args 就是需要拷贝的参数个数，最多 31 个，如果有超过 31 个参数要传给被调用例程时，其
+     中的一个参数可以是指向一个数据结构的指针。或者使用已保存好的 SS 和 ESP 寄存器的值来访问在
+     老栈空间的参数
+    */
     unsigned gd_args : 5;           // # args, 0 for interrupt/trap gates
     unsigned gd_rsv1 : 3;           // reserved(should be zero I guess)
     unsigned gd_type : 4;           // type(STS_{TG,IG32,TG32})

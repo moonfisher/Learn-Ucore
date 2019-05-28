@@ -59,3 +59,8 @@ forkrets:
     movl 4(%esp), %esp
     jmp __trapret
 
+.globl __callgateproc # 处理调用门入口
+__callgateproc:
+    # set stack to this new process's trapframe
+    addl $0x8, %esp
+    ret

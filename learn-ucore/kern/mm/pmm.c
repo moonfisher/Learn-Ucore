@@ -478,7 +478,7 @@ static void gdt_init(void)
     // 这里是一个门结构，不是段结构
     callgate.gd_off_15_0 = (uint32_t)(__vectors[T_CALLGATE]) & 0xffff;
     callgate.gd_ss = GD_KTEXT;      // 段选择子指向内核段，调用之后特权级提升，堆栈切换
-    callgate.gd_args = 3;
+    callgate.gd_args = 3;           // 先约定最多只传递 3 个参数
     callgate.gd_rsv1 = 0;
     callgate.gd_type = STS_CG32;    // 这是调用门
     callgate.gd_s = 0;              // 调用门是系统段，这里必须为 0

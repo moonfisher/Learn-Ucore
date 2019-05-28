@@ -289,13 +289,24 @@ extern struct mm_struct *check_mm_struct;
 /* temporary trapframe or pointer to trapframe */
 struct trapframe switchk2u, *switchu2k;
 
-void proc_call_gate(struct trapframe *tf)
+void proc_call_gate()
 {
+    struct trapframe *tf = current->tf;
     uint32_t arg[5] = {0};
-    arg[0] = tf->tf_regs.reg_edx;
-    arg[1] = tf->tf_regs.reg_ecx;
-    arg[2] = tf->tf_regs.reg_ebx;
+    
+    int num = tf->tf_regs.reg_eax;
+    if (num >= 0 && num < 0xff)
+    {
+        arg[0] = tf->tf_regs.reg_edx;
+        arg[1] = tf->tf_regs.reg_ecx;
+        arg[2] = tf->tf_regs.reg_ebx;
+        arg[3] = tf->tf_regs.reg_edi;
+        arg[4] = tf->tf_regs.reg_esi;
+//        tf->tf_regs.reg_eax = syscalls[num](arg);
+        return ;
+    }
     print_trapframe(tf);
+    panic("undefined syscall %d, pid = %d, name = %s.\n", num, current->pid, current->name);
 }
 
 static void trap_dispatch(struct trapframe *tf)
@@ -334,7 +345,7 @@ static void trap_dispatch(struct trapframe *tf)
             
         case T_CALLGATE:
             cprintf("handle call gate.\n");
-            proc_call_gate(tf);
+            proc_call_gate();
             break;
             
         case IRQ_OFFSET + IRQ_TIMER:

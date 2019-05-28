@@ -57,15 +57,16 @@ void test_task_gate(void)
     cprintf("task gate.\n");
 }
 
-void test_call_gate(void)
+int test_call_gate(int a, int b, int c)
 {
     // 通过系统提供的调用门的方式来访问内核函数
     // 0x30 = 00110 0 00 调用门段选择子
-    asm volatile("mov $0x77, %ebx;");
-    asm volatile("mov $0x88, %ecx;");
-    asm volatile("mov $0x99, %edx;");
+    asm volatile("push %0;" :: "r" (a));
+    asm volatile("push %0;" :: "r" (b));
+    asm volatile("push %0;" :: "r" (c));
     asm volatile("call $0x30, $0;");
     cprintf("call gate.\n");
+    return 0;
 }
 
 int main(void)
@@ -74,6 +75,6 @@ int main(void)
 //    test_call_kernel_func();
 //    test_read_illegal_addr_func();
 //    test_task_gate();
-    test_call_gate();
+    test_call_gate(0x11, 0x22, 0x33);
 }
 
