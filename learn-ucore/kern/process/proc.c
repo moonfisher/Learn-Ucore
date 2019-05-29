@@ -264,7 +264,7 @@ void proc_run(struct proc_struct *proc)
 */
 static void forkret(void)
 {
-    cprintf("forkret: pid = %d, name = \"%s\", kstack = %x.\n", current->pid, current->name, current->kstack);
+    cprintf("forkret: pid = %d, name = \"%s\", kstack = %x, kstacktop = %x.\n", current->pid, current->name, current->kstack, current->kstack + KSTACKSIZE);
     print_trapframe(current->tf);
     forkrets(current->tf);
 }
@@ -564,7 +564,7 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const c
     }
     local_intr_restore(intr_flag);
 
-    cprintf("do_fork: name = \"%s\", kstack = %x.\n", local_name, current->kstack);
+    cprintf("do_fork: name = \"%s\", kstack = %x, kstacktop = %x.\n", local_name, current->kstack, current->kstack + KSTACKSIZE);
     wakeup_proc(proc);
 
     ret = proc->pid;
