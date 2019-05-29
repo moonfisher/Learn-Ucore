@@ -8,6 +8,33 @@
 #define MAX_ARGS            5
 
 // 通过陷阱门来实现系统调用
+//static inline int syscall(int num, ...)
+//{
+//    va_list ap;
+//    va_start(ap, num);
+//    uint32_t a[MAX_ARGS];
+//    int i, ret;
+//    for (i = 0; i < MAX_ARGS; i ++)
+//    {
+//        a[i] = va_arg(ap, uint32_t);
+//    }
+//    va_end(ap);
+//
+//    asm volatile (
+//        "int %1;"
+//        : "=a" (ret)
+//        : "i" (T_SYSCALL),
+//          "a" (num),
+//          "d" (a[0]),
+//          "c" (a[1]),
+//          "b" (a[2]),
+//          "D" (a[3]),
+//          "S" (a[4])
+//        : "cc", "memory");
+//    return ret;
+//}
+
+// 通过调用门来实现系统调用
 static inline int syscall(int num, ...)
 {
     va_list ap;
@@ -21,52 +48,17 @@ static inline int syscall(int num, ...)
     va_end(ap);
 
     asm volatile (
-        "int %1;"
-        : "=a" (ret)
-        : "i" (T_SYSCALL),
-          "a" (num),
-          "d" (a[0]),
-          "c" (a[1]),
-          "b" (a[2]),
-          "D" (a[3]),
-          "S" (a[4])
-        : "cc", "memory");
+                  "call $0x30, $0;"
+                  : "=a" (ret)
+                  : "a" (num),
+                  "d" (a[0]),
+                  "c" (a[1]),
+                  "b" (a[2]),
+                  "D" (a[3]),
+                  "S" (a[4])
+                  : "cc", "memory");
     return ret;
 }
-
-// 通过调用门来实现系统调用
-//static inline int syscall(int num, ...)
-//{
-//    va_list ap;
-//    va_start(ap, num);
-//    uint32_t a[MAX_ARGS];
-//    int i, ret;
-//    for (i = 0; i < MAX_ARGS; i ++)
-//    {
-//        a[i] = va_arg(ap, uint32_t);
-//    }
-//    va_end(ap);
-//
-//    asm volatile ("mov %0, %%eax" :: "r" (num) : "memory");
-//    asm volatile ("mov %0, %%edx" :: "r" (a[0]) : "memory");
-//    asm volatile ("mov %0, %%ecx" :: "r" (a[1]) : "memory");
-//    asm volatile ("mov %0, %%ebx" :: "r" (a[2]) : "memory");
-//    asm volatile ("mov %0, %%edi" :: "r" (a[3]) : "memory");
-//    asm volatile ("mov %0, %%esi" :: "r" (a[4]) : "memory");
-//    asm volatile ("call $0x30, $0;");
-//    asm volatile ("mov %%eax, %0" : "=r" (ret) :: "memory");
-////    asm volatile (
-////                  "call $0x30, $0;"
-////                  : "=a" (ret)
-////                  : "a" (num),
-////                  "d" (a[0]),
-////                  "c" (a[1]),
-////                  "b" (a[2]),
-////                  "D" (a[3]),
-////                  "S" (a[4])
-////                  : "cc", "memory");
-//    return ret;
-//}
 
 int sys_exit(int error_code)
 {

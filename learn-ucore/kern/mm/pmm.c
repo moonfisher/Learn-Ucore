@@ -475,11 +475,11 @@ static void gdt_init(void)
 #else
     uintptr_t __vectors[1];
 #endif
-    // 这里是一个门结构，不是段结构
+    // 注意这里是一个门结构，不是段结构，和段结构一样，都是 8 字节，64位
     callgate.gd_off_15_0 = (uint32_t)(__vectors[T_CALLGATE]) & 0xffff;
     callgate.gd_ss = GD_KTEXT;      // 段选择子指向内核段，调用之后特权级提升，堆栈切换
-    callgate.gd_args = 0;           // 这里不配置用栈传递参数，这样内核栈中的结构也可以用
-                                    // struct trapframe 中断帧来模拟
+    // 这里配置传递参数个数为 1，这样内核栈中的结构也可以用 struct trapframe 中断帧来模拟
+    callgate.gd_args = 1;
     callgate.gd_rsv1 = 0;
     callgate.gd_type = STS_CG32;    // 这是调用门
     callgate.gd_s = 0;              // 调用门是系统段，这里必须为 0

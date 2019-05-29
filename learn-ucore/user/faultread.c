@@ -1,5 +1,6 @@
 #include "stdio.h"
 #include "ulib.h"
+#include "unistd.h"
 
 void test_call_user_func(void)
 {
@@ -69,29 +70,19 @@ int test_call_gate(int num, ...)
         a[i] = va_arg(ap, uint32_t);
     }
     va_end(ap);
-    
-    // 通过系统提供的调用门的方式来访问内核函数
-    // 0x30 = 00110 0 00 调用门段选择子
-    asm volatile("push %0;" :: "r" (a[0]));
-    asm volatile("push %0;" :: "r" (a[1]));
-    asm volatile("push %0;" :: "r" (a[2]));
-    asm volatile("call $0x30, $0;");
-//    asm volatile ("mov %%eax, %0" : "=r" (ret) :: "memory");
+
+    asm volatile (
+                  "call $0x30, $0;"
+                  : "=a" (ret)
+                  : "a" (num),
+                  "d" (a[0]),
+                  "c" (a[1]),
+                  "b" (a[2]),
+                  "D" (a[3]),
+                  "S" (a[4])
+                  : "cc", "memory");
     cprintf("call gate.\n");
     return ret;
-    
-//    asm volatile (
-//                  "call $0x30, $0;"
-//                  : "=a" (ret)
-//                  : "a" (num),
-//                  "d" (a[0]),
-//                  "c" (a[1]),
-//                  "b" (a[2]),
-//                  "D" (a[3]),
-//                  "S" (a[4])
-//                  : "cc", "memory");
-//    cprintf("call gate.\n");
-//    return ret;
 }
 
 int main(void)
@@ -100,6 +91,6 @@ int main(void)
 //    test_call_kernel_func();
 //    test_read_illegal_addr_func();
 //    test_task_gate();
-    test_call_gate(0x11, 0x22, 0x33);
+    test_call_gate(SYS_pgdir);
 }
 

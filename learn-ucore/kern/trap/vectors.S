@@ -1287,16 +1287,16 @@ vector255:
   pushl $255
   jmp __alltraps
 
-// 调用门也可以用来实现系统调用
+# 调用门也可以用来实现系统调用，但没有陷阱门好用，现代操作系统都不用调用门了
+# 调用门在调用之后，CPU 并不往内核堆栈压入标志寄存器，而是压入调用门的调用参数，
+# 这里为了简化处理，直接借用陷阱门的 __alltraps 处理逻辑和 struct trapframe 中断桢结构。
 .globl __callgate
 __callgate:
-    popl %fs
-    popl %gs
-    pushfl
-    pushl %gs
-    pushl %fs
+    addl $0xc, %esp     # 调整栈指向调用门第一个参数的地方
+    pushfl              # 根据陷阱门的栈结构，这里内容应该替换成压入状态寄存器
+    subl $0x8, %esp     # 重新调整栈指向刚进来时的地方
     pushl $0
-    pushl $128
+    pushl $128          # 因为是模拟陷阱门系统调用，这里直接压入 0x80 中断码
     jmp __alltraps
 
 # vector table 0xC0102CDA
