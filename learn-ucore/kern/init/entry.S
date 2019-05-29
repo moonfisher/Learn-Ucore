@@ -68,7 +68,7 @@ __boot_pgdir:
     # map va 0 ~ 4M to pa 0 ~ 4M (temporary) 目录地址 0x00156000
     # 虚拟地址 0 ~ 4M 映射到物理地址 0 ~ 4M，这里先临时映射 4M 就够用了，内核没那么大
     # KERNBASE >> PGSHIFT >> 10 << 2 这里取内核虚拟地址高10位，然后左移2位是因为页目录一条记录占4个字节
-    .long REALLOC(__boot_pte) + (PTE_P | PTE_U | PTE_W)
+    .long REALLOC(__boot_pte) + (PTE_P | PTE_W)
     .space (KERNBASE >> PGSHIFT >> 10 << 2) - (. - __boot_pgdir) # pad to PDE of KERNBASE
 
     # map va KERNBASE + (0 ~ 4M) to pa 0 ~ 4M 目录地址 0x00156C00 = 0x00156000 + 0x300 * 4
@@ -83,7 +83,7 @@ __boot_pgdir:
     # 一次全部映射，省得有部分空间因为没映射到而非法访问 crash，这样页目录和页表结构在内存里也是连续的地址
     .set i, 0
     .rept 224
-        .long REALLOC(__boot_pte + PGSIZE * i) + (PTE_P | PTE_U | PTE_W)
+        .long REALLOC(__boot_pte + PGSIZE * i) + (PTE_P | PTE_W)
         .set i, i + 1
     .endr
     .space PGSIZE - (. - __boot_pgdir) # pad to PGSIZE

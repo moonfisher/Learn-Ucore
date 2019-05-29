@@ -68,12 +68,12 @@ void idt_init(void)
     uintptr_t __vectors[1];
 #endif
     int i = 0;
+    // 中断门
     for (i = 0; i < sizeof(idt) / sizeof(struct gatedesc); i ++)
     {
-//        SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], DPL_KERNEL);
         idt[i].gd_off_15_0 = (uint32_t)(__vectors[i]) & 0xffff;
         idt[i].gd_ss = GD_KTEXT;    // 段选择子指向内核段，中断之后特权级提升，堆栈切换
-        idt[i].gd_args = 0;
+        idt[i].gd_args = 0;         // 这里是 0，只有调用门才用得上这个
         idt[i].gd_rsv1 = 0;
         idt[i].gd_type = STS_IG32;  // 这是中断门
         idt[i].gd_s = 0;            // 中断是系统段，这里必须为 0
@@ -91,10 +91,9 @@ void idt_init(void)
     // T_SYSCALL = int 0x80，80 中断设置的权限是 DPL_USER
     // 这是用户进程可以切换到内核态，执行内核代码的唯一入口，如果改成 DPL_KERNEL 则
     // 会触发 T_GPFLT general protection fault 中断，导致异常
-//    SETGATE(idt[T_SYSCALL], 1, GD_KTEXT, __vectors[T_SYSCALL], DPL_USER);
     idt[T_SYSCALL].gd_off_15_0 = (uint32_t)(__vectors[T_SYSCALL]) & 0xffff;
     idt[T_SYSCALL].gd_ss = GD_KTEXT;    // 段选择子指向内核段，中断之后特权级提升，堆栈切换
-    idt[T_SYSCALL].gd_args = 0;
+    idt[T_SYSCALL].gd_args = 0;         // 这里是 0，只有调用门才用得上这个
     idt[T_SYSCALL].gd_rsv1 = 0;
     idt[T_SYSCALL].gd_type = STS_TG32;  // 这是陷阱门，系统调动是通过陷阱门来实现
     idt[T_SYSCALL].gd_s = 0;            // 中断是系统段，这里必须为 0

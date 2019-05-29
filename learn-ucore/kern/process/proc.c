@@ -350,12 +350,16 @@ static int setup_pgdir(struct mm_struct *mm)
     {
         return -E_NO_MEM;
     }
+    
     pde_t *pgdir = page2kva(page);
-    // 先拷贝内核地址映射表，这样即使后续切换到用户进程页表，内核地址空间访问也还是正常的
+    // 先拷贝内核地址映射表，这样后续用户进程从用户态切换到内核态之后，内核地址空间访问也还是正常的
     memcpy(pgdir, boot_pgdir, PGSIZE);
-    // 这里并没有设置 PTE_U 用户访问权限，所以在用户态下，无法直接访问内核地址空间，
-    // 会触发 T_PGFLT 中断
-    pgdir[PDX(VPT)] = PADDR(pgdir) | PTE_P | PTE_W;
+    
+    /*
+     这里如果设置 PTE_U 用户访问权限，用户进程在用户态就可以通过访问 VPT 0xFAC00000 来访问
+     页表，如果不设置，则会触发 T_PGFLT 中断
+    */
+    pgdir[PDX(VPT)] = PADDR(pgdir) | PTE_P | PTE_W; // | PTE_U;
     mm->pgdir = pgdir;
     return 0;
 }

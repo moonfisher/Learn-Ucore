@@ -54,7 +54,7 @@ void test_read_illegal_addr_func(void)
 void test_task_gate(void)
 {
     // 通过任务门来访问内核函数
-    asm volatile ("int $0xff");
+    asm volatile ("int $0x90");
     cprintf("task gate.\n");
 }
 
@@ -90,7 +90,7 @@ int main(void)
 //    test_call_user_func();
 //    test_call_kernel_func();
 //    test_read_illegal_addr_func();
-//    test_task_gate();
-    test_call_gate(SYS_pgdir);
+//    test_call_gate(SYS_pgdir);
+    test_task_gate();    
 }
 

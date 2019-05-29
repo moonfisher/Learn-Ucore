@@ -1299,6 +1299,13 @@ __callgate:
     pushl $128          # 因为是模拟陷阱门系统调用，这里直接压入 0x80 中断码
     jmp __alltraps
 
+# 用任务门来切换任务
+.globl __taskgate
+__taskgate:
+    pushl $0
+    pushl $128
+    jmp __alltraps
+
 # vector table 0xC0102CDA
 .data
 .globl __vectors
@@ -1560,3 +1567,4 @@ __vectors:
   .long vector254
   .long vector255
   .long __callgate
+  .long __taskgate
