@@ -4,20 +4,22 @@
 /* This file contains the definitions for memory management in our OS. */
 
 /* global segment number */
-#define SEG_KTEXT   1
-#define SEG_KDATA   2
-#define SEG_UTEXT   3
-#define SEG_UDATA   4
-#define SEG_TSS     5
-#define SEG_CALL    6
+#define SEG_KTEXT           1
+#define SEG_KDATA           2
+#define SEG_UTEXT           3
+#define SEG_UDATA           4
+#define SEG_TSS             5
+#define SEG_CALL_GATE       6
+#define SEG_TASK_GATE       7
 
 /* global descrptor numbers */
-#define GD_KTEXT    ((SEG_KTEXT) << 3)      // kernel text              0x8     00001 0 00
-#define GD_KDATA    ((SEG_KDATA) << 3)      // kernel data              0x10    00010 0 00
-#define GD_UTEXT    ((SEG_UTEXT) << 3)      // user text                0x18    00011 0 00
-#define GD_UDATA    ((SEG_UDATA) << 3)      // user data                0x20    00100 0 00
-#define GD_TSS      ((SEG_TSS) << 3)        // task segment selector    0x28    00101 0 00
-#define GD_CALL     ((SEG_CALL) << 3)       // call segment selector    0x30    00110 0 00
+#define GD_KTEXT        ((SEG_KTEXT) << 3)      // kernel text  0x8     00001 0 00
+#define GD_KDATA        ((SEG_KDATA) << 3)      // kernel data  0x10    00010 0 00
+#define GD_UTEXT        ((SEG_UTEXT) << 3)      // user text    0x18    00011 0 00
+#define GD_UDATA        ((SEG_UDATA) << 3)      // user data    0x20    00100 0 00
+#define GD_TSS          ((SEG_TSS) << 3)        // task segment 0x28    00101 0 00
+#define GD_CALL_GATE    ((SEG_CALL_GATE) << 3)  // call segment 0x30    00110 0 00
+#define GD_TASK_GATE    ((SEG_TASK_GATE) << 3)  // call segment 0x30    00110 0 00
 
 /*
  https://blog.csdn.net/qq_37414405/article/details/84535145

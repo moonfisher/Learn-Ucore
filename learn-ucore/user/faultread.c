@@ -90,7 +90,7 @@ int main(void)
 //    test_call_user_func();
 //    test_call_kernel_func();
 //    test_read_illegal_addr_func();
-//    test_call_gate(SYS_pgdir);
-    test_task_gate();    
+    test_call_gate(SYS_pgdir);
+    test_task_gate();
 }
 

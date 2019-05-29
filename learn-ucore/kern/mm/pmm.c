@@ -84,6 +84,9 @@
 */
 static struct taskstate ts = {0};
 
+// 任务门描述符
+struct taskstate taskgate = {0};
+
 // 调用门描述符
 static struct gatedesc callgate = {0};
 
@@ -257,12 +260,13 @@ pde_t * const vpd = (pde_t *)PGADDR(PDX(VPT), PDX(VPT), 0); // 0xFAFEB000
  */
 static struct segdesc gdt[] = {
     SEG_NULL,
-    [SEG_KTEXT] = SEG_NULL,
-    [SEG_KDATA] = SEG_NULL,
-    [SEG_UTEXT] = SEG_NULL,
-    [SEG_UDATA] = SEG_NULL,
-    [SEG_TSS]   = SEG_NULL,
-    [SEG_CALL]  = SEG_NULL,
+    [SEG_KTEXT]     = SEG_NULL,
+    [SEG_KDATA]     = SEG_NULL,
+    [SEG_UTEXT]     = SEG_NULL,
+    [SEG_UDATA]     = SEG_NULL,
+    [SEG_TSS]       = SEG_NULL,
+    [SEG_CALL_GATE] = SEG_NULL,
+    [SEG_TASK_GATE] = SEG_NULL,
 };
 
 /*
@@ -460,7 +464,7 @@ static void gdt_init(void)
     gdt[SEG_TSS].sd_avl = 0;
     gdt[SEG_TSS].sd_rsv1 = 0;
     gdt[SEG_TSS].sd_db = 1;
-    gdt[SEG_TSS].sd_g = 0;  // tss 段界限粒度是字节，不是 4k
+    gdt[SEG_TSS].sd_g = 0;      // tss 段界限粒度是字节，不是 4k
     gdt[SEG_TSS].sd_base_31_24 = (unsigned)((uintptr_t)&ts) >> 24;
 
     /*
@@ -487,8 +491,23 @@ static void gdt_init(void)
     callgate.gd_dpl = DPL_USER;     // 这里要设置为 DPL_USER
     callgate.gd_p = 1;
     callgate.gd_off_31_16 = (uint32_t)(__vectors[T_CALLGATE]) >> 16;
-    memcpy(&gdt[SEG_CALL], &callgate, sizeof(callgate));
+    memcpy(&gdt[SEG_CALL_GATE], &callgate, sizeof(callgate));
 
+    // tss 任务门描述符
+    gdt[SEG_TASK_GATE].sd_lim_15_0 = (sizeof(taskgate)) & 0xffff;
+    gdt[SEG_TASK_GATE].sd_base_15_0 = ((uintptr_t)&taskgate) & 0xffff;
+    gdt[SEG_TASK_GATE].sd_base_23_16 = (((uintptr_t)&taskgate) >> 16) & 0xff;
+    gdt[SEG_TASK_GATE].sd_type = STS_TG;    // 说明这个段是 tss 段
+    gdt[SEG_TASK_GATE].sd_s = 0;              // tss 是系统段，这里必须为 0
+    gdt[SEG_TASK_GATE].sd_dpl = DPL_KERNEL;
+    gdt[SEG_TASK_GATE].sd_p = 1;
+    gdt[SEG_TASK_GATE].sd_lim_19_16 = (unsigned)(sizeof(taskgate)) >> 16;
+    gdt[SEG_TASK_GATE].sd_avl = 0;
+    gdt[SEG_TASK_GATE].sd_rsv1 = 0;
+    gdt[SEG_TASK_GATE].sd_db = 1;
+    gdt[SEG_TASK_GATE].sd_g = 0;  // tss 段界限粒度是字节，不是 4k
+    gdt[SEG_TASK_GATE].sd_base_31_24 = (unsigned)((uintptr_t)&taskgate) >> 24;
+    
     // reload all segment registers
     lgdt(&gdt_pd);
 

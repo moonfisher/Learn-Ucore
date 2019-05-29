@@ -102,24 +102,36 @@ void idt_init(void)
     idt[T_SYSCALL].gd_off_31_16 = (uint32_t)(__vectors[T_SYSCALL]) >> 16;
     
     // 任务门
-    struct taskstate ts = {0};
-    ts.ts_link = 0xffff;
-    ts.ts_esp0 = 0xffff;
-    ts.ts_ss0 = KERNEL_DS;
-    ts.ts_eax = 0x1111;
-    ts.ts_ebx = 0x2222;
-    ts.ts_ecx = 0x3333;
-    ts.ts_edx = 0x4444;
+    extern struct taskstate taskgate;
+    taskgate.ts_esp0 = 0xc06df000;
+    taskgate.ts_ss0 = KERNEL_DS;
+    taskgate.ts_ebp = 0xafffffc4;
+    taskgate.ts_esp = 0xafffff98;
+    taskgate.ts_ss = USER_DS;
+    taskgate.ts_ds = USER_DS;
+    taskgate.ts_es = USER_DS;
+    taskgate.ts_fs = 0x0;
+    taskgate.ts_gs = 0x0;
+    taskgate.ts_eax = 0x2;
+    taskgate.ts_ebx = 0x1;
+    taskgate.ts_ecx = 0x1;
+    taskgate.ts_edx = 0x8023b4;
+    taskgate.ts_esi = 0x0;
+    taskgate.ts_edi = 0x0;
+    taskgate.ts_cs = USER_CS;
+    taskgate.ts_eip = 0x802048;
+    taskgate.ts_cr3 = 0x6e1000;
+    taskgate.ts_eflags = 0x282;
     
-    idt[T_TASKGATE].gd_off_15_0 = ((uintptr_t)&ts) & 0xffff;
-    idt[T_TASKGATE].gd_ss = GD_TSS;     // 段选择子指向内核段，中断之后特权级提升，堆栈切换
+    idt[T_TASKGATE].gd_off_15_0 = 0;
+    idt[T_TASKGATE].gd_ss = GD_TASK_GATE;   // 段选择子指向内核段，中断之后特权级提升，堆栈切换
     idt[T_TASKGATE].gd_args = 0;
     idt[T_TASKGATE].gd_rsv1 = 0;
-    idt[T_TASKGATE].gd_type = STS_TG;   // 这是任务门
-    idt[T_TASKGATE].gd_s = 0;           // 任务门是系统段，这里必须为 0
-    idt[T_TASKGATE].gd_dpl = DPL_USER;  // 陷阱门是提供给用户进程使用的，这里要设置为 DPL_USER
+    idt[T_TASKGATE].gd_type = STS_TG;       // 这是任务门
+    idt[T_TASKGATE].gd_s = 0;               // 任务门是系统段，这里必须为 0
+    idt[T_TASKGATE].gd_dpl = DPL_KERNEL;      // 陷阱门是提供给用户进程使用的，要设置为 DPL_USER
     idt[T_TASKGATE].gd_p = 1;
-    idt[T_TASKGATE].gd_off_31_16 = ((uintptr_t)&ts) >> 16;
+    idt[T_TASKGATE].gd_off_31_16 = 0;
     
     // set for switch from user to kernel
 //    SETGATE(idt[T_SWITCH_TOK], 0, GD_KTEXT, __vectors[T_SWITCH_TOK], DPL_USER);
