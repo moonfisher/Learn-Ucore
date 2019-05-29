@@ -3,11 +3,11 @@
 Special kernel symbols:
   kern_entry           0xc0100000 (phys)
   kern_init            0xc0100040 (phys)
-  etext                0xc0116a79 (phys)
-  __STAB_BEGIN__       0xc011baa0 (phys)
-  ___STAB_END__        0xc014cd3c (phys)
-  __STABSTR_BEGIN__    0xc014cd3d (phys)
-  __STABSTR_END__      0xc0159c92 (phys)
+  etext                0xc0116a9b (phys)
+  __STAB_BEGIN__       0xc011bae0 (phys)
+  ___STAB_END__        0xc014cdf4 (phys)
+  __STABSTR_BEGIN__    0xc014cdf5 (phys)
+  __STABSTR_END__      0xc0159d4a (phys)
   bootstack            0xc015a000 (phys)
   bootstacktop         0xc015c000 (phys)
   __vectors            0xc015c5e0 (phys)
@@ -18,7 +18,7 @@ Special kernel symbols:
   Kernel executable memory footprint: 1289KB
 ebp:0xc015bf48 eip:0xc0100b40 args:0xc0100203 0xffff6ad9 0xc015bf78 0xc01000dc 
     kern/debug/kdebug.c:379: print_stackframe+28
-ebp:0xc015bf58 eip:0xc0100e3c args:0x00000000 0x00000000 0x00000000 0xc0116aa1 
+ebp:0xc015bf58 eip:0xc0100e3c args:0x00000000 0x00000000 0x00000000 0xc0116ac1 
     kern/debug/kmonitor.c:141: mon_backtrace+10
 ebp:0xc015bf78 eip:0xc01000dc args:0x00000000 0xc015bfa0 0xffff0000 0xc015bfa4 
     kern/init/init.c:64: grade_backtrace2+19
@@ -26,9 +26,9 @@ ebp:0xc015bf98 eip:0xc01000fe args:0x00000000 0xffff0000 0xc015bfc4 0x0000002d
     kern/init/init.c:69: grade_backtrace1+27
 ebp:0xc015bfb8 eip:0xc010011b args:0x00000000 0xc0100040 0xffff0000 0xc010007f 
     kern/init/init.c:74: grade_backtrace0+19
-ebp:0xc015bfd8 eip:0xc010013c args:0x00000000 0x00000000 0x00000000 0xc0116a80 
+ebp:0xc015bfd8 eip:0xc010013c args:0x00000000 0x00000000 0x00000000 0xc0116aa0 
     kern/init/init.c:79: grade_backtrace+26
-ebp:0xc015bff8 eip:0xc010008c args:0xc0116d78 0xc0116d80 0xc0100dc6 0xc0116d9f 
+ebp:0xc015bff8 eip:0xc010008c args:0xc0116d98 0xc0116da0 0xc0100dc6 0xc0116dbf 
     kern/init/init.c:41: kern_init+75
 memory management: default_pmm_manager
 e820map:
@@ -61,23 +61,78 @@ check_vma_struct() succeeded!
 check_pgfault() succeeded!
 check_vmm() succeeded.
 sched class: stride_scheduler
-do_fork: name = "init_main", kstack = c015a000.
+do_fork: name = "init_main", kstack = c015a000, kstacktop = c015c000.
 wakeup_proc: pid = 1, name = "init_main".
 ide 0:      10000(sectors), 'Generic 1234'.
-kernel panic at kern/fs/swap/swapfs.c:14:
-    swap fs isn't available.
+ide 1:     262144(sectors), 'Generic 1234'.
+SWAP: manager = fifo swap manager
+BEGIN check_swap: count 1, total 7520
+setup Page Table for vaddr 0X1000, so alloc a page
+setup Page Table vaddr 0~4MB OVER!
+set up init env for check_swap begin!
+page fault at 0x00001000: K/W [no page found].
+page fault at 0x00002000: K/W [no page found].
+page fault at 0x00003000: K/W [no page found].
+page fault at 0x00004000: K/W [no page found].
+set up init env for check_swap over!
+write Virt Page c in fifo_check_swap
+write Virt Page a in fifo_check_swap
+write Virt Page d in fifo_check_swap
+write Virt Page b in fifo_check_swap
+write Virt Page e in fifo_check_swap
+page fault at 0x00005000: K/W [no page found].
+swap_out: i 0, store page in vaddr 0x1000 to disk swap entry 2
+write Virt Page b in fifo_check_swap
+write Virt Page a in fifo_check_swap
+page fault at 0x00001000: K/W [no page found].
+do pgfault: ptep c0290004, pte 200
+swap_out: i 0, store page in vaddr 0x2000 to disk swap entry 3
+swap_in: load disk swap entry 2 with swap_page in vadr 0x1000
+write Virt Page b in fifo_check_swap
+page fault at 0x00002000: K/W [no page found].
+do pgfault: ptep c0290008, pte 300
+swap_out: i 0, store page in vaddr 0x3000 to disk swap entry 4
+swap_in: load disk swap entry 3 with swap_page in vadr 0x2000
+write Virt Page c in fifo_check_swap
+page fault at 0x00003000: K/W [no page found].
+do pgfault: ptep c029000c, pte 400
+swap_out: i 0, store page in vaddr 0x4000 to disk swap entry 5
+swap_in: load disk swap entry 4 with swap_page in vadr 0x3000
+write Virt Page d in fifo_check_swap
+page fault at 0x00004000: K/W [no page found].
+do pgfault: ptep c0290010, pte 500
+swap_out: i 0, store page in vaddr 0x5000 to disk swap entry 6
+swap_in: load disk swap entry 5 with swap_page in vadr 0x4000
+write Virt Page e in fifo_check_swap
+page fault at 0x00005000: K/W [no page found].
+do pgfault: ptep c0290014, pte 600
+swap_out: i 0, store page in vaddr 0x1000 to disk swap entry 2
+swap_in: load disk swap entry 6 with swap_page in vadr 0x5000
+write Virt Page a in fifo_check_swap
+page fault at 0x00001000: K/R [no page found].
+do pgfault: ptep c0290004, pte 200
+swap_out: i 0, store page in vaddr 0x2000 to disk swap entry 3
+swap_in: load disk swap entry 2 with swap_page in vadr 0x1000
+count is 0, total is 5
+check_swap() succeeded!
+kernel panic at kern/fs/devs/dev_disk0.c:142:
+    disk0 device isn't available.
 
 stack trackback:
-ebp:0xc015bf78 eip:0xc0100b40 args:0x00000000 0x00000000 0x00000000 0xc015bfac 
+ebp:0xc015bf48 eip:0xc0100b40 args:0xc028b4b8 0x00000000 0x00000100 0xc015bf7c 
     kern/debug/kdebug.c:379: print_stackframe+28
-ebp:0xc015bf98 eip:0xc0100eaf args:0xc0119f5b 0x0000000e 0xc0119f41 0x00000028 
+ebp:0xc015bf68 eip:0xc0100eaf args:0xc011a9c0 0x0000008e 0xc011aaac 0xc028b4b8 
     kern/debug/panic.c:30: __panic+107
-ebp:0xc015bfb8 eip:0xc010f59e args:0x01701098 0x0000000b 0x00002710 0x00040400 
-    kern/fs/swap/swapfs.c:14: swapfs_init+42
-ebp:0xc015bfd8 eip:0xc0106ec5 args:0x00000000 0x00000000 0x00000000 0xc0116a80 
-    kern/mm/swap.c:39: swap_init+10
-ebp:0xc015bff8 eip:0xc01000b4 args:0xc0116d78 0xc0116d80 0xc0100dc6 0xc0116d9f 
-    kern/init/init.c:53: kern_init+115
+ebp:0xc015bf88 eip:0xc0111729 args:0xc028b4b8 0xc028b340 0xc015bfb8 0xc01117c7 
+    kern/fs/devs/dev_disk0.c:142: disk0_device_init+45
+ebp:0xc015bfb8 eip:0xc01117fe args:0x01701098 0x0000000b 0xc015bfd8 0xc010b2a1 
+    kern/fs/devs/dev_disk0.c:176: dev_init_disk0+65
+ebp:0xc015bfc8 eip:0xc0111424 args:0x00010074 0x00000a1b 0xc015bff8 0xc01000b9 
+    kern/fs/devs/dev.c:172: dev_init+20
+ebp:0xc015bfd8 eip:0xc010b2a1 args:0x00000000 0x00000000 0x00000000 0xc0116aa0 
+    kern/fs/fs.c:24: fs_init+15
+ebp:0xc015bff8 eip:0xc01000b9 args:0xc0116d98 0xc0116da0 0xc0100dc6 0xc0116dbf 
+    kern/init/init.c:54: kern_init+120
 Welcome to the kernel debug monitor!!
 Type 'help' for a list of commands.
 K> 

@@ -26,6 +26,6 @@
 
 make clean;make;
 cp bin/sfs.img bin/sfs1.img;
-cp bin/ucore.img ./disk.img;
+
 
 
