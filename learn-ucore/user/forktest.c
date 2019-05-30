@@ -2,7 +2,7 @@
 #include "stdio.h"
 #include "string.h"
 
-const int max_child = 32;
+const int max_child = 128;
 
 int main(void)
 {
@@ -16,6 +16,10 @@ int main(void)
         if ((pid = fork(local_name)) == 0)
         {
             cprintf("I am child %d\n", n);
+            int m = 10000;
+            while (m < 0) {
+                m--;
+            }
             exit(0);
         }
         assert(pid > 0);

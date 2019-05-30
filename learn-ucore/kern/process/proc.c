@@ -247,7 +247,9 @@ void proc_run(struct proc_struct *proc)
             // 那么之前进程在进入内核态之后在内核栈里用到的数据，此时都会清空
             // 内核栈的地址通过全局 tss 获取的，进程切换的时候更新 tss。
             load_esp0(next->kstack + KSTACKSIZE);
+            // 加载进程自己的页表
             lcr3(next->cr3);
+            // 这里切换进程是自己
             switch_to(&(prev->context), &(next->context));
         }
         local_intr_restore(intr_flag);
