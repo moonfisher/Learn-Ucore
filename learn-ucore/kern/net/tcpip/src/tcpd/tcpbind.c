@@ -9,7 +9,7 @@ unsigned short tcpnxtp(void);
 int dnparse(char *fspec, IPaddr *paddr, unsigned short *pport)
 {
 	int i;
-	char ch;
+	unsigned char ch;
 
 	if (fspec == ANYFPORT)
 	{
@@ -20,13 +20,22 @@ int dnparse(char *fspec, IPaddr *paddr, unsigned short *pport)
 	dot2ip(fspec, paddr);
 	fspec = index(fspec, ':');
 	if (fspec == 0 || *fspec != ':')
+    {
 		return SYSERR;
+    }
+    
 	fspec++;
 	i = 0;
-	while (isdigit(ch = *fspec++))
+	while (isdigit((ch = *fspec++)))
+    {
 		i = 10 * i + (ch - '0');
+    }
+    
 	if (i == 0 || ch != '\0')
+    {
 		return SYSERR;
+    }
+    
 	*pport = i;
 	return OK;
 }

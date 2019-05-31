@@ -1,6 +1,6 @@
 #include "stdio.h"
 #include "monitor.h"
-#include "kmalloc.h"
+#include "slab.h"
 #include "assert.h"
 
 // Initialize monitor.

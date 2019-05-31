@@ -26,12 +26,10 @@ void *memcpy(void *dst, const void *src, size_t n);
 int memcmp(const void *v1, const void *v2, size_t n);
 void bzero(void *s, size_t n);
 
-char *index(const char *, char);
+char *index(char *, char);
 int	atoi(const char *);
 
-
 #define	BLKEQU(b1, b2, len)	(!memcmp((b1), (b2), len))
-
 #define blkcopy  memcpy
 
 bool blkequ(void* first, void* second, int nbytes);

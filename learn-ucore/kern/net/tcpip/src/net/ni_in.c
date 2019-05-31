@@ -5,8 +5,8 @@ int ni_in(struct netif *pni, /* the interface*/
           int len /* length, in octets*/)
 {
     int rv;
-    char *bufrecv = (char *)pep;
-    int idx;
+//    char *bufrecv = (char *)pep;
+//    int idx;
 
     pni->ni_ioctets += len;
     if (blkequ(pni->ni_hwa.ha_addr, ep_dst(pep), EP_ALEN))

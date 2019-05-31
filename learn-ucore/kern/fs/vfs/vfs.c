@@ -4,8 +4,9 @@
 #include "vfs.h"
 #include "inode.h"
 #include "sem.h"
-#include "kmalloc.h"
+#include "slab.h"
 #include "error.h"
+#include "slab.h"
 
 static semaphore_t bootfs_sem;
 /*
@@ -112,7 +113,7 @@ extern void vfs_devlist_init(void);
 struct fs *__alloc_fs(int type)
 {
     struct fs *fs;
-    if ((fs = kmalloc(sizeof(struct fs))) != NULL)
+    if ((fs = (struct fs *)kmalloc(sizeof(struct fs))) != NULL)
     {
         fs->fs_type = type;
     }

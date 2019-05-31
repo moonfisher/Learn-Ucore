@@ -1,7 +1,7 @@
 #include "proc.h"
 #include "sched.h"
 #include "sync.h"
-//#include "kmalloc.h"
+//#include "slab.h"
 #include "slab.h"
 #include "e1000.h"
 

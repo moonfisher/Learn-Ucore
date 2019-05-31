@@ -1,5 +1,5 @@
 #include "proc.h"
-#include "kmalloc.h"
+#include "slab.h"
 #include "string.h"
 #include "sync.h"
 #include "pmm.h"

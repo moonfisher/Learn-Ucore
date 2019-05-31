@@ -63,17 +63,17 @@ int32_t tcpxmit(int tcbnum, int event)
 
      ptcb->tcb_ostate = TCPO_XMIT;
      //在通告窗口和拥塞窗口中取小的，以免网络堵
-     window = min(ptcb->tcb_swindow, ptcb->tcb_cwnd);
+     window = (int)min(ptcb->tcb_swindow, ptcb->tcb_cwnd);
 
      //pending为没有被ack的数据量
-     pending = ptcb->tcb_snext - ptcb->tcb_suna;
+     pending = (int)(ptcb->tcb_snext - ptcb->tcb_suna);
      while (tcphowmuch(ptcb) > 0 && pending < window)
      {
           //要发送的数据量在 对端的通告窗口内，并且也在 网络拥塞窗口内
           tcpsend(tcbnum, TSF_NEWDATA);
           // tcpsend中会更新tcb_snext序号,
           // 循环到 pending一直到window为止
-          pending = ptcb->tcb_snext - ptcb->tcb_suna;
+          pending = (int)(ptcb->tcb_snext - ptcb->tcb_suna);
      }
 
      //设置一个重发事件

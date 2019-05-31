@@ -4,7 +4,7 @@
 #include "vmm.h"
 #include "ipc.h"
 #include "proc.h"
-//#include "kmalloc.h"
+//#include "slab.h"
 #include "slab.h"
 #include "sem.h"
 #include "mbox.h"

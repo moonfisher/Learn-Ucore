@@ -3,7 +3,7 @@
 #include "stdlib.h"
 #include "list.h"
 #include "stat.h"
-#include "kmalloc.h"
+#include "slab.h"
 #include "vfs.h"
 #include "dev.h"
 #include "sfs.h"
@@ -197,7 +197,7 @@ int sfs_load_inode(struct sfs_fs *sfs, struct inode **node_store, uint32_t ino, 
 
     int ret = -E_NO_MEM;
     struct sfs_disk_inode *din;
-    if ((din = kmalloc(sizeof(struct sfs_disk_inode))) == NULL)
+    if ((din = (struct sfs_disk_inode *)kmalloc(sizeof(struct sfs_disk_inode))) == NULL)
     {
         goto failed_unlock;
     }
@@ -521,7 +521,7 @@ int sfs_dirent_search_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const ch
 {
     assert(strlen(name) <= SFS_MAX_FNAME_LEN);
     struct sfs_disk_entry *entry;
-    if ((entry = kmalloc(sizeof(struct sfs_disk_entry))) == NULL)
+    if ((entry = (struct sfs_disk_entry *)kmalloc(sizeof(struct sfs_disk_entry))) == NULL)
     {
         return -E_NO_MEM;
     }
@@ -584,7 +584,7 @@ int sfs_dirent_findino_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_
 int sfs_dirent_create_inode(struct sfs_fs *sfs, uint16_t type, struct inode **node_store)
 {
     struct sfs_disk_inode *din;
-    if ((din = kmalloc(sizeof(struct sfs_disk_inode))) == NULL)
+    if ((din = (struct sfs_disk_inode *)kmalloc(sizeof(struct sfs_disk_inode))) == NULL)
     {
         return -E_NO_MEM;
     }
@@ -1167,7 +1167,7 @@ int sfs_rename(struct inode *node, const char *name, struct inode *new_node, con
 int sfs_namefile(struct inode *node, struct iobuf *iob)
 {
     struct sfs_disk_entry *entry;
-    if (iob->io_resid <= 2 || (entry = kmalloc(sizeof(struct sfs_disk_entry))) == NULL)
+    if (iob->io_resid <= 2 || (entry = (struct sfs_disk_entry *)kmalloc(sizeof(struct sfs_disk_entry))) == NULL)
     {
         return -E_NO_MEM;
     }

@@ -30,7 +30,7 @@ int arpprint()
 	return OK;
 }
 
-char *index(const char *, char);
+char *index(char *, char);
 
 /*------------------------------------------------------------------------
  * printone - print one entry in the ARP table

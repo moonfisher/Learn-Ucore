@@ -208,7 +208,7 @@ preceive(int portid)
 	wait(&(ptptr->ptrsem));
 	nxtnode = ptptr->pthead;
 	msg = nxtnode->ptmsg;
-	nxtnode->ptmsg = NULL;
+	nxtnode->ptmsg = 0;
 	if (ptptr->pthead == ptptr->pttail)
 	{
 		//ptptr中只有一个消息

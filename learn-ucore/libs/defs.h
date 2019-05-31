@@ -102,22 +102,21 @@ uint32_t __n = (uint32_t)(n);                           \
 
 extern	char	_ctype_[];    
 
-#define	isalpha(c)	((_ctype_+1)[c]&(_U|_L))
-#define	isupper(c)	((_ctype_+1)[c]&_U)
-#define	islower(c)	((_ctype_+1)[c]&_L)
-#define	isdigit(c)	((_ctype_+1)[c]&_N)
-#define	isxdigit(c)	((_ctype_+1)[c]&(_N|_X))
-#define	isspace(c)	((_ctype_+1)[c]&_S)
-#define ispunct(c)	((_ctype_+1)[c]&_P)
-#define isalnum(c)	((_ctype_+1)[c]&(_U|_L|_N))
-#define isprshort(c)	((_ctype_+1)[c]&(_P|_U|_L|_N))
-#define isprint(c)	((_ctype_+1)[c]&(_P|_U|_L|_N|_S))
-#define iscntrl(c)	((_ctype_+1)[c]&_C)
-#define isascii(c)	((unsigned)(c)<=0177)
-#define toupper(c)	((c)-'a'+'A')
-#define tolower(c)	((c)-'A'+'a')
-#define toascii(c)	((c)&0177)
-
+#define	isalpha(c)	    ((_ctype_ + 1)[c] & (_U | _L))
+#define	isupper(c)	    ((_ctype_ + 1)[c] & _U)
+#define	islower(c)	    ((_ctype_ + 1)[c] & _L)
+#define	isdigit(c)	    ((_ctype_ + 1)[c] & _N)
+#define	isxdigit(c)	    ((_ctype_ + 1)[c] & (_N | _X))
+#define	isspace(c)	    ((_ctype_ + 1)[c] & _S)
+#define ispunct(c)	    ((_ctype_ + 1)[c] & _P)
+#define isalnum(c)	    ((_ctype_ + 1)[c] & (_U | _L | _N))
+#define isprshort(c)    ((_ctype_ + 1)[c] & (_P | _U | _L | _N))
+#define isprint(c)	    ((_ctype_ + 1)[c] & (_P | _U | _L | _N | _S))
+#define iscntrl(c)	    ((_ctype_ + 1)[c] & _C)
+#define isascii(c)	    ((unsigned)(c) <= 0177)
+#define toupper(c)	    ((c) - 'a' + 'A')
+#define tolower(c)	    ((c) - 'A' + 'a')
+#define toascii(c)	    ((c) & 0177)
 
 #endif /* !__LIBS_DEFS_H__ */
 

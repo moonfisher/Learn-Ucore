@@ -1,5 +1,5 @@
 #include "string.h"
-#include "kmalloc.h"
+#include "slab.h"
 
 char *strdup(const char *src)
 {

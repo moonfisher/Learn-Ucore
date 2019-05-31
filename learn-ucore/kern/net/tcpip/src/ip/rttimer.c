@@ -7,7 +7,6 @@ extern int rippid; // rip output pid, if running
  * rttimer - update ttls and delete expired routes
  *------------------------------------------------------------------------
  */
-
 void rttimer(unsigned int delta)
 {
 	struct route *prt, *prev;
@@ -79,6 +78,6 @@ void rttimer(unsigned int delta)
 	if (dorip && ripnotify)
 	{
 		panic("rttimer not be implemented fully\n");
-		send(rippid, 0); /* send anything but TIMEOUT	*/
+//        send(rippid, 0); /* send anything but TIMEOUT    */
 	}
 }

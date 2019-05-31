@@ -6,7 +6,7 @@
 #include "inode.h"
 #include "sem.h"
 #include "list.h"
-#include "kmalloc.h"
+#include "slab.h"
 #include "unistd.h"
 #include "error.h"
 #include "assert.h"
@@ -186,7 +186,7 @@ static int vfs_do_add(const char *devname, struct inode *devnode, struct fs *fs,
 
     // 并不是直接挂载 inode 到 vdev_list，而是把 inode 封装到 vfs_dev_t 里再挂载
     vfs_dev_t *vdev;
-    if ((vdev = kmalloc(sizeof(vfs_dev_t))) == NULL)
+    if ((vdev = (vfs_dev_t *)kmalloc(sizeof(vfs_dev_t))) == NULL)
     {
         goto failed_cleanup_name;
     }

@@ -26,8 +26,17 @@
 #define E_MAX_OPEN          22  // Too Many Files are Open
 #define E_EXISTS            23  // File/Directory Already Exists
 #define E_NOTEMPTY          24  // Directory is Not Empty
+
+// Network driver error codes -- only seen in user-level
+#define E_PACKET_TOO_BIG 	25  // Packet size is too big for an Ethernet frame
+#define E_TX_QUEUE_FULL     26  // Transmit queue is full
+#define E_RX_QUEUE_EMPTY    27  // Receive queue is empty
+#define E_BUF_TOO_SMALL     28  // Buffer too small for receiving
+
+// IPC error 
+#define E_IPC_NOT_RECV      29
 /* the maximum allowed */
-#define MAXERROR            24
+#define MAXERROR            29
 
 #endif /* !__LIBS_ERROR_H__ */
 

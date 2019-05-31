@@ -17,7 +17,7 @@
  */
 int tcpkick(struct tcb *ptcb)
 {
-	int tcbnum = ptcb - &tcbtab[0];
+	int tcbnum = (int)(ptcb - &tcbtab[0]);
 	void *tv;
 	tv = MKEVENT(SEND, tcbnum);
 	if ((ptcb->tcb_flags & TCBF_DELACK) && !tmleft(tcps_oport, tv))

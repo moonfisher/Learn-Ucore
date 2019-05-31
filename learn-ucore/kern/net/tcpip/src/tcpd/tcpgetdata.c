@@ -14,7 +14,7 @@ int tcpgetdata(struct tcb *ptcb, unsigned char *pch, unsigned int len)
 	if (ptcb->tcb_flags & TCBF_RUPOK)
 	{
 		int nbc, ubc; /* normal & urgent byte counts	*/
-		nbc = ptcb->tcb_rnext - ptcb->tcb_rupseq - 1;
+		nbc = (int)(ptcb->tcb_rnext - ptcb->tcb_rupseq - 1);
 		if (nbc >= 0)
 		{ /* urgent boundary in buffer */
 			ubc = ptcb->tcb_rbcount - nbc;

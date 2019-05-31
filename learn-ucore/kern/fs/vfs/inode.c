@@ -6,7 +6,7 @@
 #include "inode.h"
 #include "error.h"
 #include "assert.h"
-#include "kmalloc.h"
+#include "slab.h"
 
 /* *
  * __alloc_inode - alloc a inode structure and initialize in_type

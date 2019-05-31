@@ -3,6 +3,7 @@
 
 extern int bsdbrc;
 extern int gateway;
+extern uint32_t getlocalip(int nif_num);
 
 struct netinfo Net;
 struct netif nif[NIF];

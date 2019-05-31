@@ -117,7 +117,7 @@ int tcpsend(int tcbnum, bool rexmt)
     ptcb->tcb_flags &= ~TCBF_NEEDOUT;
     if (rexmt)
     {
-        newdata = ptcb->tcb_suna + datalen - ptcb->tcb_snext;
+        newdata = (int)(ptcb->tcb_suna + datalen - ptcb->tcb_snext);
         if (newdata < 0)
         {
             newdata = 0;

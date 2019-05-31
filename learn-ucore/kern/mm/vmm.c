@@ -7,7 +7,7 @@
 #include "pmm.h"
 #include "x86.h"
 #include "swap.h"
-#include "kmalloc.h"
+#include "slab.h"
 
 /* 
   vmm design include two parts: mm_struct (mm) & vma_struct (vma)
@@ -42,7 +42,7 @@ static void check_pgfault(void);
 // mm_create -  alloc a mm_struct & initialize it.
 struct mm_struct *mm_create(void)
 {
-    struct mm_struct *mm = kmalloc(sizeof(struct mm_struct));
+    struct mm_struct *mm = (struct mm_struct *)kmalloc(sizeof(struct mm_struct));
     if (mm != NULL)
     {
         list_init(&(mm->mmap_list));
@@ -64,7 +64,7 @@ struct mm_struct *mm_create(void)
 // vma_create - alloc a vma_struct & initialize it. (addr range: vm_start~vm_end)
 struct vma_struct *vma_create(uintptr_t vm_start, uintptr_t vm_end, uint32_t vm_flags)
 {
-    struct vma_struct *vma = kmalloc(sizeof(struct vma_struct));
+    struct vma_struct *vma = (struct vma_struct *)kmalloc(sizeof(struct vma_struct));
     if (vma != NULL)
     {
         vma->vm_start = vm_start;

@@ -95,6 +95,11 @@ int sys_putc(int c)
     return syscall(SYS_putc, c);
 }
 
+int sys_shmem(uintptr_t *addr_store, size_t len, uint32_t mmap_flags)
+{
+    return syscall(SYS_shmem, (int)addr_store, len, mmap_flags, 0, 0);
+}
+
 int sys_pgdir(void)
 {
     return syscall(SYS_pgdir);
@@ -135,9 +140,9 @@ int sys_exec(const char *name, int argc, const char **argv)
     return syscall(SYS_exec, name, argc, argv);
 }
 
-int sys_open(const char *path, uint32_t open_flags)
+int sys_open(const char *path, uint32_t open_flags, uint32_t arg2)
 {
-    return syscall(SYS_open, path, open_flags);
+    return syscall(SYS_open, path, open_flags, arg2);
 }
 
 int sys_close(int fd)
@@ -224,3 +229,123 @@ int sys_unlink(const char *path)
 {
     return syscall(SYS_unlink, path);
 }
+
+int sys_receive_packet(uint8_t *buf, size_t len, size_t* len_store)
+{
+    return syscall(SYS_receive_packet, (int)buf, len, (int)len_store, 0, 0 );
+}
+
+int sys_transmit_packet(uint8_t *buf, size_t len,size_t* len_store)
+{
+    return syscall(SYS_transmit_packet, (int)buf, len, (int)len_store, 0, 0);
+}
+
+int sys_send_event(int pid, int event, unsigned int timeout)
+{
+    return syscall(SYS_event_send, pid, event, timeout, 0,0);
+}
+
+int sys_recv_event(int *pid_store, int *event_store, unsigned int timeout)
+{
+    return syscall(SYS_event_recv, (int)pid_store, (int)event_store, timeout, 0,0);
+}
+
+int sys_mbox_init(unsigned int max_slots)
+{
+    return syscall(SYS_mbox_init, max_slots, 0,0, 0,0);
+}
+
+int sys_mbox_send(int id, struct mboxbuf *buf, unsigned int timeout)
+{
+    return syscall(SYS_mbox_send, id, (int)buf, timeout, 0,0);
+}
+
+int sys_mbox_recv(int id, struct mboxbuf *buf, unsigned int timeout)
+{
+    return syscall(SYS_mbox_recv, id, (int)buf, timeout, 0,0);
+}
+
+int sys_mbox_free(int id)
+{
+    return syscall(SYS_mbox_free, id, 0,0, 0,0);
+}
+
+int sys_mbox_info(int id, struct mboxinfo *info)
+{
+    return syscall(SYS_mbox_info, id, (int)info, 0,0, 0);
+}
+
+int sys_ping(char *target, int len)
+{
+   return syscall(SYS_ping, (int)target, len, 0);
+}
+
+int sys_process_dump()
+{
+    return syscall(SYS_process_dump, 0, 0, 0);
+}
+
+int sys_rtdump()
+{
+    return syscall(SYS_rtdump, 0, 0, 0);
+}
+
+int sys_arpprint()
+{
+    return syscall(SYS_arpprint, 0, 0, 0);
+}
+
+int sys_netstatus()
+{
+    return syscall(SYS_netstatus, 0, 0, 0);
+}
+
+int sys_sock_socket(uint32_t type, const char* ipaddr, uint32_t iplen)
+{
+    return syscall(SYS_sock_socket, type, (int)ipaddr , iplen, 0, 0);
+}
+
+int sys_sock_listen(uint32_t tcpfd, uint32_t qsize)
+{
+    return syscall(SYS_sock_listen, tcpfd, qsize, 0);
+}
+
+int sys_sock_accept(uint32_t listenfd, uint32_t timeout)
+{
+    return syscall(SYS_sock_accept, listenfd, timeout, 0);
+}
+
+int sys_sock_connect(uint32_t sockfd, const char* ipaddr, uint32_t iplen)
+{
+    return syscall(SYS_sock_connect, sockfd, (int)ipaddr, iplen, 0, 0);
+}
+
+int sys_sock_bind(uint32_t sockfd, uint32_t lport, uint32_t rport)
+{
+    return syscall(SYS_sock_bind, sockfd, lport, rport, 0, 0);
+}
+
+int sys_sock_send(uint32_t sockfd, char* buf, uint32_t len, uint32_t timeout)
+{
+    return syscall(SYS_sock_send, sockfd, (int)buf, len, timeout, 0);
+}
+
+int sys_sock_recv(uint32_t sockfd, char* buf, uint32_t len, uint32_t timeout)
+{
+    return syscall(SYS_sock_recv, sockfd, (int)buf, len, timeout, 0);
+}
+
+int sys_sock_close(uint32_t sockfd)
+{
+    return syscall(SYS_sock_close, sockfd, 0, 0);
+}
+
+int sys_sock_shutdown(uint32_t sockfd, uint32_t type)
+{
+    return syscall(SYS_sock_shutdown, sockfd, type, 0);
+}
+
+
+
+
+

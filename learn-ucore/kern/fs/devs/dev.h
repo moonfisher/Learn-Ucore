@@ -38,13 +38,13 @@ struct device
     int (*d_open)(struct device *dev, uint32_t open_flags, uint32_t arg2);
     int (*d_close)(struct device *dev);
     int (*d_io)(struct device *dev, struct iobuf *iob, bool write);
-    int (*d_write)(struct device *dev, char* buff, int len);
-    int (*d_read)(struct device *dev, char* buff, int len);
-    int (*d_ioctl)(struct device *dev, int op, void* arg1, void* arg2); 
-    //tcpinit,dginit中设置
-    char* dvioblk;  // ethblk,tcb , dgblk
+    int (*d_write)(struct device *dev, char *buff, int len);
+    int (*d_read)(struct device *dev, char *buff, int len);
+    int (*d_ioctl)(struct device *dev, int op, void *arg1, void *arg2);
+    //tcpinit, dginit中设置
+    char *dvioblk;  // ethblk,tcb , dgblk
     //在配置文件中设定
-    int	 dvminor; // eth中的索引,tcb中的索引,upqs中的索引
+    int dvminor; // eth中的索引,tcb中的索引,upqs中的索引
 };
 
 void dev_init(void);

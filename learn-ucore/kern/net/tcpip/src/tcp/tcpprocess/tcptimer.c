@@ -38,7 +38,7 @@ int32_t tcptimer(void *args)
         now = gettime2();
         if (lastrun != 0)
         {
-            delta = now - lastrun;
+            delta = (int)(now - lastrun);
         }
         else
         {

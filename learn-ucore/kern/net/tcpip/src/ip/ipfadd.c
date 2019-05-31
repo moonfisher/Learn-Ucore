@@ -6,16 +6,16 @@
  */
 bool ipfadd(struct ipfq *iq, struct ep *pep)
 {
-	struct ip *pip;
-	int fragoff;
+//    struct ip *pip;
+//    int fragoff;
 
 	if (iq->ipf_state != IPFF_VALID)
 	{
 		freebuf(pep);
 		return 0;
 	}
-	pip = (struct ip *)pep->ep_data;
-	fragoff = pip->ip_fragoff & IP_FRAGOFF;
+//    pip = (struct ip *)pep->ep_data;
+//    fragoff = pip->ip_fragoff & IP_FRAGOFF;
 
 	if (enq(iq->ipf_q, pep) == 0)
 	{

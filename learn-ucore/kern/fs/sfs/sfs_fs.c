@@ -1,7 +1,7 @@
 #include "defs.h"
 #include "stdio.h"
 #include "string.h"
-#include "kmalloc.h"
+#include "slab.h"
 #include "list.h"
 #include "fs.h"
 #include "vfs.h"
@@ -266,7 +266,7 @@ int sfs_do_mount(struct device *dev, struct fs **fs_store)
 
     int ret = -E_NO_MEM;
 
-    void *sfs_buffer = kmalloc(SFS_BLKSIZE);   // 文件读写缓冲区，大小 4k
+    void *sfs_buffer = (void *)kmalloc(SFS_BLKSIZE);   // 文件读写缓冲区，大小 4k
     if (sfs_buffer == NULL)
     {
         goto failed_cleanup_fs;
@@ -314,7 +314,7 @@ int sfs_do_mount(struct device *dev, struct fs **fs_store)
     uint32_t i;
 
     /* alloc and initialize hash list */
-    list_entry_t *hash_list = kmalloc(sizeof(list_entry_t) * SFS_HLIST_SIZE);
+    list_entry_t *hash_list = (list_entry_t *)kmalloc(sizeof(list_entry_t) * SFS_HLIST_SIZE);
     if ((sfs->hash_list = hash_list) == NULL)
     {
         goto failed_cleanup_sfs_buffer;

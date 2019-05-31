@@ -15,7 +15,7 @@
  */
 int tcpkilltimers(struct tcb *ptcb)
 {
-	int tcbnum = ptcb - &tcbtab[0];
+	int tcbnum = (int)(ptcb - &tcbtab[0]);
 
 	tmclear(tcps_oport, MKEVENT(SEND, tcbnum));
 	tmclear(tcps_oport, MKEVENT(RETRANSMIT, tcbnum));

@@ -9,7 +9,7 @@ int tcphowmuch(struct tcb *ptcb)
 {
 	int tosend;
 	/* 算出可以发送的数据大小 */
-	tosend = ptcb->tcb_suna + ptcb->tcb_sbcount - ptcb->tcb_snext;
+	tosend = (int)(ptcb->tcb_suna + ptcb->tcb_sbcount - ptcb->tcb_snext);
 	if (ptcb->tcb_code & TCPF_SYN)
 	{
 		//要发送syn标记，这个标记占一个位置

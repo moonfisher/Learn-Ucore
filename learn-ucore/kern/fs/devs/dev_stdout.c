@@ -8,7 +8,7 @@
 #include "error.h"
 #include "assert.h"
 
-static int stdout_open(struct device *dev, uint32_t open_flags)
+static int stdout_open(struct device *dev, uint32_t open_flags, uint32_t arg2)
 {
     if (open_flags != O_WRONLY)
     {
@@ -36,7 +36,7 @@ static int stdout_io(struct device *dev, struct iobuf *iob, bool write)
     return -E_INVAL;
 }
 
-static int stdout_ioctl(struct device *dev, int op, void *data)
+static int stdout_ioctl(struct device *dev, int op, void* arg1, void* arg2)
 {
     return -E_INVAL;
 }

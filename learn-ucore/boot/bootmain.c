@@ -101,6 +101,23 @@ void bootmain(void)
     // load each program segment (ignores ph flags)
     ph = (struct proghdr *)((uintptr_t)elfh + elfh->e_phoff);
     eph = ph + elfh->e_phnum;
+    /*  编译出来的kernel的头信息 
+     *  $ readelf.exe -l kernel
+     *
+     *  Elf file type is EXEC (Executable file)
+     *  Entry point 0xc0100000
+     *  There are 2 program headers, starting at offset 52
+     *
+     *  Program Headers:
+     *    Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+     *    LOAD           0x001000 0xc0100000 0xc0100000 0x2d4aa 0x2d4aa R E 0x1000
+     *    LOAD           0x02f000 0xc012e000 0xc012e000 0x933f9 0x966a4 RW  0x1000
+     *
+     *   Section to Segment mapping:
+     *    Segment Sections...
+     *     00     .text .rodata .stab .stabstr
+     *     01     .data .bss
+    */
     for (; ph < eph; ph ++)
     {
         // 内核代码段根据 elf 里的虚拟地址加载到对应的物理地址上，但此时没有启用分页，先减去 0xC0000000

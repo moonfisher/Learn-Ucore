@@ -1,6 +1,6 @@
 #include "netcheck.h"
 //#include "msg.h"
-//#include "kmalloc.h"
+//#include "slab.h"
 #include "slab.h"
 #include "string.h"
 

@@ -4,9 +4,11 @@
 #include "e1000.h"
 #include "sem.h"
 #include "stdio.h"
-
 #include "tcpip/h/network.h"
 #include "net.h"
+
+extern int dump_protocol(struct ep *pep);
+
 int e1000_input_proc(void *arg)
 {
 

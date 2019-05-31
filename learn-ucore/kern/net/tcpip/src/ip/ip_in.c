@@ -2,10 +2,9 @@
 
 int ip_in(struct netif *pni, struct ep *pep)
 {
-
-    struct ip *pip = pep->ep_data;
-    int sum = 0;
-    int ip_len = ntohs(pip->ip_len);
+//    struct ip *pip = (struct ip *)(pep->ep_data);
+//    int sum = 0;
+//    int ip_len = ntohs(pip->ip_len);
 
     IpInReceives++;
 

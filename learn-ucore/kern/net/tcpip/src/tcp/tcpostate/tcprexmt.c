@@ -27,8 +27,7 @@ int tcprexmt(int tcbnum, int event)
 	tcpsend(tcbnum, TSF_REXMT);
 
 	//设置一个超时重发事件,重发的时间间隔会指数上升
-	tmset(tcps_oport, TCPQLEN, MKEVENT(RETRANSMIT, tcbnum),
-		  min(ptcb->tcb_rexmt << ptcb->tcb_rexmtcount, TCP_MAXRXT));
+	tmset(tcps_oport, TCPQLEN, MKEVENT(RETRANSMIT, tcbnum), min(ptcb->tcb_rexmt << ptcb->tcb_rexmtcount, TCP_MAXRXT));
 
 	if (ptcb->tcb_ostate != TCPO_REXMT)
 	{
@@ -36,7 +35,7 @@ int tcprexmt(int tcbnum, int event)
 		ptcb->tcb_ssthresh = ptcb->tcb_cwnd;
 	}
 	//出现重发了，网络有可能堵塞，阀值成倍的降低
-	ptcb->tcb_ssthresh = min(ptcb->tcb_swindow, ptcb->tcb_ssthresh) / 2;
+	ptcb->tcb_ssthresh = (unsigned int)min(ptcb->tcb_swindow, ptcb->tcb_ssthresh) / 2;
 
 	if (ptcb->tcb_ssthresh < ptcb->tcb_smss)
 	{

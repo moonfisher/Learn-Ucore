@@ -32,7 +32,7 @@ int hgarpadd(unsigned int ifnum, IPaddr ipa)
 	if (pni->ni_mcast)
 	{
 		//panic("hgarpadd not be implemented fully\n");
-		(pni->ni_mcast)(NI_MADD, ifdev, pae->ae_hwa, ipa);
+		(pni->ni_mcast)(NI_MADD, ifdev, (unsigned char *)(pae->ae_hwa), ipa);
 	}
 	else
 	{

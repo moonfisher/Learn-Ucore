@@ -2,7 +2,7 @@
 #include "string.h"
 #include "vmm.h"
 #include "proc.h"
-#include "kmalloc.h"
+#include "slab.h"
 #include "vfs.h"
 #include "file.h"
 #include "iobuf.h"

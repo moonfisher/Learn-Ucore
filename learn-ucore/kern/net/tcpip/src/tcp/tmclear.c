@@ -16,8 +16,7 @@ int tmclear(int port, void *msg)
 	{
 		if (ptq->tq_port == port && ptq->tq_msg == msg)
 		{
-			timespent = /*ctr100*/ gettime2() - ptq->tq_time;
-
+			timespent = /*ctr100*/ (int)(gettime2() - ptq->tq_time);
 			if (prev)
 			{
 				prev->tq_next = ptq->tq_next;

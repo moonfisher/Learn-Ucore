@@ -23,7 +23,7 @@
  */
 int tcpwait(struct tcb *ptcb)
 {
-	int tcbnum = ptcb - &tcbtab[0];
+	int tcbnum = (int)(ptcb - &tcbtab[0]);
 
 	//tcpkilltimers删除任何与该tcb相关的正在进行的事件
 	tcpkilltimers(ptcb);

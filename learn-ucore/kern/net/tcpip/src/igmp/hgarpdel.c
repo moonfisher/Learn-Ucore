@@ -18,7 +18,7 @@ int hgarpdel(unsigned ifnum, IPaddr ipa)
 	}
 	if (pni->ni_mcast)
 	{
-		(pni->ni_mcast)(NI_MDEL, ifdev, pae->ae_hwa, ipa);
+		(pni->ni_mcast)(NI_MDEL, ifdev, (unsigned char *)(pae->ae_hwa), ipa);
 	}
 	local_intr_restore(intr_flag);
 

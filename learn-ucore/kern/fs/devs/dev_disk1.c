@@ -3,7 +3,7 @@
 #include "sem.h"
 #include "ide.h"
 #include "inode.h"
-#include "kmalloc.h"
+#include "slab.h"
 #include "dev.h"
 #include "vfs.h"
 #include "iobuf.h"
@@ -28,7 +28,7 @@ void unlock_disk1(void)
     up(&(disk1_sem));
 }
 
-int disk1_open(struct device *dev, uint32_t open_flags)
+int disk1_open(struct device *dev, uint32_t open_flags, uint32_t arg2)
 {
     return 0;
 }
@@ -128,7 +128,7 @@ int disk1_io(struct device *dev, struct iobuf *iob, bool write)
     return 0;
 }
 
-int disk1_ioctl(struct device *dev, int op, void *data)
+int disk1_ioctl(struct device *dev, int op, void* arg1, void* arg2)
 {
     return -E_UNIMP;
 }

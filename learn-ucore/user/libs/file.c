@@ -8,7 +8,7 @@
 
 int open(const char *path, uint32_t open_flags)
 {
-    return sys_open(path, open_flags);
+    return sys_open(path, open_flags, 0);
 }
 
 int close(int fd)

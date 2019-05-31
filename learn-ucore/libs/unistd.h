@@ -20,6 +20,15 @@
 #define SYS_shmem           22
 #define SYS_putc            30
 #define SYS_pgdir           31
+
+#define SYS_event_send      48
+#define SYS_event_recv      49
+#define SYS_mbox_init       50
+#define SYS_mbox_send       51
+#define SYS_mbox_recv       52
+#define SYS_mbox_free       53
+#define SYS_mbox_info       54
+
 #define SYS_open            100
 #define SYS_close           101
 #define SYS_read            102
@@ -39,13 +48,34 @@
 #define SYS_dup             130
 #define SYS_pipe            140
 #define SYS_mkfifo          141
+//ONLY FOR network
+#define SYS_transmit_packet 150
+#define SYS_receive_packet  151
+#define SYS_ping            152
+#define SYS_process_dump    153
+#define SYS_rtdump          154
+#define SYS_arpprint        155
+#define SYS_netstatus       156
 
+#define SYS_sock_socket     200
+#define SYS_sock_listen     201
+#define SYS_sock_accept     202
+#define SYS_sock_connect    203
+#define SYS_sock_bind       204
+#define SYS_sock_send       205
+#define SYS_sock_recv       206
+#define SYS_sock_close      207
+#define SYS_sock_shutdown   208
 #define SYS_set_priority 255
 
 /* SYS_fork flags */
 #define CLONE_VM            0x00000100  // set if VM shared between processes
 #define CLONE_THREAD        0x00000200  // thread group
 #define CLONE_FS            0x00000800  // set if shared between processes
+ 
+/* SYS_map flags */
+#define MMAP_WRITE          0x00000100
+#define MMAP_STACK          0x00000200
 
 /* VFS flags */
 /*
@@ -85,10 +115,6 @@
 
 #define EXEC_MAX_ARG_NUM    32
 #define EXEC_MAX_ARG_LEN    4095
-
-/* SYS_mmap flags */
-#define MMAP_WRITE          0x00000100
-#define MMAP_STACK          0x00000200
 
 #endif /* !__LIBS_UNISTD_H__ */
 

@@ -34,7 +34,7 @@ int tcpacked(struct tcb *ptcb, struct ep *pep)
 	}
 
 	//被ack掉的数据量
-	acked = ptcp->tcp_ack - ptcb->tcb_suna;
+	acked = (int)(ptcp->tcp_ack - ptcb->tcb_suna);
 
 	cacked = 0;
 	if (acked <= 0)

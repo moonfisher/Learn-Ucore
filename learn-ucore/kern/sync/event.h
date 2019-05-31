@@ -5,7 +5,8 @@
 #include "wait.h"
 #include "mutex.h"
 
-typedef struct event_t{
+typedef struct event_t
+{
 	int event_type;
 	int event;
 	int sender_pid;
@@ -14,18 +15,15 @@ typedef struct event_t{
 	struct event_t* pprev;
 } event_t;
 
-typedef struct {
+typedef struct
+{
    mutex    mtx;
    event_t* pfront;
    event_t* prear;
    wait_t  wait;
 } event_box_t;
 
-
-
 void event_box_init(struct proc_struct *proc);
-
-
 bool ipc_event_send(int pid,int evnet_type, int event);
 int ipc_event_recv(int *pid_store,int event_type, int *event_store, unsigned int timeout);
 

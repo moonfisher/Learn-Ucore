@@ -1,5 +1,4 @@
-#include <defs.h>
-
+#include "defs.h"
 
 char _ctype_[] = {
 	0,

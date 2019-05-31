@@ -15,7 +15,7 @@ int32_t slowtimer_proc(void *args)
 	{
 		do_sleep(STGRAN);
 		now = gettime2();
-		delay = now - lasttime;
+		delay = (int)(now - lasttime);
 		lasttime = now;
 
 		if (delay == 0)

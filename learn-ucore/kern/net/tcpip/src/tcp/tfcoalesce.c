@@ -28,7 +28,7 @@ int tfcoalesce(struct tcb *ptcb, unsigned int datalen, struct tcp *ptcp)
 	}
 	while ((tf->tf_seq - ptcb->tcb_rnext) <= 0)
 	{
-		newcount = tf->tf_len - (ptcb->tcb_rnext - tf->tf_seq);
+		newcount = (int)(tf->tf_len - (ptcb->tcb_rnext - tf->tf_seq));
 		if (newcount > 0)
 		{
 			ptcb->tcb_rnext += newcount;

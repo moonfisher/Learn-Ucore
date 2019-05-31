@@ -4,13 +4,11 @@
  *  udpsend  -  send one UDP datagram to a given IP address
  *------------------------------------------------------------------------
  */
-int udpsend(IPaddr fip, unsigned short fport, unsigned short lport,
-            struct ep *pep, unsigned datalen, bool do_cksum)
+int udpsend(IPaddr fip, unsigned short fport, unsigned short lport, struct ep *pep, unsigned datalen, bool do_cksum)
 {
-
     struct ip *pip = (struct ip *)pep->ep_data;
     struct udp *pudp = (struct udp *)pip->ip_data;
-    struct route *prt;
+//    struct route *prt;
     struct hg *phg;
     int ttl = IP_TTL;
 

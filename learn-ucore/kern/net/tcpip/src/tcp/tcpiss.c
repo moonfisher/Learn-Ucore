@@ -14,7 +14,7 @@ int tcpiss(void)
 	extern long gettime2();
 	if (seq == 0)
 	{
-		seq = gettime2();
+		seq = (int)gettime2();
 	}
 	// 904
 	seq += TCPINCR;

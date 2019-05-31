@@ -25,7 +25,7 @@ int tqwrite(int stdout)
 {
 	struct tqent *tq;
 	int timeleft;
-	char str[80];
+//    char str[80];
 
 	if (tqhead == 0)
 	{

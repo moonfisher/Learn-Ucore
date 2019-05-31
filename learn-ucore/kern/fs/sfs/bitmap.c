@@ -1,7 +1,7 @@
 #include "defs.h"
 #include "string.h"
 #include "bitmap.h"
-#include "kmalloc.h"
+#include "slab.h"
 #include "error.h"
 #include "assert.h"
 

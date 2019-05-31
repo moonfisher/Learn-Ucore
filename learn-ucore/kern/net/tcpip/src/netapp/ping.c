@@ -15,7 +15,7 @@ void ping(char *target, size_t len)
 
     for (i = 0; i < 5; i++)
     {
-        icmp(ICT_ECHORQ, 0, dst, i, ds);
+        icmp(ICT_ECHORQ, 0, dst, (void *)i, (void *)ds);
         panic("ping not be implemented \n");
     }
 }

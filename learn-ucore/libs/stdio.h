@@ -10,6 +10,8 @@ int vcprintf(const char *fmt, va_list ap);
 void cputchar(int c);
 int cputs(const char *str);
 int getchar(void);
+void put_byte(unsigned char num);
+void puthex(unsigned int num);
 
 /* kern/libs/readline.c */
 char *readline(const char *prompt);

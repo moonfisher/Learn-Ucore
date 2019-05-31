@@ -286,6 +286,16 @@
 		C480E37622A0DA9A0093D61D /* sync.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E37222A0DA9A0093D61D /* sync.c */; };
 		C480E37A22A0E3CA0093D61D /* pci.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E37822A0E3CA0093D61D /* pci.c */; };
 		C480E96122A0F1610093D61D /* ctype_.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96022A0F1600093D61D /* ctype_.c */; };
+		C480E96E22A0F8F40093D61D /* mboxmap.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96622A0F8F40093D61D /* mboxmap.c */; };
+		C480E97222A0FCC40093D61D /* eventtest.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96422A0F8F40093D61D /* eventtest.c */; };
+		C480E97322A0FCC70093D61D /* mboxmap.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96622A0F8F40093D61D /* mboxmap.c */; };
+		C480E97422A0FCC90093D61D /* mmaptest.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96522A0F8F40093D61D /* mmaptest.c */; };
+		C480E97522A0FCCB0093D61D /* netstatus.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96822A0F8F40093D61D /* netstatus.c */; };
+		C480E97622A0FCCD0093D61D /* ping.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96922A0F8F40093D61D /* ping.c */; };
+		C480E97722A0FCD00093D61D /* ps.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96222A0F8F30093D61D /* ps.c */; };
+		C480E97822A0FCD40093D61D /* rtdump.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96722A0F8F40093D61D /* rtdump.c */; };
+		C480E97922A0FCD60093D61D /* shmemtest.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96322A0F8F40093D61D /* shmemtest.c */; };
+		C480E97C22A0FD3B0093D61D /* malloc.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E97B22A0FD3B0093D61D /* malloc.c */; };
 		C4CB326C2248F5830014426C /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31BD2248F5820014426C /* init.c */; };
 		C4CB326E2248F5830014426C /* default_sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C02248F5820014426C /* default_sched.c */; };
 		C4CB326F2248F5830014426C /* sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C22248F5820014426C /* sched.c */; };
@@ -644,6 +654,16 @@
 		C480E37C22A0E5810093D61D /* mboxbuf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mboxbuf.h; sourceTree = "<group>"; };
 		C480E37D22A0E5810093D61D /* protobuf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = protobuf.h; sourceTree = "<group>"; };
 		C480E96022A0F1600093D61D /* ctype_.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ctype_.c; sourceTree = "<group>"; };
+		C480E96222A0F8F30093D61D /* ps.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ps.c; sourceTree = "<group>"; };
+		C480E96322A0F8F40093D61D /* shmemtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = shmemtest.c; sourceTree = "<group>"; };
+		C480E96422A0F8F40093D61D /* eventtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eventtest.c; sourceTree = "<group>"; };
+		C480E96522A0F8F40093D61D /* mmaptest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mmaptest.c; sourceTree = "<group>"; };
+		C480E96622A0F8F40093D61D /* mboxmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mboxmap.c; sourceTree = "<group>"; };
+		C480E96722A0F8F40093D61D /* rtdump.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rtdump.c; sourceTree = "<group>"; };
+		C480E96822A0F8F40093D61D /* netstatus.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netstatus.c; sourceTree = "<group>"; };
+		C480E96922A0F8F40093D61D /* ping.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ping.c; sourceTree = "<group>"; };
+		C480E97A22A0FD3A0093D61D /* malloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = malloc.h; sourceTree = "<group>"; };
+		C480E97B22A0FD3B0093D61D /* malloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = malloc.c; sourceTree = "<group>"; };
 		C4CB31B12248F53F0014426C /* UCore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = UCore; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4CB31BD2248F5820014426C /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = init.c; sourceTree = "<group>"; };
 		C4CB31BE2248F5820014426C /* entry.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = entry.S; sourceTree = "<group>"; };
@@ -1535,6 +1555,14 @@
 		C4CB32262248F5830014426C /* user */ = {
 			isa = PBXGroup;
 			children = (
+				C480E96422A0F8F40093D61D /* eventtest.c */,
+				C480E96622A0F8F40093D61D /* mboxmap.c */,
+				C480E96522A0F8F40093D61D /* mmaptest.c */,
+				C480E96822A0F8F40093D61D /* netstatus.c */,
+				C480E96922A0F8F40093D61D /* ping.c */,
+				C480E96222A0F8F30093D61D /* ps.c */,
+				C480E96722A0F8F40093D61D /* rtdump.c */,
+				C480E96322A0F8F40093D61D /* shmemtest.c */,
 				C41ED9C5228982BE006D8303 /* rm.c */,
 				C41ED9C1228979E9006D8303 /* link.c */,
 				C41ED9C2228979E9006D8303 /* unlink.c */,
@@ -1578,6 +1606,8 @@
 		C4CB32302248F5830014426C /* libs */ = {
 			isa = PBXGroup;
 			children = (
+				C480E97A22A0FD3A0093D61D /* malloc.h */,
+				C480E97B22A0FD3B0093D61D /* malloc.c */,
 				C4CB32312248F5830014426C /* ulib.h */,
 				C4CB323B2248F5830014426C /* ulib.c */,
 				C4CB323C2248F5830014426C /* syscall.h */,
@@ -1711,16 +1741,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C480E97322A0FCC70093D61D /* mboxmap.c in Sources */,
+				C480E97422A0FCC90093D61D /* mmaptest.c in Sources */,
 				C41EC5AB22842B62006D8303 /* cat.c in Sources */,
 				73DD7D6A226F6B0400998EEC /* stdio.h in Sources */,
 				C41ED9BD2289535F006D8303 /* mv.c in Sources */,
 				73DD7D6B226F6B0400998EEC /* string.h in Sources */,
+				C480E97922A0FCD60093D61D /* shmemtest.c in Sources */,
 				73DD7D6C226F6B0400998EEC /* string.c in Sources */,
 				73DD7D6D226F6B0400998EEC /* error.h in Sources */,
 				73DD7D6E226F6B0400998EEC /* stdlib.h in Sources */,
 				73DD7D6F226F6B0400998EEC /* defs.h in Sources */,
 				73DD7D70226F6B0400998EEC /* rand.c in Sources */,
 				73DD7D71226F6B0400998EEC /* unistd.h in Sources */,
+				C480E97222A0FCC40093D61D /* eventtest.c in Sources */,
 				C41EC5B6228442BD006D8303 /* cd.c in Sources */,
 				C41ED9C4228979EA006D8303 /* unlink.c in Sources */,
 				73DD7D72226F6B0400998EEC /* stat.h in Sources */,
@@ -1744,6 +1778,7 @@
 				73DD7D4C226F6A8500998EEC /* ls.c in Sources */,
 				73DD7D4D226F6A8500998EEC /* badarg.c in Sources */,
 				73DD7D4E226F6A8500998EEC /* softint.c in Sources */,
+				C480E97622A0FCCD0093D61D /* ping.c in Sources */,
 				73DD7D4F226F6A8500998EEC /* exit.c in Sources */,
 				C41ED99422854301006D8303 /* echo.c in Sources */,
 				73DD7D50226F6A8500998EEC /* ulib.h in Sources */,
@@ -1756,11 +1791,14 @@
 				73DD7D56226F6A8500998EEC /* syscall.c in Sources */,
 				73DD7D57226F6A8500998EEC /* umain.c in Sources */,
 				73DD7D59226F6A8500998EEC /* file.c in Sources */,
+				C480E97822A0FCD40093D61D /* rtdump.c in Sources */,
 				73DD7D5A226F6A8500998EEC /* ulib.c in Sources */,
 				73DD7D5B226F6A8500998EEC /* syscall.h in Sources */,
 				C41ED996228544C3006D8303 /* touch.c in Sources */,
+				C480E97C22A0FD3B0093D61D /* malloc.c in Sources */,
 				73DD7D5C226F6A8500998EEC /* dir.h in Sources */,
 				73DD7D5D226F6A8500998EEC /* sleep.c in Sources */,
+				C480E97722A0FCD00093D61D /* ps.c in Sources */,
 				73DD7D5E226F6A8500998EEC /* badsegment.c in Sources */,
 				73DD7D5F226F6A8500998EEC /* waitkill.c in Sources */,
 				C41ED9C6228982BF006D8303 /* rm.c in Sources */,
@@ -1775,6 +1813,7 @@
 				73DD7D68226F6A8500998EEC /* matrix.c in Sources */,
 				73DD7D69226F6A8500998EEC /* faultreadkernel.c in Sources */,
 				C41EC5A722842437006D8303 /* mkdir.c in Sources */,
+				C480E97522A0FCCB0093D61D /* netstatus.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1909,6 +1948,7 @@
 				C4CB32712248F5830014426C /* clock.c in Sources */,
 				C480E37622A0DA9A0093D61D /* sync.c in Sources */,
 				C480E2A122A0D9170093D61D /* ripfset.c in Sources */,
+				C480E96E22A0F8F40093D61D /* mboxmap.c in Sources */,
 				C4CB328F2248F5830014426C /* dev.c in Sources */,
 				C480E32A22A0D9170093D61D /* utils.c in Sources */,
 				C480E30722A0D9170093D61D /* tcpclosing.c in Sources */,

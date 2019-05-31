@@ -1,7 +1,7 @@
 #include "defs.h"
 #include "wait.h"
 #include "atomic.h"
-#include "kmalloc.h"
+#include "slab.h"
 #include "sem.h"
 #include "proc.h"
 #include "sync.h"

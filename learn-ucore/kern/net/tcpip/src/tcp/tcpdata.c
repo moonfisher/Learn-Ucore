@@ -29,7 +29,7 @@ int tcpdata(struct tcb *ptcb, struct ep *pep)
     if (ptcp->tcp_code & TCPF_URG)
     {
         //urgent point数据所在位置
-        int rup = ptcp->tcp_seq + ptcp->tcp_urgptr;
+        int rup = (int)(ptcp->tcp_seq + ptcp->tcp_urgptr);
 #ifdef BSDURG
         rup--;
 #endif
@@ -90,7 +90,7 @@ int tcpdata(struct tcb *ptcb, struct ep *pep)
 
     pb %= ptcb->tcb_rbsize; // 环形缓冲去处理
 
-    pp = first - ptcp->tcp_seq; //
+    pp = (int)(first - ptcp->tcp_seq); //
 
     for (i = 0; i < datalen; ++i)
     {

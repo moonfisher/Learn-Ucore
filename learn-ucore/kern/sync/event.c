@@ -11,58 +11,60 @@
 #include "event.h"
 #include "stdio.h"
 
-void
-event_box_init(struct proc_struct *proc) {
+void event_box_init(struct proc_struct *proc)
+{
     mutex_init(&(proc->event_box.mtx));
-    proc->event_box.pfront =proc->event_box.prear =NULL;
+    proc->event_box.pfront = proc->event_box.prear = NULL;
     wait_init(&(proc->event_box.wait), proc);
 }
 
-static event_t* 
-get_event(int event_type,int event,int sender_pid) {
-
+static event_t *get_event(int event_type, int event, int sender_pid)
+{
     event_t* eve = kmalloc(sizeof(event_t));
     eve->event_type = event_type;
     eve->event = event;
     eve->sender_pid = sender_pid;
-    eve->send_time = gettime2();
+    eve->send_time = (int)gettime2();
     return eve;
 }
 
-static void 
-free_event(event_t *eve) {
-    if (eve != NULL) {
+static void free_event(event_t *eve)
+{
+    if (eve != NULL)
+    {
         kfree(eve);
     }
 }
 
-static bool
-is_empty_event_box(event_box_t* box){
+static bool is_empty_event_box(event_box_t* box)
+{
     return box->pfront == NULL ? 1 : 0;
 }
 
-static bool
-add_event(event_box_t* box, event_t *pevent) {
-   if(!box || !pevent) {
-    return 0;
-   }
+static bool add_event(event_box_t* box, event_t *pevent)
+{
+    if (!box || !pevent)
+    {
+        return 0;
+    }
 
-   if (is_empty_event_box(box)) {
-     box->pfront=box->prear=pevent;
-
-     pevent->pnext = pevent->pprev = NULL;
-   } else {
-     //插到最前面
-     box->pfront->pprev = pevent;
-     pevent->pnext= box->pfront;
-
-     box->pfront = pevent;
-   }
-   return 1;
+    if (is_empty_event_box(box))
+    {
+        box->pfront = box->prear = pevent;
+        pevent->pnext = pevent->pprev = NULL;
+    }
+    else
+    {
+        //插到最前面
+        box->pfront->pprev = pevent;
+        pevent->pnext = box->pfront;
+        box->pfront = pevent;
+    }
+    return 1;
 }
 
-static event_t*
-del_event(event_box_t* box, int type) {
+static event_t *del_event(event_box_t* box, int type)
+{
     if (is_empty_event_box(box)) {
        return NULL;
     }

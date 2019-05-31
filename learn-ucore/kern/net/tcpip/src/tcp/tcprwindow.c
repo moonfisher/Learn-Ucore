@@ -32,7 +32,7 @@ int tcprwindow(struct tcb *ptcb)
     }
 
     // ptcb->tcb_cwin - ptcb->tcb_rnext == 旧的 window
-    window = max(window, ptcb->tcb_cwin - ptcb->tcb_rnext);
+    window = (int)max(window, ptcb->tcb_cwin - ptcb->tcb_rnext);
     /* 准备接受的下一个序号 + 接受窗口大小 */
     ptcb->tcb_cwin = ptcb->tcb_rnext + window;
     return window;

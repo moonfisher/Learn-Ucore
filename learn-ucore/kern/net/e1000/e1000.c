@@ -5,6 +5,7 @@
 #include "tcpip/h/ether.h"
 
 extern void ping(char *target, size_t len);
+extern int dump_protocol(struct ep *pep);
 
 static void e1000_init(void);
 static void init_desc(void);

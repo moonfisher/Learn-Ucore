@@ -30,31 +30,30 @@ dhcp_get_opt_val(const struct dhcpmsg *dmsg, uint32_t dmsg_size, uint8_t option_
     return NULL;
 }
 
-static void
-printdhcpmsg(char *pre, struct dhcpmsg *pdhcp)
-{
-    int i = 0;
-    cprintf("%s\n", pre);
-    cprintf("------------------------------------------\n");
-    cprintf("dc_bop= %02x \n", pdhcp->dc_bop);
-    cprintf("dc_htype= %02x \n", pdhcp->dc_htype);
-    cprintf("dc_hlen= %02x \n", pdhcp->dc_hlen);
-    cprintf("dc_hops= %02x \n", pdhcp->dc_hops);
-    cprintf("dc_xid= %x \n", pdhcp->dc_xid);
-    cprintf("dc_secs= %x \n", pdhcp->dc_secs);
-    cprintf("dc_flags= %x \n", pdhcp->dc_flags);
-    cprintf("dc_cip= %x \n", pdhcp->dc_cip);
-    cprintf("dc_yip= %x \n", pdhcp->dc_yip);
-    cprintf("dc_sip= %x \n", pdhcp->dc_sip);
-    cprintf("dc_gip= %x \n", pdhcp->dc_gip);
-    cprintf("dc_chaddr:\n");
-    for (i = 0; i < 16; i++)
-    {
-        cprintf("%02x ", pdhcp->dc_chaddr[i]);
-    }
-    cprintf("\n------------------------------------------\n");
-    cprintf("\n");
-}
+//static void printdhcpmsg(char *pre, struct dhcpmsg *pdhcp)
+//{
+//    int i = 0;
+//    cprintf("%s\n", pre);
+//    cprintf("------------------------------------------\n");
+//    cprintf("dc_bop= %02x \n", pdhcp->dc_bop);
+//    cprintf("dc_htype= %02x \n", pdhcp->dc_htype);
+//    cprintf("dc_hlen= %02x \n", pdhcp->dc_hlen);
+//    cprintf("dc_hops= %02x \n", pdhcp->dc_hops);
+//    cprintf("dc_xid= %x \n", pdhcp->dc_xid);
+//    cprintf("dc_secs= %x \n", pdhcp->dc_secs);
+//    cprintf("dc_flags= %x \n", pdhcp->dc_flags);
+//    cprintf("dc_cip= %x \n", pdhcp->dc_cip);
+//    cprintf("dc_yip= %x \n", pdhcp->dc_yip);
+//    cprintf("dc_sip= %x \n", pdhcp->dc_sip);
+//    cprintf("dc_gip= %x \n", pdhcp->dc_gip);
+//    cprintf("dc_chaddr:\n");
+//    for (i = 0; i < 16; i++)
+//    {
+//        cprintf("%02x ", pdhcp->dc_chaddr[i]);
+//    }
+//    cprintf("\n------------------------------------------\n");
+//    cprintf("\n");
+//}
 
 /*------------------------------------------------------------------------
  * dhcp_bld_bootp_msg  -  Set the common fields for all DHCP messages
@@ -168,8 +167,7 @@ int32_t dhcp_bld_req(
  * getlocalip - use DHCP to obtain an IP address
  *------------------------------------------------------------------------
  */
-uint32_t
-getlocalip(int nif_num)
+uint32_t getlocalip(int nif_num)
 {
 
     struct dhcpmsg *pdmsg_snd; /* Holds outgoing DHCP message */
@@ -184,12 +182,12 @@ getlocalip(int nif_num)
     int32_t inlen;   /* Length of data received */
     char *optptr;    /* Pointer to options area */
     char *eop;       /* Address of end of packet */
-    int32_t msgtype; /* Type of DCHP message */
+    int32_t msgtype = 0; /* Type of DCHP message */
 
-    uint32_t addrmask;   /* Address mask for network */
-    uint32_t routeraddr; /* Default router address */
-    uint32_t dnsaddr;    /* DNS server address     */
-    uint32_t ntpaddr;    /* NTP server address     */
+    uint32_t addrmask = 0;   /* Address mask for network */
+    uint32_t routeraddr = 0; /* Default router address */
+    uint32_t dnsaddr = 0;    /* DNS server address     */
+    uint32_t ntpaddr = 0;    /* NTP server address     */
 
     uint32_t tmp;
 
@@ -250,15 +248,15 @@ getlocalip(int nif_num)
         pudpsnd->u_cksum = 0;
 
         iph2net(pipsnd);
-        pipsnd->ip_cksum = cksum(pipsnd, IP_HLEN(pipsnd) / 2);
+        pipsnd->ip_cksum = cksum((unsigned short *)pipsnd, IP_HLEN(pipsnd) / 2);
 
-        pdev->d_write(pdev, pepsnd, EXTRAEPSIZ + EH_LEN + IP_HLEN(pipsnd) + U_HLEN + len);
+        pdev->d_write(pdev, (char *)pepsnd, EXTRAEPSIZ + EH_LEN + IP_HLEN(pipsnd) + U_HLEN + len);
 
         //开始读
         for (j = 0; j < 3; j++)
         {
             do_sleep(50); // 0.5秒之后去读
-            inlen = pdev->d_read(pdev, peprcv, sizeof(struct ep));
+            inlen = pdev->d_read(pdev, (char *)peprcv, sizeof(struct ep));
             if (inlen <= 0)
             {
                 continue;
@@ -329,7 +327,7 @@ getlocalip(int nif_num)
                             "Unable to build DHCP request");
                     return SYSERR;
                 }
-                pdev->d_write(pdev, pepsnd, EXTRAEPSIZ + EH_LEN + IP_MINHLEN + U_HLEN + len);
+                pdev->d_write(pdev, (char *)pepsnd, EXTRAEPSIZ + EH_LEN + IP_MINHLEN + U_HLEN + len);
                 continue;
             }
             else if (pdmsg_rvc->dc_opt[2] != 0x05)
@@ -367,7 +365,7 @@ getlocalip(int nif_num)
             pnif->ni_ivalid = 1;
 
             rtadd(pnif->ni_brc, pnif->ni_mask, routeraddr, 1, nif_num, RT_INF);
-            return pnif->ni_ip;
+            return (uint32_t)(pnif->ni_ip);
         }
     }
 

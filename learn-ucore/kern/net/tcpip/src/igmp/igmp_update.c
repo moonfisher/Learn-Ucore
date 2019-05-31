@@ -6,7 +6,7 @@
  */
 int32_t igmp_update(void)
 {
-	struct hg *phg;
+	struct hg *phg = NULL;
 	while (1)
 	{
 		cprintf("igmp_update not be implemented\n");

@@ -18,8 +18,7 @@ int arp_in(struct netif *pni, struct ep *pep)
     parp->ar_op = ntohs(parp->ar_op);
     int tmpip;
 
-    if (parp->ar_hwtype != pni->ni_hwtype ||
-        parp->ar_prtype != EPT_IP)
+    if (parp->ar_hwtype != pni->ni_hwtype || parp->ar_prtype != EPT_IP)
     {
         //不是本网卡接口的硬件地址，协议地址类型不是 IPV4
         freebuf(pep);
@@ -28,8 +27,8 @@ int arp_in(struct netif *pni, struct ep *pep)
 
     //得到ARP表的缓存,不判断ar_op了，默认看作reply，处于ae_pending的，也直接修改了mac addr
     //tmpip=ntohl(*(SPA(parp)));
-    tmpip = ntohl(*(IPaddr *)(SPA(parp)));
-    if ((pae = arpfind(&tmpip, parp->ar_prtype, pni)))
+    tmpip = (int)ntohl(*(IPaddr *)(SPA(parp)));
+    if ((pae = arpfind((unsigned char *)&tmpip, parp->ar_prtype, pni)))
     {
         //更新TTL值
         blkcopy(pae->ae_hwa, SHA(parp), pae->ae_hwlen);

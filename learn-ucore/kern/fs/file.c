@@ -11,7 +11,7 @@
 #include "error.h"
 #include "assert.h"
 #include "stdio.h"
-#include "kmalloc.h"
+#include "slab.h"
 
 #define testfd(fd)                          ((fd) >= 0 && (fd) < FILES_STRUCT_NENTRY)
 

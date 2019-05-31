@@ -1,5 +1,5 @@
 #include "defs.h"
-#include "kmalloc.h"
+#include "slab.h"
 #include "sem.h"
 #include "vfs.h"
 #include "dev.h"
@@ -48,7 +48,7 @@ struct files_struct *files_create(void)
 //    static_assert((int)FILES_STRUCT_NENTRY > 128);
     struct files_struct *filesp;
     // filesp 指向一个 4k 的空间
-    if ((filesp = kmalloc(sizeof(struct files_struct) + FILES_STRUCT_BUFSIZE)) != NULL)
+    if ((filesp = (struct files_struct *)kmalloc(sizeof(struct files_struct) + FILES_STRUCT_BUFSIZE)) != NULL)
     {
         filesp->pwd = NULL;
         // 设置 fd_array 起始地址，文件 fd 个数 FILES_STRUCT_NENTRY = 0x91

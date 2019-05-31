@@ -18,7 +18,7 @@ void hginit(void)
 	{
 		hgtable[i].hg_state = HGS_FREE;
 	}
-	hgseed = nif[NI_PRIMARY].ni_ip;
+	hgseed = (int)(nif[NI_PRIMARY].ni_ip);
 	//memcpy(&hgseed ,nif[NI_PRIMARY].ni_ip, IP_ALEN);
 	unlock(&HostGroup.hi_mutex);
 

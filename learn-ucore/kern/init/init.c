@@ -13,6 +13,10 @@
 #include "swap.h"
 #include "proc.h"
 #include "fs.h"
+#include "sync.h"
+#include "sockets.h"
+#include "net.h"
+#include "netcheck.h"
 
 int kern_init(void) __attribute__((noreturn));
 int mon_backtrace(int argc, char **argv, struct trapframe *tf);
@@ -54,8 +58,11 @@ int kern_init(void)
     fs_init();                  // init fs
     
     clock_init();               // init clock interrupt
+    
+    net_init();                  // init nic
+    net_check();
+    
     intr_enable();              // enable irq interrupt
-
     cpu_idle();                 // run idle process
 }
 

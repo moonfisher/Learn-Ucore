@@ -11,7 +11,8 @@
 size_t strlen(const char *s)
 {
     size_t cnt = 0;
-    while (*s ++ != '\0') {
+    while (*s ++ != '\0')
+    {
         cnt ++;
     }
     return cnt;
@@ -33,7 +34,8 @@ size_t strlen(const char *s)
 size_t strnlen(const char *s, size_t len)
 {
     size_t cnt = 0;
-    while (cnt < len && *s ++ != '\0') {
+    while (cnt < len && *s ++ != '\0')
+    {
         cnt ++;
     }
     return cnt;
@@ -89,8 +91,10 @@ char *strcpy(char *dst, const char *src)
 char *strncpy(char *dst, const char *src, size_t len)
 {
     char *p = dst;
-    while (len > 0) {
-        if ((*p = *src) != '\0') {
+    while (len > 0)
+    {
+        if ((*p = *src) != '\0')
+        {
             src ++;
         }
         p ++;
@@ -119,7 +123,8 @@ int strcmp(const char *s1, const char *s2)
 #ifdef __HAVE_ARCH_STRCMP
     return __strcmp(s1, s2);
 #else
-    while (*s1 != '\0' && *s1 == *s2) {
+    while (*s1 != '\0' && *s1 == *s2)
+    {
         s1 ++, s2 ++;
     }
     return (int)((unsigned char)*s1 - (unsigned char)*s2);
@@ -158,8 +163,10 @@ int strncmp(const char *s1, const char *s2, size_t n)
  * */
 char *strchr(const char *s, char c)
 {
-    while (*s != '\0') {
-        if (*s == c) {
+    while (*s != '\0')
+    {
+        if (*s == c)
+        {
             return (char *)s;
         }
         s ++;
@@ -178,8 +185,10 @@ char *strchr(const char *s, char c)
  * */
 char *strfind(const char *s, char c)
 {
-    while (*s != '\0') {
-        if (*s == c) {
+    while (*s != '\0')
+    {
+        if (*s == c)
+        {
             break;
         }
         s ++;
@@ -346,14 +355,16 @@ void *memset(void *s, char c, size_t n)
     return __memset(s, c, n);
 #else
     char *p = s;
-    while (n -- > 0) {
+    while (n -- > 0)
+    {
         *p ++ = c;
     }
     return s;
 #endif /* __HAVE_ARCH_MEMSET */
 }
 
-void bzero(void *s, size_t n) {
+void bzero(void *s, size_t n)
+{
     memset(s, 0,n);
 }
 
@@ -373,12 +384,16 @@ void *memmove(void *dst, const void *src, size_t n)
 #else
     const char *s = src;
     char *d = dst;
-    if (s < d && s + n > d) {
+    if (s < d && s + n > d)
+    {
         s += n, d += n;
-        while (n -- > 0) {
+        while (n -- > 0)
+        {
             *-- d = *-- s;
         }
-    } else {
+    }
+    else
+    {
         while (n -- > 0) {
             *d ++ = *s ++;
         }
@@ -434,8 +449,10 @@ int memcmp(const void *v1, const void *v2, size_t n)
 {
     const char *s1 = (const char *)v1;
     const char *s2 = (const char *)v2;
-    while (n -- > 0) {
-        if (*s1 != *s2) {
+    while (n -- > 0)
+    {
+        if (*s1 != *s2)
+        {
             return (int)((unsigned char)*s1 - (unsigned char)*s2);
         }
         s1 ++;
@@ -444,17 +461,17 @@ int memcmp(const void *v1, const void *v2, size_t n)
     return 0;
 }
 
-
 /*
  * Return the ptr in sp at which the character c appears;
  * NULL if not found
  */
-
-char* index(const char *sp, char c){
+char *index(char *sp, char c)
+{
     do {
         if (*sp == c)
             return (sp);
     } while (*sp++);
+    
     return(NULL);
 }
 
@@ -465,25 +482,28 @@ int atoi(const char *p)
 
     n = 0;
     f = 0;
-    for(;;p++) {
-        switch(*p) {
-        case ' ':
-        case '\t':
-            continue;
-        case '-':
-            f++;
-        case '+':
-            p++;
+    for(; ; p++)
+    {
+        switch(*p)
+        {
+            case ' ':
+            case '\t':
+                continue;
+            case '-':
+                f++;
+            case '+':
+                p++;
         }
         break;
     }
+    
     while(*p >= '0' && *p <= '9')
-        n = n*10 + *p++ - '0';
+        n = n * 10 + *p++ - '0';
+    
     return(f? -n: n);
 }
 
-
-
-bool blkequ(void* first, void* second, int nbytes) {
-    return (0==memcmp(first, second, nbytes)) ? 1:0;
+bool blkequ(void* first, void* second, int nbytes)
+{
+    return (0 == memcmp(first, second, nbytes)) ? 1 : 0;
 }
