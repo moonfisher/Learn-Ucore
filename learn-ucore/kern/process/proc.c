@@ -111,6 +111,7 @@ static struct proc_struct *alloc_proc(void)
         proc->need_resched = 0;
         proc->parent = NULL;
         proc->mm = NULL;
+        proc->ptcpumode = 0;
         memset(&(proc->context), 0, sizeof(struct context));
         proc->tf = NULL;
         proc->cr3 = boot_cr3;   // 页目录要用物理地址 0x156000
@@ -124,6 +125,7 @@ static struct proc_struct *alloc_proc(void)
         proc->run_pool.left = proc->run_pool.right = proc->run_pool.parent = NULL;
         proc->stride = 0;
         proc->priority = 0;
+        event_box_init(proc);
         proc->filesp = NULL;
     }
     return proc;
@@ -144,16 +146,16 @@ char *get_proc_name(struct proc_struct *proc)
     return memcpy(name, proc->name, PROC_NAME_LEN);
 }
 
-bool
-set_pid_name(int32_t pid, const char *name) {
+bool set_pid_name(int32_t pid, const char *name)
+{
     struct proc_struct *proc = find_proc(pid);
-    if (proc != NULL && name != NULL) {
+    if (proc != NULL && name != NULL)
+    {
         memset(proc->name, 0, sizeof(proc->name));
         memcpy(proc->name, name, PROC_NAME_LEN);
     }
     return 1;
 }
-
 
 // set_links - set the relation links of process
 static void set_links(struct proc_struct *proc)
@@ -426,6 +428,17 @@ static int copy_mm(uint32_t clone_flags, struct proc_struct *proc)
     }
 
 good_mm:
+//    if (mm != oldmm)
+//    {
+//        mm->brk_start = oldmm->brk_start;
+//        mm->brk = oldmm->brk;
+//        bool intr_flag;
+//        local_intr_save(intr_flag);
+//        {
+//            list_add(&(proc_mm_list), &(mm->proc_mm_link));
+//        }
+//        local_intr_restore(intr_flag);
+//    }
     mm_count_inc(mm);
     proc->mm = mm;
     proc->cr3 = PADDR(mm->pgdir);
@@ -730,13 +743,17 @@ static int load_icode(int fd, int argc, char **kargv)
         goto bad_mm;
     }
     
+    //将boot_pgdir的内容复制到 mm->gpdir
     if (setup_pgdir(mm) != 0)
     {
         goto bad_pgdir_cleanup_mm;
     }
 
-    struct Page *page = NULL;
+    mm->brk_start = 0;
 
+    //(3) copy TEXT/DATA section, build BSS parts in binary to memory space of process
+    struct Page *page;
+    //(3.1) get the file header of the bianry program (ELF format)
     struct elfhdr __elf, *elf = &__elf;
     if ((ret = load_icode_read(fd, elf, sizeof(struct elfhdr), 0)) != 0)
     {
@@ -753,7 +770,9 @@ static int load_icode(int fd, int argc, char **kargv)
     uint32_t vm_flags, perm, phnum;
     for (phnum = 0; phnum < elf->e_phnum; phnum++)
     {
+        // program header 在文件中的物理位置
         off_t phoff = elf->e_phoff + sizeof(struct proghdr) * phnum;
+        // 读取文件中的 program header
         if ((ret = load_icode_read(fd, ph, sizeof(struct proghdr), phoff)) != 0)
         {
             goto bad_cleanup_mmap;
@@ -1317,6 +1336,8 @@ static int init_main(void *arg)
     struct proc_struct *userproc = find_proc(pid);
     set_proc_name(userproc, "user_main");
     
+    extern void start_net_mechanics(void);
+    start_net_mechanics();
     extern void check_sync(void);
 //    check_sync();                // check philosopher sync problem
 
@@ -1327,6 +1348,8 @@ static int init_main(void *arg)
         schedule();
     }
 
+    extern void mbox_cleanup(void);
+    mbox_cleanup();
     fs_cleanup();
         
     cprintf("all user-mode processes have quit.\n");
@@ -1424,6 +1447,69 @@ void set_priority(uint32_t priority)
         current->priority = priority;
 }
 
+// do_brk - adjust(increase/decrease) the size of process heap, align with page size
+// NOTE: will change the process vma
+// 将mm->brk 确定到 ROUNDUP(*brk_store, PGSIZE) 处
+//int do_brk(uintptr_t *brk_store)
+//{
+//    struct mm_struct *mm = current->mm;
+//    if (mm == NULL) {
+//        panic("kernel thread call sys_brk!!.\n");
+//    }
+//    if (brk_store == NULL) {
+//        return -E_INVAL;
+//    }
+//
+//    uintptr_t brk;
+//    lock_mm(mm);
+//    if (!copy_from_user(mm, &brk, brk_store, sizeof(uintptr_t), 1)) {
+//        unlock_mm(mm);
+//        return -E_INVAL;
+//    }
+//    if (brk < mm->brk_start) {
+//        goto out_unlock;
+//    }
+//
+//    uintptr_t newbrk = ROUNDUP(brk, PGSIZE), oldbrk = mm->brk;
+//    assert(oldbrk % PGSIZE == 0);
+//    if (newbrk == oldbrk) {
+//        goto out_unlock;
+//    }
+//    if (newbrk < oldbrk) {
+//        //收缩了一部分内存空间
+//        if (mm_unmap(mm, newbrk, oldbrk - newbrk) != 0) {
+//            goto out_unlock;
+//        }
+//    }
+//    else {
+//        //cprintf("do_brk  oldbrk=%x  newbrk+PGSIZE = %x\n", oldbrk, newbrk+PGSIZE);
+//
+//        if (find_vma_intersection(mm, oldbrk, newbrk + PGSIZE) != NULL) {
+//            //mm中已经有这个对应的vma了
+//            goto out_unlock;
+//        } else {
+//            //如果没有，就要建立它
+//            struct vma_struct* oldvma=find_vma(mm, oldbrk);
+//            if (oldvma && (oldvma->vm_end - oldvma->vm_start) > (newbrk - oldbrk) ) {
+//               mm_map(mm, oldvma->vm_end, newbrk - oldvma->vm_end,oldvma->vm_flags,NULL);
+//            } else if (oldvma) {
+//               mm_map(mm, oldvma->vm_start, newbrk-oldbrk,oldvma->vm_flags,NULL);
+//            } else {
+//                mm_map(mm, oldbrk, newbrk - oldbrk, VM_READ|VM_WRITE, NULL);
+//            }
+//
+//        }
+//
+//
+//    }
+//    //确定新的brk位置
+//    mm->brk= newbrk;
+//out_unlock:
+//    *brk_store = mm->brk;
+//    unlock_mm(mm);
+//    return 0;
+//}
+
 // do_sleep - set current process state to sleep and add timer with "time"
 //          - then call scheduler. if process run again, delete timer first.
 int do_sleep(unsigned int time)
@@ -1446,3 +1532,71 @@ int do_sleep(unsigned int time)
     del_timer(timer);
     return 0;
 }
+
+// do_shmem - create a share memory with addr, len, flags(VM_READ/M_WRITE/VM_STACK)
+//int do_shmem(uintptr_t *addr_store, size_t len, uint32_t mmap_flags)
+//{
+//    struct mm_struct *mm = current->mm;
+//    if (mm == NULL) {
+//        panic("kernel thread call mmap!!.\n");
+//    }
+//
+//    if (addr_store == NULL || len == 0) {
+//        return -E_INVAL;
+//    }
+//
+//    int ret = -E_INVAL;
+//
+//    uintptr_t addr;
+//    lock_mm(mm);
+//    if (!copy_from_user(mm, &addr, addr_store, sizeof(uintptr_t), 1)) {
+//        goto out_unlock;
+//    }
+//    uintptr_t start = ROUNDDOWN(addr, PGSIZE), end = ROUNDUP(addr + len, PGSIZE);
+//    addr = start , len = end - start;
+//
+//    uint32_t vm_flags = VM_READ;
+//    if (mmap_flags & MMAP_WRITE) vm_flags |= VM_WRITE;
+//    if (mmap_flags & MMAP_STACK) vm_flags |= VM_STACK;
+//
+//    ret = -E_NO_MEM;
+//    if (addr == 0) {
+//        if ((addr = get_unmapped_area(mm, len)) == 0) {
+//            goto out_unlock;
+//        }
+//    }
+//
+//    struct shmem_struct *shmem;
+//    if ((shmem = shmem_create(len)) == NULL) {
+//        goto out_unlock;
+//    }
+//
+//    if ((ret = mm_map_shmem(mm, addr, vm_flags, shmem, NULL)) != 0) {
+//        assert(shmem_ref(shmem) == 0);
+//        shmem_destroy(shmem);
+//        goto out_unlock;
+//    }
+//    *addr_store = addr;
+//out_unlock:
+//     unlock_mm(mm);
+//     return ret;
+//}
+
+//int process_dump()
+//{
+//    int intr_flag;
+//    struct proc_struct *proc = NULL;
+//    local_intr_save(intr_flag);
+//
+//    list_entry_t* elem = &proc_list;
+//    while( (elem=list_next(elem)) != &proc_list) {
+//         proc= le2proc(elem, list_link);
+//
+//         cprintf("%02d  %s \n",proc->pid,proc->name);
+//    }
+//
+//    local_intr_restore(intr_flag);
+//    return 0;
+//}
+
+

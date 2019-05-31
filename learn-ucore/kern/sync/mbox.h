@@ -21,4 +21,3 @@ int ipc_mbox_recver_count(int id);
 void mbox_cleanup(void);
 
 #endif /* !__KERN_SYNC_MBOX_H__ */
-

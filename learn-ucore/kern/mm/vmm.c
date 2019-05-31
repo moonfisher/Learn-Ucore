@@ -560,7 +560,7 @@ static void check_pgfault(void)
     pgdir[0] = 0;
 
     mm->pgdir = NULL;
-    mm_destroy(mm);
+//    mm_destroy(mm);
     check_mm_struct = NULL;
 
 //    assert(nr_free_pages_store == nr_free_pages());

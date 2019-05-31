@@ -344,6 +344,14 @@ static void trap_dispatch(struct trapframe *tf)
             }
             break;
             
+        case IRQ_OFFSET + IRQ_NIC:
+            cprintf("nic irq\n");
+            break;
+            
+        case 11:
+            cprintf("nic irq 11\n");
+            break;
+            
         case IRQ_OFFSET + IRQ_COM1:
             c = cons_getc();
             cprintf("serial [%03d] %c\n", c, c);

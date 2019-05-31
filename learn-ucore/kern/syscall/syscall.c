@@ -10,6 +10,12 @@
 #include "stat.h"
 #include "dirent.h"
 #include "sysfile.h"
+#include "mbox.h"
+#include "slab.h"
+#include "e1000/e1000.h"
+#include "tcpip/h/network.h"
+
+extern void netstatus();
 
 static int sys_exit(uint32_t arg[])
 {
@@ -88,6 +94,15 @@ static int sys_munmap(uint32_t arg[])
     uintptr_t addr = (uintptr_t)arg[0];
     size_t len = (size_t) arg[1];
     return do_munmap(addr, len);
+}
+
+static int sys_shmem(uint32_t arg[])
+{
+//    uintptr_t *addr_store = (uintptr_t *)arg[0];
+//    size_t len = (size_t)arg[1];
+//    uint32_t mmap_flags = (uint32_t)arg[2];
+////    return do_shmem(addr_store, len, mmap_flags);
+    return -1;
 }
 
 static int sys_putc(uint32_t arg[])
@@ -237,40 +252,263 @@ static int sys_unlink(uint32_t arg[])
     return sysfile_unlink(name);
 }
 
+static int sys_event_send(uint32_t arg[])
+{
+    /*
+    int pid = (int)arg[0];
+    int event = (int)arg[1];
+    unsigned int timeout = (unsigned int)arg[2];
+    return ipc_event_send(pid, event, timeout);
+    */
+    panic("sys_event_send not be implemented \n");
+    return 0;
+}
+
+static int sys_event_recv(uint32_t arg[])
+{
+    /*
+    int *pid_store = (int *)arg[0];
+    int *event_store = (int *)arg[1];
+    unsigned int timeout = (unsigned int)arg[2];
+    return ipc_event_recv(pid_store, event_store, timeout);
+    */
+    panic("sys_event_recv not be implemented \n");
+    return 0;
+}
+
+static int sys_mbox_init(uint32_t arg[])
+{
+    unsigned int max_slots = (unsigned int)arg[0];
+    return ipc_mbox_init(max_slots);
+}
+
+static int sys_mbox_send(uint32_t arg[])
+{
+    int id = (int)arg[0];
+    struct mboxbuf *buf = (struct mboxbuf *)arg[1];
+    unsigned int timeout = (unsigned int)arg[2];
+    return ipc_mbox_send(id, buf, timeout);
+}
+
+static int sys_mbox_recv(uint32_t arg[])
+{
+    int id = (int)arg[0];
+    struct mboxbuf *buf = (struct mboxbuf *)arg[1];
+    unsigned int timeout = (unsigned int)arg[2];
+    return ipc_mbox_recv(id, buf, timeout);
+}
+
+static int sys_mbox_free(uint32_t arg[])
+{
+    int id = (int)arg[0];
+    return ipc_mbox_free(id);
+}
+
+static int sys_mbox_info(uint32_t arg[])
+{
+    int id = (int)arg[0];
+    struct mboxinfo *info = (struct mboxinfo *)arg[1];
+    return ipc_mbox_info(id, info);
+}
+
+static int sys_transmit_packet(uint32_t arg[])
+{
+    uintptr_t buf = (uintptr_t)arg[0];
+    size_t len = arg[1];
+    user_mem_check(current->mm, buf, len, 0);
+    return e1000_transmit((uint8_t *)buf, (uint32_t)len);
+}
+
+// Receive a network packet.
+//
+// Return 0 on success, < 0 on error.
+// Errors are:
+//  -E_RX_QUEUE_EMPTY if receive queue is empty.
+//  -E_BUF_TOO_SMALL if buffer is too small.
+static int sys_receive_packet(uint32_t arg[])
+{
+    ssize_t r;
+    uint8_t* buf = (uint8_t*)arg[0];
+    size_t len = (size_t)arg[1];
+    size_t* len_store = (size_t*) arg[2];
+    cprintf("kernel mode sys_receive_packet buf addr =%x \n",buf);
+    //user_mem_check(current->mm, buf, len, PTE_W);
+    if (len_store != NULL)
+    {
+        user_mem_check(current->mm, (uintptr_t)buf, sizeof(size_t), PTE_W);
+    }
+
+    r = e1000_recv(buf, len);
+    if (r < 0)
+    {
+        return r;
+    }
+
+    if (len_store != NULL)
+    {
+        *len_store = r;
+    }
+    return 0;
+}
+
+static int sys_ping(uint32_t arg[])
+{
+    char *buf = (char *)arg[0];
+    size_t len = arg[1];
+    assert(len > 0);
+    char *tmpbuf = (char *)kmalloc(len+1);
+    memcpy(tmpbuf, buf, len);
+    tmpbuf[len] = 0;
+    ping(tmpbuf, len);
+    kfree(tmpbuf);
+    return 0;
+}
+
+static int sys_process_dump(uint32_t arg[])
+{
+//    process_dump();
+    return 0;
+}
+
+static int sys_rtdump(uint32_t arg[])
+{
+    rtdump();
+    return 0;
+}
+
+static int sys_arpprint(uint32_t arg[])
+{
+    arpprint();
+    return 0;
+}
+
+static int sys_netstatus(uint32_t arg[])
+{
+    netstatus();
+    return 0;
+}
+
+static int sys_sock_socket(uint32_t args[] /*uint32_t type, const char* ipaddr, uint32_t iplen*/)
+{
+//    uint32_t type = (uint32_t) args[0];
+//    const char* ipaddr = (const char*) args[1];
+//    uint32_t iplen = args[2];
+//    int fd = -1;
+//    //fd = so
+//    //return syscall(SYS_socket, type, ipaddr , iplen, 0, 0);
+    return -1;
+}
+
+static int sys_sock_listen(uint32_t arg[] /*uint32_t tcpfd, uint32_t qsize*/)
+{
+    //return syscall(SYS_listen, tcpfd, qsize);
+    return -1;
+}
+
+static int sys_sock_accept(uint32_t arg[] /*uint32_t listenfd, uint32_t timeout*/)
+{
+    //return syscall(SYS_accept, listenfd, timeout, 0, 0, 0);
+    return -1;
+}
+
+static int sys_sock_connect(/*uint32_t sockfd, const char* ipaddr, uint32_t iplen*/)
+{
+    //return syscall(SYS_connect, sockfd, ipaddr, ipaddr, 0, 0);
+    return -1;
+}
+
+static int sys_sock_bind(uint32_t arg[] /*uint32_t sockfd, uint32_t lport, uint32_t rport*/)
+{
+    //return syscall(SYS_bind, sockfd, lport, rport, 0, 0);
+    return -1;
+}
+
+static int sys_sock_send(uint32_t arg[] /*uint32_t sockfd, char* buf, uint32_t len, uint32_t timeout*/)
+{
+    //return syscall(SYS_send, sockfd, buf, len, timeout, 0);
+    return -1;
+}
+
+static int sys_sock_recv(uint32_t arg[] /*uint32_t sockfd, char* buf, uint32_t len, uint32_t timeout*/)
+{
+    //return syscall(SYS_recv, sockfd, buf, len, timeout, 0);
+    return -1;
+}
+
+static int sys_sock_close(uint32_t arg[] /*uint32_t sockfd*/)
+{
+    //return syscall(SYS_close_sock, sockfd, 0, 0, 0, 0);
+    return -1;
+}
+
+static int sys_sock_shutdown(uint32_t arg[] /*uint32_t sockfd, uint32_t type*/)
+{
+    //return syscall(SYS_shutdown_scok, sockfd, type, 0, 0, 0);
+    return -1;
+}
+
 static int (*syscalls[])(uint32_t arg[]) = {
-    [SYS_exit]              = sys_exit,
-    [SYS_fork]              = sys_fork,
-    [SYS_wait]              = sys_wait,
-    [SYS_exec]              = sys_exec,
-    [SYS_clone]             = sys_clone,
-    [SYS_yield]             = sys_yield,
-    [SYS_kill]              = sys_kill,
-    [SYS_getpid]            = sys_getpid,
-    [SYS_brk]               = sys_brk,
-    [SYS_mmap]              = sys_mmap,
-    [SYS_munmap]            = sys_munmap,
-    [SYS_putc]              = sys_putc,
-    [SYS_pgdir]             = sys_pgdir,
-    [SYS_gettime]           = sys_gettime,
-    [SYS_set_priority]      = sys_set_priority,
-    [SYS_sleep]             = sys_sleep,
-    [SYS_open]              = sys_open,
-    [SYS_close]             = sys_close,
-    [SYS_read]              = sys_read,
-    [SYS_write]             = sys_write,
-    [SYS_seek]              = sys_seek,
-    [SYS_fstat]             = sys_fstat,
-    [SYS_fsync]             = sys_fsync,
-    [SYS_chdir]             = sys_chdir,
-    [SYS_getcwd]            = sys_getcwd,
-    [SYS_mkdir]             = sys_mkdir,
-    [SYS_link]              = sys_link,
-    [SYS_rename]            = sys_rename,
-    [SYS_unlink]            = sys_unlink,
-    [SYS_getdirentry]       = sys_getdirentry,
-    [SYS_dup]               = sys_dup,
-    [SYS_pipe]              = sys_pipe,
-    [SYS_mkfifo]            = sys_mkfifo,
+    [SYS_exit]             = sys_exit,
+    [SYS_fork]             = sys_fork,
+    [SYS_wait]             = sys_wait,
+    [SYS_exec]             = sys_exec,
+    [SYS_yield]            = sys_yield,
+    [SYS_sleep]            = sys_sleep,
+    [SYS_kill]             = sys_kill,
+    [SYS_getpid]           = sys_getpid,
+    [SYS_brk]              = sys_brk,
+    [SYS_mmap]             = sys_mmap,
+    [SYS_munmap]           = sys_munmap,
+    [SYS_shmem]            = sys_shmem,
+    [SYS_putc]             = sys_putc,
+    [SYS_pgdir]            = sys_pgdir,
+    [SYS_gettime]          = sys_gettime,
+    [SYS_clone]            = sys_clone,
+
+    [SYS_event_send]       = sys_event_send,
+    [SYS_event_recv]       = sys_event_recv,
+    [SYS_mbox_init]        = sys_mbox_init,
+    [SYS_mbox_send]        = sys_mbox_send,
+    [SYS_mbox_recv]        = sys_mbox_recv,
+    [SYS_mbox_free]        = sys_mbox_free,
+    [SYS_mbox_info]        = sys_mbox_info,
+    
+    [SYS_set_priority]     = sys_set_priority,
+    [SYS_open]             = sys_open,
+    [SYS_close]            = sys_close,
+    [SYS_read]             = sys_read,
+    [SYS_write]            = sys_write,
+    [SYS_seek]             = sys_seek,
+    [SYS_fstat]            = sys_fstat,
+    [SYS_fsync]            = sys_fsync,
+    [SYS_getcwd]           = sys_getcwd,
+    [SYS_mkdir]            = sys_mkdir,
+    [SYS_getdirentry]      = sys_getdirentry,
+    [SYS_dup]              = sys_dup,
+    [SYS_chdir]            = sys_chdir,
+    [SYS_link]             = sys_link,
+    [SYS_rename]           = sys_rename,
+    [SYS_unlink]           = sys_unlink,
+    [SYS_pipe]             = sys_pipe,
+    [SYS_mkfifo]           = sys_mkfifo,
+    
+    [SYS_transmit_packet]  = sys_transmit_packet,
+    [SYS_receive_packet]   = sys_receive_packet,
+    [SYS_ping]             = sys_ping,
+    [SYS_process_dump]     = sys_process_dump,
+    [SYS_rtdump]           = sys_rtdump,
+    [SYS_arpprint]         = sys_arpprint,
+    [SYS_netstatus]        = sys_netstatus,
+
+    [SYS_sock_socket]      = sys_sock_socket,
+    [SYS_sock_listen]      = sys_sock_listen,
+    [SYS_sock_accept]      = sys_sock_accept,
+    [SYS_sock_connect]     = sys_sock_connect,
+    [SYS_sock_bind]        = sys_sock_bind,
+    [SYS_sock_send]        = sys_sock_send,
+    [SYS_sock_recv]        = sys_sock_recv,
+    [SYS_sock_close]       = sys_sock_close,
+    [SYS_sock_shutdown]    = sys_sock_shutdown,
 };
 
 #define NUM_SYSCALLS        ((sizeof(syscalls)) / (sizeof(syscalls[0])))

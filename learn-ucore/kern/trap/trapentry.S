@@ -56,5 +56,6 @@ __trapret:
 .globl forkrets # 创建进程或者切换进程之后的入口
 forkrets:
     # set stack to this new process's trapframe
+    # 调整 esp 的位置，使得 esp 指向函数 forkrets 的 trapframe 实际参数
     movl 4(%esp), %esp
     jmp __trapret

@@ -8,7 +8,4 @@ void mutex_init(mutex *m);
 void lock(mutex *m);
 void unlock(mutex *m);
 
-
-
 #endif // __KERN_SYNC_MUTEX_H__
-

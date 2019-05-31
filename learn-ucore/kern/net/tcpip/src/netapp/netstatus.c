@@ -1,7 +1,6 @@
 #include "tcpip/h/network.h"
 
-static void
-print_nif(int i)
+static void print_nif(int i)
 {
     struct netif *ni = &nif[i];
     int j = 0;
@@ -36,6 +35,5 @@ print_nif(int i)
 
 void netstatus()
 {
-
     print_nif(EC0);
 }

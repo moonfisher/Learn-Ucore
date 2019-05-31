@@ -1,5 +1,6 @@
 #ifndef __NET_TCPIP_H_NETWORK_H__
 #define __NET_TCPIP_H_NETWORK_H__
+
 #include "defs.h"
 #include "x86.h"
 #include "string.h"

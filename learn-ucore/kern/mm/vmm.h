@@ -26,6 +26,8 @@ struct vma_struct
     uintptr_t vm_end;        // end addr of vma
     uint32_t vm_flags;       // flags of vma
     list_entry_t list_link;  // linear list link which sorted by start addr of vma
+    struct shmem_struct *shmem;
+    size_t shmem_off;
 };
 
 #define le2vma(le, member)                  \
@@ -59,9 +61,12 @@ struct mm_struct
     int mm_count;                  // the number ofprocess which shared the mm
     semaphore_t mm_sem;            // mutex for using dup_mmap fun to duplicat the mm 
     int locked_by;                 // the lock owner process's pid
+    uintptr_t brk_start, brk;
+    list_entry_t proc_mm_link;
 };
 
 struct vma_struct *find_vma(struct mm_struct *mm, uintptr_t addr);
+struct vma_struct *find_vma_intersection(struct mm_struct *mm, uintptr_t start, uintptr_t end);
 struct vma_struct *vma_create(uintptr_t vm_start, uintptr_t vm_end, uint32_t vm_flags);
 void insert_vma_struct(struct mm_struct *mm, struct vma_struct *vma);
 
@@ -71,6 +76,9 @@ void mm_destroy(struct mm_struct *mm);
 void vmm_init(void);
 int mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags,
            struct vma_struct **vma_store);
+int mm_map_shmem(struct mm_struct *mm, uintptr_t addr, uint32_t vm_flags,
+        struct shmem_struct *shmem, struct vma_struct **vma_store);
+int mm_unmap(struct mm_struct *mm, uintptr_t addr, size_t len);
 int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr);
 
 int mm_unmap(struct mm_struct *mm, uintptr_t addr, size_t len);
@@ -78,6 +86,7 @@ int dup_mmap(struct mm_struct *to, struct mm_struct *from);
 void exit_mmap(struct mm_struct *mm);
 uintptr_t get_unmapped_area(struct mm_struct *mm, size_t len);
 int mm_brk(struct mm_struct *mm, uintptr_t addr, size_t len);
+void dump_vma(char* str, struct mm_struct* mm);
 
 extern volatile unsigned int pgfault_num;
 extern struct mm_struct *check_mm_struct;
