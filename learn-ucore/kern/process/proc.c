@@ -16,6 +16,7 @@
 #include "vfs.h"
 #include "sysfile.h"
 #include "stat.h"
+#include "net.h"
 
 /* ------------- process/thread mechanism design&implementation -------------
 (an simplified Linux process/thread mechanism )
@@ -249,7 +250,7 @@ void proc_run(struct proc_struct *proc)
     if (proc != current)
     {
         char *name = get_proc_name(proc);
-        cprintf("proc_run: pid = %d, name = \"%s\", runs = %d.\n", proc->pid, name, proc->runs);
+//        cprintf("proc_run: pid = %d, name = \"%s\", runs = %d.\n", proc->pid, name, proc->runs);
         
         bool intr_flag;
         struct proc_struct *prev = current, *next = proc;
@@ -1336,8 +1337,9 @@ static int init_main(void *arg)
     struct proc_struct *userproc = find_proc(pid);
     set_proc_name(userproc, "user_main");
     
-    extern void start_net_mechanics(void);
+    // 启动网络
     start_net_mechanics();
+    
     extern void check_sync(void);
 //    check_sync();                // check philosopher sync problem
 

@@ -11,7 +11,6 @@ extern int dump_protocol(struct ep *pep);
 
 int e1000_input_proc(void *arg)
 {
-
 	int recvlen = 0;
 	//int idx =0;
 	int eplen = sizeof(struct ep);

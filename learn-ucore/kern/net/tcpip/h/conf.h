@@ -1,9 +1,13 @@
 #ifndef __KERN_NET_TCPIP_H_CONF_H__
 #define __KERN_NET_TCPIP_H_CONF_H__
 
-#define DEFGATEWAY "10.0.2.2"
-#define MASKSTR "255.255.255.0"
-#define DEFIP "10.0.2.15"
+//#define DEFGATEWAY "10.0.2.2"
+//#define MASKSTR "255.255.255.0"
+//#define DEFIP "10.0.2.15"
+
+#define DEFGATEWAY  "192.168.10.1"
+#define MASKSTR     "255.255.255.0"
+#define DEFIP       "192.168.10.20"
 
 #define DEBUG_NET 1
 

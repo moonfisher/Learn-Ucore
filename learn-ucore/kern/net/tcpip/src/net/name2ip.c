@@ -7,8 +7,7 @@ int32_t resolve(char *nam)
 }
 
 //dns解析
-IPaddr
-name2ip(char *nam)
+IPaddr name2ip(char *nam)
 {
 	bool isnum;
 	char *p;
@@ -21,10 +20,12 @@ name2ip(char *nam)
 		if (!isnum)
 			break;
 	}
+    
 	if (isnum)
 	{
 		dot2ip(nam, &ip);
 		return ip;
 	}
+    
 	return resolve(nam);
 }

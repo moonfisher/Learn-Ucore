@@ -286,7 +286,6 @@
 		C480E37622A0DA9A0093D61D /* sync.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E37222A0DA9A0093D61D /* sync.c */; };
 		C480E37A22A0E3CA0093D61D /* pci.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E37822A0E3CA0093D61D /* pci.c */; };
 		C480E96122A0F1610093D61D /* ctype_.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96022A0F1600093D61D /* ctype_.c */; };
-		C480E96E22A0F8F40093D61D /* mboxmap.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96622A0F8F40093D61D /* mboxmap.c */; };
 		C480E97222A0FCC40093D61D /* eventtest.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96422A0F8F40093D61D /* eventtest.c */; };
 		C480E97322A0FCC70093D61D /* mboxmap.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96622A0F8F40093D61D /* mboxmap.c */; };
 		C480E97422A0FCC90093D61D /* mmaptest.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96522A0F8F40093D61D /* mmaptest.c */; };
@@ -1948,7 +1947,6 @@
 				C4CB32712248F5830014426C /* clock.c in Sources */,
 				C480E37622A0DA9A0093D61D /* sync.c in Sources */,
 				C480E2A122A0D9170093D61D /* ripfset.c in Sources */,
-				C480E96E22A0F8F40093D61D /* mboxmap.c in Sources */,
 				C4CB328F2248F5830014426C /* dev.c in Sources */,
 				C480E32A22A0D9170093D61D /* utils.c in Sources */,
 				C480E30722A0D9170093D61D /* tcpclosing.c in Sources */,

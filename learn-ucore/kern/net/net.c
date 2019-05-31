@@ -27,6 +27,9 @@ volatile uint32_t pid_e1000_output;
 volatile uint32_t pid_e1000_input;
 volatile uint32_t pid_ipout;
 
+extern int e1000_input_proc(void *arg);
+extern int e1000_output_proc(void *arg);
+
 mutex network_mtx;
 
 void mbox_vars_init()
@@ -52,9 +55,6 @@ void start_net_mechanics()
     //mutex_init(&Net.sema);
 
     int pid = 0;
-    extern int e1000_input_proc(void *);
-    extern int e1000_output_proc(void *);
-    extern int32_t netstart(void *);
 
     lock(&network_mtx);
     pid = kernel_thread(netstart, NULL, 0, "netstart");

@@ -6,14 +6,14 @@
 
 void *buf1, *buf2;
 
-int
-main(void) {
+int main(void)
+{
 	assert((buf1 = shmem_malloc(8192)) != NULL);
 	assert((buf2 = malloc(4092)) != NULL);
 	
-
 	int i;
-	for (i = 0; i < 4096; ++i){
+	for (i = 0; i < 4096; ++i)
+    {
 		//cprintf("i= %x\n",i);
 		*(char *)(buf1 + i) = (char)i;
 	}
@@ -22,15 +22,19 @@ main(void) {
     
     int pid, exit_code;
 
-    if ((pid = fork("")) == 0) {
+    if ((pid = fork("")) == 0)
+    {
     	cprintf("child pid =%x\n",getpid());
-    	for (i = 0; i < 4096; i ++) {
+    	for (i = 0; i < 4096; i ++)
+        {
             assert(*(char *)(buf1 + i) == (char)i);
         }
         memcpy(buf1 + 4096, buf1, 4096);
         memset(buf1, 0, 4096);
         exit(0);
-    } else {
+    }
+    else
+    {
     	assert(pid > 0 && waitpid(pid, &exit_code) == 0 && exit_code == 0);
 
 	    free(buf1);
@@ -38,7 +42,6 @@ main(void) {
 	    cprintf("shmemtest pass.\n");
     }
     
-
 	return 0;
 }
 

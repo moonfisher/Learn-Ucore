@@ -2,8 +2,8 @@
 #include "ulib.h"
 #include "unistd.h"
 
-int 
-main(int argc, char const *argv[]){
+int main(int argc, char const *argv[])
+{
 	const int size = 4096;
 	void *mapped[10] = {0};
 

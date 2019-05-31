@@ -1,6 +1,6 @@
 #include "tcpip/h/network.h"
 
-mutex udpmutex;
+//mutex udpmutex;
 
 /*------------------------------------------------------------------------
  *  udp_in -  handle an inbound UDP datagram

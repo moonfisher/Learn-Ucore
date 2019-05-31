@@ -2,8 +2,8 @@
 #include "stdio.h"
 #include "dir.h"
 
-int
-main(void) {
-  rtdump();
-  return 0;
+int main(void)
+{
+    rtdump();
+    return 0;
 }

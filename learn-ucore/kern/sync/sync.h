@@ -33,4 +33,6 @@ static inline void __intr_restore(bool flag)
     } while (0)
 #define local_intr_restore(x) __intr_restore(x);
 
+void sync_init(void);
+
 #endif /* !__KERN_SYNC_SYNC_H__ */
