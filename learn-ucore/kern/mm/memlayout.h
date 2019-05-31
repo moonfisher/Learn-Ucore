@@ -219,7 +219,24 @@
  * table, which maps all the PTEs (Page Table Entry) containing the page mappings
  * for the entire virtual address space into that 4 Meg region starting at VPT.
  * */
-#define VPT                 0xFAC00000
+#define VPT                  0xFAC00000
+
+
+
+// At IOPHYSMEM (640K) there is a 384K hole for I/O.  From the kernel,
+// IOPHYSMEM can be addressed at KERNBASE + IOPHYSMEM.  The hole ends
+// at physical address EXTPHYSMEM.
+#define IOPHYSMEM   0x0A0000
+#define EXTPHYSMEM  0x100000
+
+// e1000's physical base address = febc0000  and size = 0x20000
+
+#define MMIOBASE           KERNTOP           // 0xF8000000
+
+#define MMIOLIM            MMIOBASE+PTSIZE   // 0xF9000000
+
+
+/*******************************************************************************/
 
 #define KSTACKPAGE          2                           // # of pages in kernel stack
 #define KSTACKSIZE          (KSTACKPAGE * PGSIZE)       // sizeof kernel stack
@@ -292,6 +309,9 @@ struct Page
 /* Flags describing the status of a page frame */
 #define PG_reserved                 0       // the page descriptor is reserved for kernel or unusable
 #define PG_property                 1       // the member 'property' is valid
+#define PG_slab                     2       // page frame is included in a slab
+#define PG_dirty                    3       // the page has been modified
+#define PG_swap                     4       // the page is in the active or inactive page list (and swap hash table)
 
 #define SetPageReserved(page)       set_bit(PG_reserved, &((page)->flags))
 #define ClearPageReserved(page)     clear_bit(PG_reserved, &((page)->flags))
@@ -299,6 +319,11 @@ struct Page
 #define SetPageProperty(page)       set_bit(PG_property, &((page)->flags))
 #define ClearPageProperty(page)     clear_bit(PG_property, &((page)->flags))
 #define PageProperty(page)          test_bit(PG_property, &((page)->flags))
+#define SetPageSlab(page)           set_bit(PG_slab, &((page)->flags))
+#define ClearPageSlab(page)         clear_bit(PG_slab, &((page)->flags))
+#define PageSlab(page)              test_bit(PG_slab, &((page)->flags))
+#define SetPageDirty(page)          set_bit(PG_dirty, &((page)->flags))
+#define PageSwap(page)              test_bit(PG_swap, &((page)->flags))
 
 // convert list entry to page
 #define le2page(le, member)                 \

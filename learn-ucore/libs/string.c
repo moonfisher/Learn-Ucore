@@ -353,6 +353,10 @@ void *memset(void *s, char c, size_t n)
 #endif /* __HAVE_ARCH_MEMSET */
 }
 
+void bzero(void *s, size_t n) {
+    memset(s, 0,n);
+}
+
 /* *
  * memmove - copies the values of @n bytes from the location pointed by @src to
  * the memory area pointed by @dst. @src and @dst are allowed to overlap.
@@ -440,3 +444,46 @@ int memcmp(const void *v1, const void *v2, size_t n)
     return 0;
 }
 
+
+/*
+ * Return the ptr in sp at which the character c appears;
+ * NULL if not found
+ */
+
+char* index(const char *sp, char c){
+    do {
+        if (*sp == c)
+            return (sp);
+    } while (*sp++);
+    return(NULL);
+}
+
+int atoi(const char *p)
+{
+    register int n;
+    register int f;
+
+    n = 0;
+    f = 0;
+    for(;;p++) {
+        switch(*p) {
+        case ' ':
+        case '\t':
+            continue;
+        case '-':
+            f++;
+        case '+':
+            p++;
+        }
+        break;
+    }
+    while(*p >= '0' && *p <= '9')
+        n = n*10 + *p++ - '0';
+    return(f? -n: n);
+}
+
+
+
+bool blkequ(void* first, void* second, int nbytes) {
+    return (0==memcmp(first, second, nbytes)) ? 1:0;
+}

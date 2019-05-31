@@ -24,6 +24,19 @@ void *memset(void *s, char c, size_t n);
 void *memmove(void *dst, const void *src, size_t n);
 void *memcpy(void *dst, const void *src, size_t n);
 int memcmp(const void *v1, const void *v2, size_t n);
+void bzero(void *s, size_t n);
+
+char *index(const char *, char);
+int	atoi(const char *);
+
+
+#define	BLKEQU(b1, b2, len)	(!memcmp((b1), (b2), len))
+
+#define blkcopy  memcpy
+
+bool blkequ(void* first, void* second, int nbytes);
+
+#define	isodd(x)	(01&(int)(x))
 
 #endif /* !__LIBS_STRING_H__ */
 

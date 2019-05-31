@@ -78,7 +78,7 @@ void drop_chopsticks(int i)
 //---------- philosophers problem using semaphore ----------------------
 int state_sema[N]; /* 记录每个人状态的数组 */
 /* 信号量是一个特殊的整型变量 */
-semaphore_t mutex; /* 临界区互斥 */
+semaphore_t mutex_sem; /* 临界区互斥 */
 semaphore_t s[N]; /* 每个哲学家一个信号量 */
 
 struct proc_struct *philosopher_proc_sema[N];
@@ -96,20 +96,20 @@ void phi_test_sema(int i) /* i：哲学家号码从0到N-1 */
 
 void phi_take_forks_sema(int i) /* i：哲学家号码从0到N-1 */
 { 
-    down(&mutex); /* 进入临界区 */
-    state_sema[i] = HUNGRY; /* 记录下哲学家i饥饿的事实 */
-    phi_test_sema(i); /* 试图得到两只叉子 */
-    up(&mutex); /* 离开临界区 */
-    down(&s[i]); /* 如果得不到叉子就阻塞 */
+        down(&mutex_sem); /* 进入临界区 */
+        state_sema[i]=HUNGRY; /* 记录下哲学家i饥饿的事实 */
+        phi_test_sema(i); /* 试图得到两只叉子 */
+        up(&mutex_sem); /* 离开临界区 */
+        down(&s[i]); /* 如果得不到叉子就阻塞 */
 }
 
 void phi_put_forks_sema(int i) /* i：哲学家号码从0到N-1 */
 { 
-    down(&mutex); /* 进入临界区 */
-    state_sema[i] = THINKING; /* 哲学家进餐结束 */
-    phi_test_sema(LEFT); /* 看一下左邻居现在是否能进餐 */
-    phi_test_sema(RIGHT); /* 看一下右邻居现在是否能进餐 */
-    up(&mutex); /* 离开临界区 */
+        down(&mutex_sem); /* 进入临界区 */
+        state_sema[i]=THINKING; /* 哲学家进餐结束 */
+        phi_test_sema(LEFT); /* 看一下左邻居现在是否能进餐 */
+        phi_test_sema(RIGHT); /* 看一下右邻居现在是否能进餐 */
+        up(&mutex_sem); /* 离开临界区 */
 }
 
 int philosopher_using_semaphore(void *arg) /* i：哲学家号码，从0到N-1 */
@@ -251,9 +251,8 @@ void check_sync(void)
     int i;
 
     //check semaphore
-    sem_init(&mutex, 1);
-    for (i = 0; i < N; i++)
-    {
+    sem_init(&mutex_sem, 1);
+    for(i=0;i<N;i++){
         sem_init(&s[i], 0);
         int pid = kernel_thread(philosopher_using_semaphore, (void *)i, 0, "philosopher_using_semaphore");
         if (pid <= 0)

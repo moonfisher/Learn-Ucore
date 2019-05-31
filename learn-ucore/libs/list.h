@@ -29,6 +29,7 @@ static inline void list_del_init(list_entry_t *listelm) __attribute__((always_in
 static inline bool list_empty(list_entry_t *list) __attribute__((always_inline));
 static inline list_entry_t *list_next(list_entry_t *listelm) __attribute__((always_inline));
 static inline list_entry_t *list_prev(list_entry_t *listelm) __attribute__((always_inline));
+static inline uint32_t list_elem_count(list_entry_t *list) __attribute__((always_inline));
 
 static inline void __list_add(list_entry_t *elm, list_entry_t *prev, list_entry_t *next) __attribute__((always_inline));
 static inline void __list_del(list_entry_t *prev, list_entry_t *next) __attribute__((always_inline));
@@ -155,6 +156,23 @@ static inline void __list_del(list_entry_t *prev, list_entry_t *next)
 {
     prev->next = next;
     next->prev = prev;
+}
+
+static inline uint32_t 
+list_elem_count(list_entry_t *list) {
+    uint32_t r = 0;
+    struct list_entry *head = list;
+    struct list_entry *tmp = list;
+    if (tmp) {
+        r = 1;
+    }
+    while(tmp && tmp->next != head) {
+        tmp = tmp->next;
+        r = r + 1;
+    }
+    
+    //除去head本身
+    return r -1;
 }
 
 #endif /* !__ASSEMBLER__ */

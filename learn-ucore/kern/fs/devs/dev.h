@@ -27,15 +27,24 @@ struct iobuf;
 */
 struct device
 {
+    int dvnum; // debtab中的索引
+    char name[10];
     // 设备块数 = 磁盘扇区总数 ( ide_init 函数里获取 ) / (块大小 / 扇区大小)
     // = (磁盘扇区总数 * 扇区大小) / 块大小
     // block = 262144 / (4096 / 512) = 32768 = 0x8000
     size_t d_blocks;    // 设备占用的数据块个数
     size_t d_blocksize; // 数据块的大小，默认 4k，和内存页面一样大
-    int (*d_open)(struct device *dev, uint32_t open_flags);
+    int (*d_init) (struct device *dev);
+    int (*d_open)(struct device *dev, uint32_t open_flags, uint32_t arg2);
     int (*d_close)(struct device *dev);
     int (*d_io)(struct device *dev, struct iobuf *iob, bool write);
-    int (*d_ioctl)(struct device *dev, int op, void *data);
+    int (*d_write)(struct device *dev, char* buff, int len);
+    int (*d_read)(struct device *dev, char* buff, int len);
+    int (*d_ioctl)(struct device *dev, int op, void* arg1, void* arg2); 
+    //tcpinit,dginit中设置
+    char* dvioblk;  // ethblk,tcb , dgblk
+    //在配置文件中设定
+    int	 dvminor; // eth中的索引,tcb中的索引,upqs中的索引
 };
 
 void dev_init(void);

@@ -21,7 +21,7 @@ static int dev_open(struct inode *node, uint32_t open_flags)
         return -E_INVAL;
     }
     struct device *dev = device_vop_info(node);
-    return dev->d_open(dev, open_flags);
+    return dev->d_open(dev, open_flags, NULL);
 }
 
 /*
@@ -57,7 +57,7 @@ static int dev_write(struct inode *node, struct iobuf *iob)
 static int dev_ioctl(struct inode *node, int op, void *data)
 {
     struct device *dev = device_vop_info(node);
-    return dev->d_ioctl(dev, op, data);
+    return dev->d_ioctl(dev, op, data, NULL);
 }
 
 /*

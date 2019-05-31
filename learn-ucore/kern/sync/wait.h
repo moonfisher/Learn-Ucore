@@ -46,5 +46,9 @@ void wait_current_set(wait_queue_t *queue, wait_t *wait, uint32_t wait_state);
         }                                                                   \
     } while (0)
 
+
+void loop_wait_queue(wait_queue_t *q);
+int wait_count(wait_queue_t *queue);
+
 #endif /* !__KERN_SYNC_WAIT_H__ */
 

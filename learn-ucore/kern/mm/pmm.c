@@ -687,6 +687,17 @@ static void page_init(void)
     }
 }
 
+static void
+enable_paging(void) {
+    lcr3(boot_cr3);
+
+    // turn on paging
+    uint32_t cr0 = rcr0();
+    cr0 |= CR0_PE | CR0_PG | CR0_AM | CR0_WP | CR0_NE | CR0_TS | CR0_EM | CR0_MP;
+    cr0 &= ~(CR0_TS | CR0_EM);
+    lcr0(cr0);
+}
+
 //boot_map_segment - setup&enable the paging mechanism
 // parameters
 //  la:   linear address of this memory need to map (after x86 segment map)
@@ -763,26 +774,26 @@ static void page_init(void)
     0xC0156f90:    0x0000    0x0000    0x0000    0x0000    0x0000    0x0000    0x0000    0x0000
     0xC0156fa0:    0x0000    0x0000    0x0000    0x0000    0x0000    0x0000    0x6003    0x0015
 */
-//static void boot_map_segment(pde_t *pgdir, uintptr_t la, size_t size, uintptr_t pa, uint32_t perm)
-//{
-//    assert(PGOFF(la) == PGOFF(pa));
-//    size_t n = ROUNDUP(size + PGOFF(la), PGSIZE) / PGSIZE;  // 0x38000
-//    la = ROUNDDOWN(la, PGSIZE);
-//    pa = ROUNDDOWN(pa, PGSIZE);
-//    for (; n > 0; n --, la += PGSIZE, pa += PGSIZE)
-//    {
-//        /*
-//         获取这个虚拟地址在所在的页表地址，如果没有页表就从空闲内存里分配一个空闲 4k 页面当做页表
-//         第 1 ~ 4 页表 ptep 的虚拟地址是 0xC0157000，页目录起始地址是 0xC0156000，1k个页目录，
-//         每个四字节，0xC0156000 + 0x400 * 4 = 0xC0157000，这个空间在 entry.S 里就已经分配好了
-//         第 5 个页表 ptep 的虚拟地址和第一个 ptep 并不连续，是因为从第 5 页表开始，内存空间
-//         是通过 alloc_page 分配过来的，不是之前规划的
-//        */
-//        pte_t *ptep = get_pte(pgdir, la, 1);
-//        assert(ptep != NULL);
-//        *ptep = pa | PTE_P | perm;
-//    }
-//}
+static void boot_map_segment(pde_t *pgdir, uintptr_t la, size_t size, uintptr_t pa, uint32_t perm)
+{
+    assert(PGOFF(la) == PGOFF(pa));
+    size_t n = ROUNDUP(size + PGOFF(la), PGSIZE) / PGSIZE;  // 0x38000
+    la = ROUNDDOWN(la, PGSIZE);
+    pa = ROUNDDOWN(pa, PGSIZE);
+    for (; n > 0; n --, la += PGSIZE, pa += PGSIZE)
+    {
+        /*
+         获取这个虚拟地址在所在的页表地址，如果没有页表就从空闲内存里分配一个空闲 4k 页面当做页表
+         第 1 ~ 4 页表 ptep 的虚拟地址是 0xC0157000，页目录起始地址是 0xC0156000，1k个页目录，
+         每个四字节，0xC0156000 + 0x400 * 4 = 0xC0157000，这个空间在 entry.S 里就已经分配好了
+         第 5 个页表 ptep 的虚拟地址和第一个 ptep 并不连续，是因为从第 5 页表开始，内存空间
+         是通过 alloc_page 分配过来的，不是之前规划的
+        */
+        pte_t *ptep = get_pte(pgdir, la, 1);
+        assert(ptep != NULL);
+        *ptep = pa | PTE_P | perm;
+    }
+}
 
 //boot_alloc_page - allocate one page using pmm->alloc_pages(1) 
 // return value: the kernel virtual address of this allocated page
@@ -850,7 +861,7 @@ void pmm_init(void)
 
     print_pgdir();
     
-    kmalloc_init();
+    slab_init();
 }
 
 //get_pte - get pte and return the kernel virtual address of this pte for la
@@ -981,6 +992,17 @@ void exit_range(pde_t *pgdir, uintptr_t start, uintptr_t end)
  * @share: flags to indicate to dup OR share. We just use dup method, so it didn't be used.
  *
  * CALL GRAPH: copy_mm-->dup_mmap-->copy_range
+ * 实现步骤:
+ *          1.为to分配一个Page对象 npage
+ *          2.得到start所在from的pte,相应的 page
+ *          3.得到npage的物理内存在kernel中的kva_det
+ *          4.得到page的物理内存在kernel中的kva_src
+ *          5.在ring0状态拷贝kva_src到kva_det
+ *          6.设置to的npage的相应的pte
+ *do_fork-->
+ *         copy_mm-->
+ *                  dup_mmap-->
+ *                             copy_range
  */
 // copy_range 函数就是调用一个 memcpy 将父进程的内存直接复制给子进程
 int copy_range(struct mm_struct *to, struct mm_struct *from, uintptr_t start, uintptr_t end, bool share)
@@ -1095,7 +1117,33 @@ void tlb_invalidate(pde_t *pgdir, uintptr_t la)
     }
 }
 
-// pgdir_alloc_page - call alloc_page & page_insert functions to 
+//
+// Reserve size bytes in the MMIO region and map [pa,pa+size] at this
+// location.  Return the base of the reserved region.   size does *not*
+// have to be multiple of PGSIZE.
+//
+void *
+mmio_map_region(physaddr_t pa, size_t size) 
+{
+    // Where to start the next region. Initially, this is the
+    // begining of the MMIO region. Because this is static, its
+    // value will be preserved between calls to mmio_map_region
+    // (just like nextfree in boot_alloc).
+    static uintptr_t base = MMIOBASE;
+
+    size = (size_t)ROUNDUP(size, PGSIZE);
+    if (base + size > MMIOLIM) {
+        panic("mmio_map_region: not enough memory"); 
+    }
+    //boot_map_segment(pde_t *pgdir, uintptr_t la, size_t size, uintptr_t pa, uint32_t perm)
+    boot_map_segment(boot_pgdir, base, size, pa,PTE_W | PTE_PCD | PTE_PWT | PTE_P);
+    base +=size;
+
+    return (void *) (base - size);
+}
+
+
+// pgdir_alloc_page - call alloc_page & page_insert functions to
 //                  - allocate a page size memory & setup an addr map
 //                  - pa<->la with linear address la and the PDT pgdir
 struct Page *pgdir_alloc_page(struct mm_struct *mm, uintptr_t la, uint32_t perm)

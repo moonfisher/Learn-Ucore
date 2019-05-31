@@ -77,6 +77,54 @@ static inline uintptr_t rcr2(void) __attribute__((always_inline));
 static inline uintptr_t rcr3(void) __attribute__((always_inline));
 static inline void invlpg(void *addr) __attribute__((always_inline));
 
+/*********************************ne2k用***********************************/
+#if ASM_NO_64
+#define shortSwap(num) ({\
+    unsigned short _v;\
+    __asm__ __volatile__("xchg %%ah,%%al;":"=a"(_v):"a"(num));\
+    _v; \
+})
+
+#define longSwap(num) ({    \
+    unsigned long _v;   \
+    __asm__ __volatile__("xchg %%ah,%%al\n\t\t" \
+        "mov %%eax,%0\n\t\t"        \
+        "shl $16,%0\n\t\t"          \
+        "shr $16,%%eax\n\t\t"       \
+        "xchg %%ah,%%al\n\t\t"      \
+        "or %%eax,%0\n\t\t"         \
+        :"=b"(_v)                   \
+        :"a"(num));                 \
+    _v;                             \
+})
+
+#define htonl(num) longSwap(num)
+#define ntohl(num) longSwap(num)
+#define htons(num) shortSwap(num)
+#define ntohs(num) shortSwap(num)
+#else
+#define htonl(num)  (num)
+#define ntohl(num)  (num)
+#define htons(num)  (num)
+#define ntohs(num)  (num)
+#endif
+
+static inline uint32_t
+inl(int port)
+{
+    uint32_t data;
+    asm volatile("inl %w1,%0" : "=a" (data) : "d" (port));
+    return data;
+}
+
+static inline void
+outl(int port, uint32_t data)
+{
+    asm volatile("outl %0,%w1" : : "a" (data), "d" (port));
+}
+
+
+/********************************************************************/
 static inline uint8_t inb(uint16_t port)
 {
     uint8_t data = 0;
@@ -206,6 +254,13 @@ static inline void ltr(uint16_t sel)
 {
 #if ASM_NO_64
     asm volatile ("ltr %0" :: "r" (sel) : "memory");
+#endif
+}
+
+static inline void lldr(uint16_t sel)
+{
+#if ASM_NO_64
+    asm volatile ("lldr %0" :: "r" (sel) : "memory");
 #endif
 }
 

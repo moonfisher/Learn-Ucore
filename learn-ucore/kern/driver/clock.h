@@ -9,6 +9,9 @@ void clock_init(void);
 
 long SYSTEM_READ_TIMER( void );
 
+long gettime(long* store);
+
+long gettime2();
 
 #endif /* !__KERN_DRIVER_CLOCK_H__ */
 

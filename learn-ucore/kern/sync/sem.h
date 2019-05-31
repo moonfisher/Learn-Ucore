@@ -15,6 +15,14 @@ void sem_init(semaphore_t *sem, int value);
 void up(semaphore_t *sem);
 void down(semaphore_t *sem);
 bool try_down(semaphore_t *sem);
+int  sem_val(semaphore_t *sem);
+uint32_t sem_wait_count(semaphore_t *sem);
+void wakeup_all(semaphore_t *sen);
+
+
+#define wait(x)       down((x))
+#define try_wait(x)   try_down((x))
+#define signal(x)     up((x))
 
 #endif /* !__KERN_SYNC_SEM_H__ */
 

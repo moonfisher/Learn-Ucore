@@ -25,8 +25,18 @@
 
 volatile size_t ticks;
 
-long SYSTEM_READ_TIMER(void)
-{
+long SYSTEM_READ_TIMER( void ){
+    return ticks;
+}
+
+long gettime(long* store) {
+    if (store) {
+       *store = ticks;
+    }
+	return ticks;
+}
+
+long gettime2() {
     return ticks;
 }
 

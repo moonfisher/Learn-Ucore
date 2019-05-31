@@ -13,5 +13,8 @@ void srand(unsigned int seed);
 /* libs/hash.c */
 uint32_t hash32(uint32_t val, unsigned int bits);
 
+#define	min(a,b)	( (a) < (b) ? (a) : (b) )
+#define	max(a,b)	( (a) > (b) ? (a) : (b) )
+
 #endif /* !__LIBS_RAND_H__ */
 

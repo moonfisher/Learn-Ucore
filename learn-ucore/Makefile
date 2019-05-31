@@ -168,8 +168,9 @@ KINCLUDE	+= kern/debug/ \
 			   kern/fs/swap/ \
 			   kern/fs/vfs/ \
 			   kern/fs/devs/ \
-			   kern/fs/sfs/ 
-
+			   kern/fs/sfs/ \
+			   kern/net/     \
+			   kern/net/e1000 
 
 KSRCDIR		+= kern/init \
 			   kern/libs \
@@ -185,7 +186,32 @@ KSRCDIR		+= kern/init \
 			   kern/fs/swap \
 			   kern/fs/vfs \
 			   kern/fs/devs \
-			   kern/fs/sfs
+			   kern/fs/sfs \
+			   kern/net \
+			   kern/net/e1000 \
+			   kern/net/tcpip/src \
+			   kern/net/tcpip/src/sys \
+			   kern/net/tcpip/src/sys/devs \
+			   kern/net/tcpip/src/netapp \
+			   kern/net/tcpip/src/dhcp \
+			   kern/net/tcpip/src/tcp \
+			   kern/net/tcpip/src/tcp/tcpsfm \
+			   kern/net/tcpip/src/tcp/tcpostate \
+			   kern/net/tcpip/src/tcp/tcpprocess \
+			   kern/net/tcpip/src/dgram \
+			   kern/net/tcpip/src/tcpd \
+			   kern/net/tcpip/src/igmp \
+			   kern/net/tcpip/src/lib \
+			   kern/net/tcpip/src/net  \
+			   kern/net/tcpip/src/arp \
+			   kern/net/tcpip/src/ip  \
+			   kern/net/tcpip/src/rip \
+			   kern/net/tcpip/src/snmp \
+			   kern/net/tcpip/src/udp \
+			   kern/net/tcpip/src/icmp \
+			   kern/net/tcpip/src/socket 
+
+
 
 KCFLAGS		+= $(addprefix -I,$(KINCLUDE))
 

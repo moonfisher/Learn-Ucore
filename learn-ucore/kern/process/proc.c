@@ -144,6 +144,17 @@ char *get_proc_name(struct proc_struct *proc)
     return memcpy(name, proc->name, PROC_NAME_LEN);
 }
 
+bool
+set_pid_name(int32_t pid, const char *name) {
+    struct proc_struct *proc = find_proc(pid);
+    if (proc != NULL && name != NULL) {
+        memset(proc->name, 0, sizeof(proc->name));
+        memcpy(proc->name, name, PROC_NAME_LEN);
+    }
+    return 1;
+}
+
+
 // set_links - set the relation links of process
 static void set_links(struct proc_struct *proc)
 {
@@ -1294,7 +1305,7 @@ static int init_main(void *arg)
     }
     
     size_t nr_free_pages_store = nr_free_pages();
-    size_t kernel_allocated_store = kallocated();
+    size_t kernel_allocated_store = slab_allocated();
 
     // 通过 user_main 内核线程来启动用户进程（shell），并切换到用户态
     int pid = kernel_thread(user_main, NULL, 0, "user_main");
@@ -1324,7 +1335,7 @@ static int init_main(void *arg)
     assert(list_next(&proc_list) == &(initproc->list_link));
     assert(list_prev(&proc_list) == &(initproc->list_link));
     assert(nr_free_pages_store == nr_free_pages());
-    assert(kernel_allocated_store == kallocated());
+    assert(kernel_allocated_store == slab_allocated());
     cprintf("init check memory pass.\n");
     return 0;
 }
@@ -1377,6 +1388,18 @@ void proc_init(void)
 
     assert(idleproc != NULL && idleproc->pid == 0);
     assert(initproc != NULL && initproc->pid == 1);
+}
+
+int get_initproc_pid() {
+    return initproc->pid;
+}
+
+int get_idleproc_pid() {
+    return idleproc->pid;
+}
+
+int32_t getpid() {
+    return current->pid;
 }
 
 // cpu_idle - at the end of kern_init, the first kernel thread idleproc will do below works
