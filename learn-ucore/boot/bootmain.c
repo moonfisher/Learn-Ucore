@@ -83,6 +83,7 @@ static void readseg(uintptr_t va, uint32_t count, uint32_t offset)
 }
 
 /* bootmain - the entry of bootloader */
+// 这不是通用内核加载器，只能识别 elf 格式的内核
 void bootmain(void)
 {
     struct elfhdr *elfh = (struct elfhdr *)0x10000;
