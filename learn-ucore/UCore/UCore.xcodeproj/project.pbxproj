@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		735AB82E22C7A1BF00192769 /* mpconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = 735AB82B22C7A1BE00192769 /* mpconfig.c */; };
+		735AB82F22C7A1BF00192769 /* lapic.c in Sources */ = {isa = PBXBuildFile; fileRef = 735AB82D22C7A1BE00192769 /* lapic.c */; };
 		73DD7D47226F6A8500998EEC /* priority.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB32272248F5830014426C /* priority.c */; };
 		73DD7D48226F6A8500998EEC /* forktree.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB32282248F5830014426C /* forktree.c */; };
 		73DD7D49226F6A8500998EEC /* sleepkill.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB32292248F5830014426C /* sleepkill.c */; };
@@ -372,6 +374,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		735AB82B22C7A1BE00192769 /* mpconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mpconfig.c; sourceTree = "<group>"; };
+		735AB82D22C7A1BE00192769 /* lapic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lapic.c; sourceTree = "<group>"; };
+		735AB83022C7ACBC00192769 /* cpu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cpu.h; sourceTree = "<group>"; };
+		735AB83122C7B97800192769 /* mpentry.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = mpentry.S; sourceTree = "<group>"; };
 		73DD7D46226F6A4700998EEC /* User */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = User; sourceTree = BUILT_PRODUCTS_DIR; };
 		C403E689226FEE5C00B4A959 /* boot.ld */ = {isa = PBXFileReference; lastKnownFileType = text; path = boot.ld; sourceTree = "<group>"; };
 		C403E68A226FEE5C00B4A959 /* mksfs.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mksfs.c; sourceTree = "<group>"; };
@@ -831,6 +837,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		735AB82922C7A1BE00192769 /* smp */ = {
+			isa = PBXGroup;
+			children = (
+				735AB83022C7ACBC00192769 /* cpu.h */,
+				735AB82D22C7A1BE00192769 /* lapic.c */,
+				735AB83122C7B97800192769 /* mpentry.S */,
+				735AB82B22C7A1BE00192769 /* mpconfig.c */,
+			);
+			path = smp;
+			sourceTree = "<group>";
+		};
 		C403E688226FEE5C00B4A959 /* tools */ = {
 			isa = PBXGroup;
 			children = (
@@ -1317,6 +1334,7 @@
 		C4CB31BB2248F5820014426C /* kern */ = {
 			isa = PBXGroup;
 			children = (
+				735AB82922C7A1BE00192769 /* smp */,
 				C480E19022A0D9170093D61D /* net */,
 				C4CB31BC2248F5820014426C /* init */,
 				C4CB31BF2248F5820014426C /* schedule */,
@@ -1835,6 +1853,7 @@
 				C480E2F922A0D9170093D61D /* tcpackit.c in Sources */,
 				C4CB32732248F5830014426C /* ide.c in Sources */,
 				C480E34D22A0D9180093D61D /* rthash.c in Sources */,
+				735AB82F22C7A1BF00192769 /* lapic.c in Sources */,
 				C4CB32832248F5830014426C /* sem.c in Sources */,
 				C4CB32932248F5830014426C /* iobuf.c in Sources */,
 				C4CB32982248F5830014426C /* sfs.c in Sources */,
@@ -1954,6 +1973,7 @@
 				C480E33A22A0D9180093D61D /* arpadd.c in Sources */,
 				C480E32322A0D9170093D61D /* dgmcntl.c in Sources */,
 				C480E2EF22A0D9170093D61D /* tcpsmss.c in Sources */,
+				735AB82E22C7A1BF00192769 /* mpconfig.c in Sources */,
 				C480E36122A0D9180093D61D /* ip_in.c in Sources */,
 				C480E32D22A0D9170093D61D /* hgadd.c in Sources */,
 				C480E33F22A0D9180093D61D /* arpdq.c in Sources */,

@@ -162,6 +162,7 @@ KINCLUDE	+= kern/debug/ \
 			   kern/libs/ \
 			   kern/sync/ \
 			   kern/fs/    \
+			   kern/smp/	\
 			   kern/process/ \
 			   kern/schedule/ \
 			   kern/syscall/  \
@@ -187,6 +188,7 @@ KSRCDIR		+= kern/init \
 			   kern/fs/vfs \
 			   kern/fs/devs \
 			   kern/fs/sfs \
+			   kern/smp \
 			   kern/net \
 			   kern/net/e1000 \
 			   kern/net/tcpip/src \

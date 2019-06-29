@@ -14,6 +14,7 @@
 #include "unistd.h"
 #include "trap.h"
 #include "slab.h"
+#include "cpu.h"
 
 // 内核栈，内核栈顶
 #if ASM_NO_64
@@ -259,15 +260,15 @@ pde_t * const vpd = (pde_t *)PGADDR(PDX(VPT), PDX(VPT), 0); // 0xFAFEB000
      }
 }
  */
-static struct segdesc gdt[] = {
+struct segdesc gdt[NCPU + 7] = {
     SEG_NULL,
     [SEG_KTEXT]     = SEG_NULL,
     [SEG_KDATA]     = SEG_NULL,
     [SEG_UTEXT]     = SEG_NULL,
     [SEG_UDATA]     = SEG_NULL,
-    [SEG_TSS]       = SEG_NULL,
     [SEG_CALL_GATE] = SEG_NULL,
     [SEG_TASK_GATE] = SEG_NULL,
+    [SEG_TSS]       = SEG_NULL,
 };
 
 /*
@@ -1123,8 +1124,7 @@ void tlb_invalidate(pde_t *pgdir, uintptr_t la)
 // location.  Return the base of the reserved region.   size does *not*
 // have to be multiple of PGSIZE.
 //
-void *
-mmio_map_region(physaddr_t pa, size_t size) 
+void *mmio_map_region(physaddr_t pa, size_t size)
 {
     // Where to start the next region. Initially, this is the
     // begining of the MMIO region. Because this is static, its
@@ -1133,11 +1133,12 @@ mmio_map_region(physaddr_t pa, size_t size)
     static uintptr_t base = MMIOBASE;
 
     size = (size_t)ROUNDUP(size, PGSIZE);
-    if (base + size > MMIOLIM) {
+    if (base + size > MMIOLIM)
+    {
         panic("mmio_map_region: not enough memory"); 
     }
     //boot_map_segment(pde_t *pgdir, uintptr_t la, size_t size, uintptr_t pa, uint32_t perm)
-    boot_map_segment(boot_pgdir, base, size, pa,PTE_W | PTE_PCD | PTE_PWT | PTE_P);
+    boot_map_segment(boot_pgdir, base, size, pa, PTE_W | PTE_PCD | PTE_PWT | PTE_P);
     base +=size;
 
     return (void *) (base - size);

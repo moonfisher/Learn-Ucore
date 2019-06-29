@@ -21,9 +21,9 @@
 # qemu-system-i386 -S -s -parallel stdio -m 512M -drive file=bin/ucore.img -drive file=bin/swap.img -drive file=bin/sfs.img
 # gdb -q -tui -x tools/gdbinit
 
-# 下面的指令，可以挂载 4 个分区，qemu 最大也只能挂载 4 个
-# qemu-system-i386 -S -s -parallel stdio -m 512M -drive file=bin/ucore.img -drive file=bin/swap.img -drive file=bin/sfs.img -drive file=bin/sfs1.img
-
+# 下面的指令，可以挂载 4 个分区，qemu 最大也只能挂载 4 个，开启 smp
+# qemu-system-i386 -S -s -parallel stdio -m 512M -drive file=bin/ucore.img -drive file=bin/swap.img -drive file=bin/sfs.img -drive file=bin/sfs1.img -smp 16,cores=2,threads=2,sockets=4
+# 
 make clean;make;
 cp bin/sfs.img bin/sfs1.img;
 

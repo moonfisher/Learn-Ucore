@@ -17,10 +17,10 @@
 #define FL_DF           0x00000400  // Direction Flag
 #define FL_OF           0x00000800  // Overflow Flag
 #define FL_IOPL_MASK    0x00003000  // I/O Privilege Level bitmask
-#define FL_IOPL_0       0x00000000  //   IOPL == 0
-#define FL_IOPL_1       0x00001000  //   IOPL == 1
-#define FL_IOPL_2       0x00002000  //   IOPL == 2
-#define FL_IOPL_3       0x00003000  //   IOPL == 3
+#define FL_IOPL_0       0x00000000  // IOPL == 0
+#define FL_IOPL_1       0x00001000  // IOPL == 1
+#define FL_IOPL_2       0x00002000  // IOPL == 2
+#define FL_IOPL_3       0x00003000  // IOPL == 3
 #define FL_NT           0x00004000  // Nested Task
 #define FL_RF           0x00010000  // Resume Flag
 #define FL_VM           0x00020000  // Virtual 8086 mode
@@ -162,6 +162,14 @@ struct segdesc
 
 #define SEG_NULL                                            \
     (struct segdesc) {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+#define SEG16(type, base, lim, dpl)                             \
+    (struct segdesc)                                            \
+    {                                                           \
+        (lim) & 0xffff, (base)&0xffff, ((base) >> 16) & 0xff,   \
+        type, 1, dpl, 1, (unsigned)(lim) >> 16, 0, 0, 1, 0,     \
+        (unsigned)(base) >> 24                                  \
+    }
 
 /* task state segment format (as described by the Pentium architecture book) */
 /*

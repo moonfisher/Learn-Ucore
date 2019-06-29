@@ -17,9 +17,11 @@
 #include "sockets.h"
 #include "net.h"
 #include "netcheck.h"
+#include "cpu.h"
 
 int kern_init(void) __attribute__((noreturn));
 int mon_backtrace(int argc, char **argv, struct trapframe *tf);
+void boot_aps(void);
 
 //static void lab1_switch_test(void);
 void grade_backtrace(void);
@@ -46,6 +48,15 @@ int kern_init(void)
 
     pmm_init();                 // init physical memory management
 
+    mp_init();                  // init cpus apic
+    lapic_init();               // init local apic
+
+    // Acquire the big kernel lock before waking up APs
+    // Your code here:
+//    lock_kernel(); //BSP获取内核锁
+    // Starting non-boot CPUs
+//    boot_aps(); //将初始化代码拷贝到MPENTRY_PADDR处，然后依次启动所有AP
+
     pic_init();                 // init interrupt controller
     idt_init();                 // init interrupt descriptor table
 
@@ -66,6 +77,65 @@ int kern_init(void)
     
     intr_enable();              // enable irq interrupt
     cpu_idle();                 // run idle process
+}
+
+// While boot_aps is booting a given CPU, it communicates the per-core
+// stack pointer that should be loaded by mpentry.S to that CPU in
+// this variable.
+void *mpentry_kstack;
+
+// Start the non-boot (AP) processors.
+void boot_aps(void)
+{
+#if ASM_NO_64
+    extern unsigned char mpentry_start[], mpentry_end[];
+#else
+    unsigned char mpentry_start[1], mpentry_end[1];
+#endif
+    void *code;
+    struct cpu_info *c;
+    
+    // Write entry code to unused memory at MPENTRY_PADDR
+    code = KADDR(MPENTRY_PADDR);
+    memmove(code, mpentry_start, mpentry_end - mpentry_start);
+    
+    // Boot each AP one at a time
+    for (c = cpus; c < cpus + ncpu; c++)
+    {
+        if (c == cpus + cpunum()) // We've started already. 现在运行在BSP
+            continue;
+        
+        // Tell mpentry.S what stack to use
+        mpentry_kstack = percpu_kstacks[c - cpus] + KSTACKSIZE;
+        // Start the CPU at mpentry_start
+        lapic_startap(c->cpu_id, PADDR(code));
+        // Wait for the CPU to finish some basic setup in mp_main()
+        while (c->cpu_status != CPU_STARTED)
+        {
+            ;
+        }
+    }
+}
+
+// Setup code for APs
+void mp_main(void)
+{
+    // We are in high EIP now, safe to switch to kern_pgdir
+    lcr3(boot_cr3);
+    cprintf("SMP: CPU %d starting\n", cpunum());
+    
+    lapic_init();
+//    env_init_percpu();                         //设置GDT，每个CPU都需要执行一次
+//    trap_init_percpu();                         //安装TSS描述符，每个CPU都需要执行一次
+    xchg(&thiscpu->cpu_status, CPU_STARTED); // tell boot_aps() we're up，需要原子操作
+    
+    // Now that we have finished some basic setup, call sched_yield()
+    // to start running processes on this CPU.  But make sure that
+    // only one CPU can enter the scheduler at a time!
+    //
+    // Your code here:
+//    lock_kernel();
+    schedule();
 }
 
 void __attribute__((noinline)) grade_backtrace2(int arg0, int arg1, int arg2, int arg3)

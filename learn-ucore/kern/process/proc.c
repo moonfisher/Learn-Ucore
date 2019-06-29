@@ -249,7 +249,7 @@ void proc_run(struct proc_struct *proc)
 {
     if (proc != current)
     {
-        char *name = get_proc_name(proc);
+//        char *name = get_proc_name(proc);
 //        cprintf("proc_run: pid = %d, name = \"%s\", runs = %d.\n", proc->pid, name, proc->runs);
         
         bool intr_flag;

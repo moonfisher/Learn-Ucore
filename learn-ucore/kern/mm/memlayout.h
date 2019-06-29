@@ -8,18 +8,18 @@
 #define SEG_KDATA           2
 #define SEG_UTEXT           3
 #define SEG_UDATA           4
-#define SEG_TSS             5
-#define SEG_CALL_GATE       6
-#define SEG_TASK_GATE       7
+#define SEG_CALL_GATE       5
+#define SEG_TASK_GATE       6
+#define SEG_TSS             7
 
 /* global descrptor numbers */
 #define GD_KTEXT        ((SEG_KTEXT) << 3)      // kernel text  0x8     00001 0 00
 #define GD_KDATA        ((SEG_KDATA) << 3)      // kernel data  0x10    00010 0 00
 #define GD_UTEXT        ((SEG_UTEXT) << 3)      // user text    0x18    00011 0 00
 #define GD_UDATA        ((SEG_UDATA) << 3)      // user data    0x20    00100 0 00
-#define GD_TSS          ((SEG_TSS) << 3)        // task segment 0x28    00101 0 00
-#define GD_CALL_GATE    ((SEG_CALL_GATE) << 3)  // call segment 0x30    00110 0 00
+#define GD_CALL_GATE    ((SEG_CALL_GATE) << 3)  // call segment 0x30    00101 0 00
 #define GD_TASK_GATE    ((SEG_TASK_GATE) << 3)  // call segment 0x30    00110 0 00
+#define GD_TSS          ((SEG_TSS) << 3)        // task segment 0x28    00111 0 00
 
 /*
  https://blog.csdn.net/qq_37414405/article/details/84535145
@@ -167,7 +167,18 @@
  *                            |                                 |
  *  CGA_BUF ----------------> |---------------------------------| 0xC00B8000
  *                            |                                 |
- *  KERNBASE ---------------> +---------------------------------+ 0xC0000000
+ *  KERNBASE ---------------> +---------------------------------+ 0xC0000000        --+
+ *  KSTACKTOP --------------> |       CPU0's Kernel Stack       | RW/--  KSTACKSIZE   |
+ *                            |---------------------------------|                     |
+ *                            |       Invalid Memory (*)        | --/--  KSTKGAP      |
+ *                            |---------------------------------|                     |
+ *                            |       CPU1's Kernel Stack       | RW/--  KSTACKSIZE   |
+ *                            |---------------------------------|                   PTSIZE
+ *                            |       Invalid Memory (*)        | --/--  KSTKGAP      |
+ *                            |---------------------------------|                     |
+ *                            |               .                 |                     |
+ *                            |               .                 |                     |
+ *  MMIOLIM ----------------> +---------------------------------+ 0xBFFFC000        --+
  *                            |        Invalid Memory (*)       | --/--
  *  USERTOP ----------------> +---------------------------------+ 0xB0000000
  *                            |           User stack            |
@@ -219,28 +230,30 @@
  * table, which maps all the PTEs (Page Table Entry) containing the page mappings
  * for the entire virtual address space into that 4 Meg region starting at VPT.
  * */
-#define VPT                  0xFAC00000
-
-
+#define VPT                 0xFAC00000
 
 // At IOPHYSMEM (640K) there is a 384K hole for I/O.  From the kernel,
 // IOPHYSMEM can be addressed at KERNBASE + IOPHYSMEM.  The hole ends
 // at physical address EXTPHYSMEM.
-#define IOPHYSMEM   0x0A0000
-#define EXTPHYSMEM  0x100000
+#define IOPHYSMEM           0x0A0000
+#define EXTPHYSMEM          0x100000
 
 // e1000's physical base address = febc0000  and size = 0x20000
 
-#define MMIOBASE           KERNTOP           // 0xF8000000
+#define MMIOBASE            KERNTOP             // 0xF8000000
 
-#define MMIOLIM            MMIOBASE+PTSIZE   // 0xF9000000
+#define MMIOLIM             MMIOBASE + PTSIZE   // 0xF9000000
 
+// Physical address of startup code for non-boot CPUs (APs)
+#define MPENTRY_PADDR       0x7000
 
-/*******************************************************************************/
-
+// Kernel stack.
+#define KSTACKTOP           KERNBASE
 #define KSTACKPAGE          2                           // # of pages in kernel stack
-#define KSTACKSIZE          (KSTACKPAGE * PGSIZE)       // sizeof kernel stack
+#define KSTACKSIZE          (KSTACKPAGE * PGSIZE)       // size of a kernel stack
+#define KSTACKGAP           KSTACKSIZE                  // size of a kernel stack guard
 
+// User stack.
 #define USERTOP             0xB0000000
 #define USTACKTOP           USERTOP
 #define USTACKPAGE          256                         // # of pages in user stack
