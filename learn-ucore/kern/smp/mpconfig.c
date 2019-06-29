@@ -246,7 +246,7 @@ void mp_init(void)
         return;
     }
     
-    cprintf("SMP: CPU %d found %d CPU(s)\n", bootcpu->cpu_id, ncpu);
+    cprintf("SMP: CPU %d found %d CPU(s), lapicaddr %x\n", bootcpu->cpu_id, ncpu, lapicaddr);
     
     if (mp->imcrp)
     {
