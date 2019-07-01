@@ -55,8 +55,8 @@ int kern_init(void)
     pic_init();                 // init interrupt controller
     idt_init();                 // init interrupt descriptor table
 
-//    lock_kernel();              // smp acquire the big kernel lock before waking up APs
-//    boot_aps();                 // smp starting non-boot CPUs
+    lock_kernel();              // smp acquire the big kernel lock before waking up APs
+    boot_aps();                 // smp starting non-boot CPUs
 
     vmm_init();                 // init virtual memory management
     sched_init();               // init scheduler
