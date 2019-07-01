@@ -17,6 +17,7 @@
 #include "sysfile.h"
 #include "stat.h"
 #include "net.h"
+#include "cpu.h"
 
 /* ------------- process/thread mechanism design&implementation -------------
 (an simplified Linux process/thread mechanism )
@@ -1385,9 +1386,12 @@ void proc_init(void)
     idleproc->pid = 0;
     idleproc->state = PROC_RUNNABLE;
     
-    // 只有 idleproc 使用最早创建的内核栈，后续无论再创建别的内核线程，还是用户进程，都是重新分配的内核栈空间
-    extern char bootstack[];
-    idleproc->kstack = (uintptr_t)bootstack;    //0xC0152000
+    // 只有 idleproc 使用最早创建的内核栈，后续无论再创建别的内核线程，
+    // 还是用户进程，都是重新分配的内核栈空间
+    int cid = thiscpu->cpu_id;
+    idleproc->kstack = (uintptr_t)percpu_kstacks[cid];
+//    extern char bootstack[];
+//    idleproc->kstack = (uintptr_t)bootstack;    //0xC0152000
     idleproc->need_resched = 1;
     
     // idleproc 只分配了文件系统资源，但没有关联实际的文件系统

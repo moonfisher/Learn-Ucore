@@ -84,7 +84,7 @@
     ts_iomb = 0x0
 }
 */
-static struct taskstate ts = {0};
+//static struct taskstate ts = {0};
 
 // 任务门描述符
 struct taskstate taskgate = {0};
@@ -329,7 +329,7 @@ static inline void lgdt(struct pseudodesc *pd)
  */
 void load_esp0(uintptr_t esp0)
 {
-    ts.ts_esp0 = esp0;
+    thiscpu->cpu_ts.ts_esp0 = esp0;
 }
 
 /* gdt_init - initialize the default GDT and TSS */
@@ -448,26 +448,21 @@ static void gdt_init(void)
     gdt[SEG_UDATA].sd_db = 1;
     gdt[SEG_UDATA].sd_g = 1;
     gdt[SEG_UDATA].sd_base_31_24 = 0;
-    
-    // set boot kernel stack and default SS0
-    // 设置内核栈顶
-    load_esp0((uintptr_t)bootstacktop);
-    ts.ts_ss0 = KERNEL_DS;
 
-    // tss 任务描述符
-    gdt[SEG_TSS].sd_lim_15_0 = (sizeof(ts)) & 0xffff;
-    gdt[SEG_TSS].sd_base_15_0 = ((uintptr_t)&ts) & 0xffff;
-    gdt[SEG_TSS].sd_base_23_16 = (((uintptr_t)&ts) >> 16) & 0xff;
-    gdt[SEG_TSS].sd_type = STS_T32A;    // 说明这个段是 tss 段
-    gdt[SEG_TSS].sd_s = 0;              // tss 是系统段，这里必须为 0
-    gdt[SEG_TSS].sd_dpl = DPL_KERNEL;
-    gdt[SEG_TSS].sd_p = 1;
-    gdt[SEG_TSS].sd_lim_19_16 = (unsigned)(sizeof(ts)) >> 16;
-    gdt[SEG_TSS].sd_avl = 0;
-    gdt[SEG_TSS].sd_rsv1 = 0;
-    gdt[SEG_TSS].sd_db = 1;
-    gdt[SEG_TSS].sd_g = 0;      // tss 段界限粒度是字节，不是 4k
-    gdt[SEG_TSS].sd_base_31_24 = (unsigned)((uintptr_t)&ts) >> 24;
+//    // tss 任务描述符
+//    gdt[SEG_TSS].sd_lim_15_0 = (sizeof(ts)) & 0xffff;
+//    gdt[SEG_TSS].sd_base_15_0 = ((uintptr_t)&ts) & 0xffff;
+//    gdt[SEG_TSS].sd_base_23_16 = (((uintptr_t)&ts) >> 16) & 0xff;
+//    gdt[SEG_TSS].sd_type = STS_T32A;    // 说明这个段是 tss 段
+//    gdt[SEG_TSS].sd_s = 0;              // tss 是系统段，这里必须为 0
+//    gdt[SEG_TSS].sd_dpl = DPL_KERNEL;
+//    gdt[SEG_TSS].sd_p = 1;
+//    gdt[SEG_TSS].sd_lim_19_16 = (unsigned)(sizeof(ts)) >> 16;
+//    gdt[SEG_TSS].sd_avl = 0;
+//    gdt[SEG_TSS].sd_rsv1 = 0;
+//    gdt[SEG_TSS].sd_db = 1;
+//    gdt[SEG_TSS].sd_g = 0;      // tss 段界限粒度是字节，不是 4k
+//    gdt[SEG_TSS].sd_base_31_24 = (unsigned)((uintptr_t)&ts) >> 24;
 
     /*
      调用门虽然是 CPU 提供给使用者提权的一种手段，通过调用门也可以实现各种系统调用，但是
@@ -512,9 +507,6 @@ static void gdt_init(void)
     
     // reload all segment registers
     lgdt(&gdt_pd);
-
-    // load the TSS
-    ltr(GD_TSS);
 }
 
 //init_pmm_manager - initialize a pmm_manager instance
@@ -809,11 +801,6 @@ static void boot_map_segment(pde_t *pgdir, uintptr_t la, size_t size, uintptr_t 
 //    return page2kva(p);
 //}
 
-static void extracted()
-{
-    check_boot_pgdir();
-}
-
 //pmm_init - setup a pmm to manage physical memory, build PDT&PT to setup paging mechanism
 //         - check the correctness of pmm & paging mechanism, print PDT&PT
 void pmm_init(void)
@@ -843,8 +830,8 @@ void pmm_init(void)
     // map all physical memory to linear memory with base linear addr KERNBASE
     // linear_addr KERNBASE ~ KERNBASE + KMEMSIZE = phy_addr 0 ~ KMEMSIZE
     // 映射虚拟地址 0xC0000000 ~ 0xF8000000 到物理地址 0 ~ 0x38000000
-    // 这段代码可以不执行了，虚拟地址映射全部挪到 entry.S 里提前映射完，防止后续代码访问到未映射的地址
-    // boot_map_segment(boot_pgdir, KERNBASE, KMEMSIZE, 0, PTE_W);
+    // 这段代码其实可以不执行，虚拟地址映射全部挪到 entry.S 里提前映射完，防止后续代码访问到未映射的地址
+    boot_map_segment(boot_pgdir, KERNBASE, KMEMSIZE, 0, PTE_W);
 
     // Since we are using bootloader's GDT,
     // we should reload gdt (second time, the last time) to get user segments and the TSS
@@ -856,11 +843,8 @@ void pmm_init(void)
     check_alloc_page();
     
     check_pgdir();
+    check_boot_pgdir();
     
-    //now the basic virtual memory map(see memalyout.h) is established.
-    //check the correctness of the basic virtual memory map.
-    extracted();
-
     print_pgdir();
     
     slab_init();
@@ -1107,9 +1091,10 @@ int page_insert(pde_t *pgdir, struct Page *page, uintptr_t la, uint32_t perm)
 // invalidate a TLB entry, but only if the page tables being
 // edited are the ones currently in use by the processor.
 /*
- 处理器使用快表 TLB（Translation Lookaside Buffer）来缓存线性地址到物理地址的映射关系。实际的地址转换过程中，
- 处理器首先根据线性地址查找TLB，如果未发现该线性地址到物理地址的映射关系（TLB miss），
- 将根据页表中的映射关系填充TLB（TLB fill），然后再进行地址转换。这样可以提高线性地址转换到物理地址的效率。
+ 处理器使用快表 TLB（Translation Lookaside Buffer）来缓存线性地址到物理地址的映射关系。
+ 实际的地址转换过程中，处理器首先根据线性地址查找TLB，如果未发现该线性地址到物理地址的映射关
+ 系（TLB miss），将根据页表中的映射关系填充TLB（TLB fill），然后再进行地址转换。
+ 这样可以提高线性地址转换到物理地址的效率。
 */
 void tlb_invalidate(pde_t *pgdir, uintptr_t la)
 {
@@ -1137,11 +1122,11 @@ void *mmio_map_region(physaddr_t pa, size_t size)
     {
         panic("mmio_map_region: not enough memory"); 
     }
-    //boot_map_segment(pde_t *pgdir, uintptr_t la, size_t size, uintptr_t pa, uint32_t perm)
+
     boot_map_segment(boot_pgdir, base, size, pa, PTE_W | PTE_PCD | PTE_PWT | PTE_P);
     base +=size;
 
-    return (void *) (base - size);
+    return (void *)(base - size);
 }
 
 
@@ -1229,15 +1214,15 @@ static void check_boot_pgdir(void)
 {
     pte_t *ptep;
     int i;
-    for (i = 0; i < npage; i += PGSIZE) {
+    for (i = 0; i < npage; i += PGSIZE)
+    {
         assert((ptep = get_pte(boot_pgdir, (uintptr_t)KADDR(i), 0)) != NULL);
         assert(PTE_ADDR(*ptep) == i);
     }
 
     assert(PDE_ADDR(boot_pgdir[PDX(VPT)]) == PADDR(boot_pgdir));
-
     assert(boot_pgdir[0] == 0);
-
+    
     struct Page *p;
     p = alloc_page();
     assert(page_insert(boot_pgdir, p, 0x100, PTE_W) == 0);

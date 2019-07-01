@@ -61,6 +61,7 @@
 		73DD7D79226F6B0400998EEC /* skew_heap.h in Sources */ = {isa = PBXBuildFile; fileRef = C4CB325D2248F5830014426C /* skew_heap.h */; };
 		73DD7D7A226F6B0400998EEC /* stdarg.h in Sources */ = {isa = PBXBuildFile; fileRef = C4CB325F2248F5830014426C /* stdarg.h */; };
 		73DD7D7B226F6B0400998EEC /* atomic.h in Sources */ = {isa = PBXBuildFile; fileRef = C4CB32612248F5830014426C /* atomic.h */; };
+		C40545E422C9DD1E0046536A /* spinlock.c in Sources */ = {isa = PBXBuildFile; fileRef = C40545E322C9DD1E0046536A /* spinlock.c */; };
 		C41EC5A32283D805006D8303 /* dev_disk1.c in Sources */ = {isa = PBXBuildFile; fileRef = C41EC5A22283D805006D8303 /* dev_disk1.c */; };
 		C41EC5A722842437006D8303 /* mkdir.c in Sources */ = {isa = PBXBuildFile; fileRef = C41EC5A622842437006D8303 /* mkdir.c */; };
 		C41EC5A9228426C2006D8303 /* pwd.c in Sources */ = {isa = PBXBuildFile; fileRef = C41EC5A8228426C2006D8303 /* pwd.c */; };
@@ -389,6 +390,8 @@
 		C403E690226FEE5C00B4A959 /* sign.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sign.c; sourceTree = "<group>"; };
 		C403E691226FEE5C00B4A959 /* kernel.ld */ = {isa = PBXFileReference; lastKnownFileType = text; path = kernel.ld; sourceTree = "<group>"; };
 		C403E692226FEE5C00B4A959 /* sign */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = sign; sourceTree = "<group>"; };
+		C40545E222C9DD1E0046536A /* spinlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spinlock.h; sourceTree = "<group>"; };
+		C40545E322C9DD1E0046536A /* spinlock.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spinlock.c; sourceTree = "<group>"; };
 		C41EC5A22283D805006D8303 /* dev_disk1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dev_disk1.c; sourceTree = "<group>"; };
 		C41EC5A622842437006D8303 /* mkdir.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mkdir.c; sourceTree = "<group>"; };
 		C41EC5A8228426C2006D8303 /* pwd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pwd.c; sourceTree = "<group>"; };
@@ -1443,6 +1446,8 @@
 		C4CB31E92248F5820014426C /* sync */ = {
 			isa = PBXGroup;
 			children = (
+				C40545E222C9DD1E0046536A /* spinlock.h */,
+				C40545E322C9DD1E0046536A /* spinlock.c */,
 				C480E36E22A0DA990093D61D /* event.h */,
 				C480E37022A0DA9A0093D61D /* event.c */,
 				C480E36C22A0DA990093D61D /* ipc.h */,
@@ -1961,6 +1966,7 @@
 				C480E2D522A0D9170093D61D /* dev_tcp.c in Sources */,
 				C480E32522A0D9170093D61D /* dginit.c in Sources */,
 				C480E35522A0D9180093D61D /* ipfinit.c in Sources */,
+				C40545E422C9DD1E0046536A /* spinlock.c in Sources */,
 				C480E31522A0D9170093D61D /* tcpwakeup.c in Sources */,
 				C480E2BD22A0D9170093D61D /* tcpgetc.c in Sources */,
 				C4CB32712248F5830014426C /* clock.c in Sources */,

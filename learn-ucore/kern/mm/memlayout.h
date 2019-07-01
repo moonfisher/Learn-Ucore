@@ -170,11 +170,11 @@
  *  KERNBASE ---------------> +---------------------------------+ 0xC0000000        --+
  *  KSTACKTOP --------------> |       CPU0's Kernel Stack       | RW/--  KSTACKSIZE   |
  *                            |---------------------------------|                     |
- *                            |       Invalid Memory (*)        | --/--  KSTKGAP      |
+ *                            |       Invalid Memory (*)        | --/--  KSTACKGAP    |
  *                            |---------------------------------|                     |
  *                            |       CPU1's Kernel Stack       | RW/--  KSTACKSIZE   |
  *                            |---------------------------------|                   PTSIZE
- *                            |       Invalid Memory (*)        | --/--  KSTKGAP      |
+ *                            |       Invalid Memory (*)        | --/--  KSTACKGAP    |
  *                            |---------------------------------|                     |
  *                            |               .                 |                     |
  *                            |               .                 |                     |

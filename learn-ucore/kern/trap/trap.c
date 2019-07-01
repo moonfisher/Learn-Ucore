@@ -51,6 +51,52 @@ static struct gatedesc idt[256] = {{0}};    // 0xC0158780
     static struct pseudodesc idt_pd;
 #endif
 
+// Initialize and load the per-CPU TSS and IDT
+void trap_init_percpu(void)
+{
+    // The example code here sets up the Task State Segment (TSS) and
+    // the TSS descriptor for CPU 0. But it is incorrect if we are
+    // running on other CPUs because each CPU has its own kernel stack.
+    // Fix the code so that it works for all CPUs.
+    //
+    // Hints:
+    //   - The macro "thiscpu" always refers to the current CPU's
+    //     struct CpuInfo;
+    //   - The ID of the current CPU is given by cpunum() or
+    //     thiscpu->cpu_id;
+    //   - Use "thiscpu->cpu_ts" as the TSS for the current CPU,
+    //     rather than the global "ts" variable;
+    //   - Use gdt[(GD_TSS0 >> 3) + i] for CPU i's TSS descriptor;
+    //   - You mapped the per-CPU kernel stacks in mem_init_mp()
+    //   - Initialize cpu_ts.ts_iomb to prevent unauthorized environments
+    //     from doing IO (0 is not the correct value!)
+    //
+    // ltr sets a 'busy' flag in the TSS selector, so if you
+    // accidentally load the same TSS on more than one CPU, you'll
+    // get a triple fault.  If you set up an individual CPU's TSS
+    // wrong, you may not get a fault until you try to return from
+    // user space on that CPU.
+    //
+    int cid = thiscpu->cpu_id;
+    // Setup a TSS so that we get the right stack
+    // when we trap to the kernel.
+    thiscpu->cpu_ts.ts_esp0 = (uintptr_t)percpu_kstacks[cid];
+    thiscpu->cpu_ts.ts_ss0 = KERNEL_DS;
+    thiscpu->cpu_ts.ts_iomb = sizeof(struct taskstate); //修复这里的一个bug
+    
+    extern struct segdesc gdt[];
+    // Initialize the TSS slot of the gdt.
+    gdt[SEG_TSS + cid] = SEG16(STS_T32A, (uint32_t)(&(thiscpu->cpu_ts)), sizeof(struct taskstate), 0);
+    gdt[SEG_TSS + cid].sd_s = 0;
+    
+    // Load the TSS selector (like other segment selectors, the
+    // bottom three bits are special; we leave them 0)
+    ltr(GD_TSS + 8 * cid);
+    
+    // Load the IDT
+    lidt(&idt_pd);
+}
+
 /* idt_init - initialize IDT to each of the entry points in kern/trap/vectors.S */
 /*
  IDT 表中只可以安装 3 种门：中断门、陷阱门和任务门
@@ -133,11 +179,8 @@ void idt_init(void)
     idt[T_TASKGATE].gd_dpl = DPL_KERNEL;      // 陷阱门是提供给用户进程使用的，要设置为 DPL_USER
     idt[T_TASKGATE].gd_p = 1;
     idt[T_TASKGATE].gd_off_31_16 = 0;
-    
-    // set for switch from user to kernel
-//    SETGATE(idt[T_SWITCH_TOK], 0, GD_KTEXT, __vectors[T_SWITCH_TOK], DPL_USER);
-    
-    lidt(&idt_pd);
+
+    trap_init_percpu();
 }
 
 static const char *trapname(int trapno)
@@ -201,53 +244,6 @@ static const char *IA32flags[] = {
     "TF", "IF", "DF", "OF", NULL, NULL, "NT", NULL,
     "RF", "VM", "AC", "VIF", "VIP", "ID", NULL, NULL,
 };
-
-// Initialize and load the per-CPU TSS and IDT
-void trap_init_percpu(void)
-{
-    // The example code here sets up the Task State Segment (TSS) and
-    // the TSS descriptor for CPU 0. But it is incorrect if we are
-    // running on other CPUs because each CPU has its own kernel stack.
-    // Fix the code so that it works for all CPUs.
-    //
-    // Hints:
-    //   - The macro "thiscpu" always refers to the current CPU's
-    //     struct cpu_info;
-    //   - The ID of the current CPU is given by cpunum() or
-    //     thiscpu->cpu_id;
-    //   - Use "thiscpu->cpu_ts" as the TSS for the current CPU,
-    //     rather than the global "ts" variable;
-    //   - Use gdt[(GD_TSS0 >> 3) + i] for CPU i's TSS descriptor;
-    //   - You mapped the per-CPU kernel stacks in mem_init_mp()
-    //   - Initialize cpu_ts.ts_iomb to prevent unauthorized environments
-    //     from doing IO (0 is not the correct value!)
-    //
-    // ltr sets a 'busy' flag in the TSS selector, so if you
-    // accidentally load the same TSS on more than one CPU, you'll
-    // get a triple fault.  If you set up an individual CPU's TSS
-    // wrong, you may not get a fault until you try to return from
-    // user space on that CPU.
-    //
-    // LAB 4: Your code here:
-    int cid = thiscpu->cpu_id;
-    // Setup a TSS so that we get the right stack
-    // when we trap to the kernel.
-    thiscpu->cpu_ts.ts_esp0 = KSTACKTOP - cid * (KSTACKSIZE + KSTACKGAP);
-    thiscpu->cpu_ts.ts_ss0 = GD_KDATA;
-    thiscpu->cpu_ts.ts_iomb = sizeof(struct taskstate); //修复这里的一个bug
-    
-    // Initialize the TSS slot of the gdt.
-    extern struct segdesc gdt[];
-    gdt[SEG_TSS + cid] = SEG16(STS_T32A, (uint32_t)(&(thiscpu->cpu_ts)), sizeof(struct taskstate), 0);
-    gdt[SEG_TSS + cid].sd_s = 0;
-    
-    // Load the TSS selector (like other segment selectors, the
-    // bottom three bits are special; we leave them 0)
-    ltr(GD_TSS + 8 * cid);
-    
-    // Load the IDT
-    lidt(&idt_pd);
-}
 
 void print_trapframe(struct trapframe *tf)
 {

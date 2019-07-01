@@ -44,7 +44,7 @@
 
 #define IO_RTC      0x70
 
-physaddr_t lapicaddr; // Initialized in mpconfig.c
+physaddr_t lapicaddr; // Initialized in mpconfig.c 0xFEE00000
 volatile uint32_t *lapic;
 
 static void lapicw(int index, int value)

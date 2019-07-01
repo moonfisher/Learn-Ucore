@@ -18,6 +18,7 @@
 #include "net.h"
 #include "netcheck.h"
 #include "cpu.h"
+#include "spinlock.h"
 
 int kern_init(void) __attribute__((noreturn));
 int mon_backtrace(int argc, char **argv, struct trapframe *tf);
@@ -48,17 +49,14 @@ int kern_init(void)
 
     pmm_init();                 // init physical memory management
 
-    mp_init();                  // init cpus apic
-    lapic_init();               // init local apic
-
-    // Acquire the big kernel lock before waking up APs
-    // Your code here:
-//    lock_kernel(); //BSP获取内核锁
-    // Starting non-boot CPUs
-//    boot_aps(); //将初始化代码拷贝到MPENTRY_PADDR处，然后依次启动所有AP
-
+    mp_init();                  // init smp cpus apic
+    lapic_init();               // init smp local apic
+    
     pic_init();                 // init interrupt controller
     idt_init();                 // init interrupt descriptor table
+
+//    lock_kernel();              // smp acquire the big kernel lock before waking up APs
+//    boot_aps();                 // smp starting non-boot CPUs
 
     vmm_init();                 // init virtual memory management
     sched_init();               // init scheduler
@@ -96,6 +94,10 @@ void boot_aps(void)
     struct cpu_info *c;
     
     // Write entry code to unused memory at MPENTRY_PADDR
+    /*
+     我们将 AP 入口代码拷贝到 0x7000(MPENTRY_PADDR)，
+     当然其实你拷贝到 640KB 之下的任何可用的按页对齐的物理地址都是可以的。
+    */
     code = KADDR(MPENTRY_PADDR);
     memmove(code, mpentry_start, mpentry_end - mpentry_start);
     
@@ -126,15 +128,14 @@ void mp_main(void)
     
     lapic_init();
 //    env_init_percpu();                         //设置GDT，每个CPU都需要执行一次
-//    trap_init_percpu();                         //安装TSS描述符，每个CPU都需要执行一次
+    trap_init_percpu();                         //安装TSS描述符，每个CPU都需要执行一次
     xchg(&thiscpu->cpu_status, CPU_STARTED); // tell boot_aps() we're up，需要原子操作
     
     // Now that we have finished some basic setup, call sched_yield()
     // to start running processes on this CPU.  But make sure that
     // only one CPU can enter the scheduler at a time!
     //
-    // Your code here:
-//    lock_kernel();
+    lock_kernel();
     schedule();
 }
 
