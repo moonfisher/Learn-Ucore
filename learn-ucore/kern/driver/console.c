@@ -111,7 +111,7 @@ static void serial_init(void)
 
     if (serial_exists)
     {
-        pic_enable(IRQ_COM1);
+        irq_setmask_8259A(irq_mask_8259A & ~(1 << IRQ_COM1));
     }
 }
 
@@ -446,7 +446,7 @@ static void kbd_init(void)
 {
     // drain the kbd buffer
     kbd_intr();
-    pic_enable(IRQ_KBD);
+    irq_setmask_8259A(irq_mask_8259A & ~(1 << IRQ_KBD));
 }
 
 /* cons_init - initializes the console devices */

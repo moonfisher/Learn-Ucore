@@ -1,32 +1,12 @@
 #include "defs.h"
 #include "x86.h"
 #include "picirq.h"
-
-// I/O Addresses of the two programmable interrupt controllers
-#define IO_PIC1 0x20 // Master (IRQs 0-7)
-#define IO_PIC2 0xA0 // Slave (IRQs 8-15)
-
-#define IRQ_SLAVE 2 // IRQ at which slave connects to master
+#include "stdio.h"
 
 // Current IRQ mask.
 // Initial IRQ mask has interrupt 2 enabled (for slave 8259A).
-static uint16_t irq_mask = 0xFFFF & ~(1 << IRQ_SLAVE);
+uint16_t irq_mask_8259A = 0xFFFF & ~(1 << IRQ_SLAVE);
 static bool did_init = 0;
-
-static void pic_setmask(uint16_t mask)
-{
-    irq_mask = mask;
-    if (did_init)
-    {
-        outb(IO_PIC1 + 1, mask);
-        outb(IO_PIC2 + 1, mask >> 8);
-    }
-}
-
-void pic_enable(unsigned int irq)
-{
-    pic_setmask(irq_mask & ~(1 << irq));
-}
 
 /* pic_init - initialize the 8259A interrupt controllers */
 void pic_init(void)
@@ -85,8 +65,38 @@ void pic_init(void)
     outb(IO_PIC2, 0x68); // OCW3
     outb(IO_PIC2, 0x0a); // OCW3
 
-    if (irq_mask != 0xFFFF)
+    if (irq_mask_8259A != 0xFFFF)
     {
-        pic_setmask(irq_mask);
+        irq_setmask_8259A(irq_mask_8259A);
     }
+}
+
+void irq_setmask_8259A(uint16_t mask)
+{
+    int i;
+    
+    irq_mask_8259A = mask;
+    if (!did_init)
+        return;
+    
+    outb(IO_PIC1 + 1, (char)mask);
+    outb(IO_PIC2 + 1, (char)(mask >> 8));
+    cprintf("enabled interrupts:");
+    
+    for (i = 0; i < 16; i++)
+        if (~mask & (1 << i))
+            cprintf(" %d", i);
+    
+    cprintf("\n");
+}
+
+void irq_eoi(void)
+{
+    // OCW2: rse00xxx
+    //   r: rotate
+    //   s: specific
+    //   e: end-of-interrupt
+    // xxx: specific interrupt line
+    outb(IO_PIC1, 0x20);
+    outb(IO_PIC2, 0x20);
 }

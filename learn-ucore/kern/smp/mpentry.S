@@ -70,7 +70,7 @@ start32:
 	movl    %eax, %cr0
 
 	# Switch to the per-cpu stack allocated in boot_aps()
-	movl    mpentry_kstack, %esp
+	movl    $mpentry_start, %esp
 	movl    $0x0, %ebp       # nuke frame pointer
 
 	# Call mp_main().  (Exercise for the reader: why the indirect call?)

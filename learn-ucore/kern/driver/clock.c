@@ -55,6 +55,6 @@ void clock_init(void)
     ticks = 0;
 
     cprintf("++ setup timer interrupts\n");
-    pic_enable(IRQ_TIMER);
+    irq_setmask_8259A(irq_mask_8259A & ~(1 << IRQ_TIMER));
 }
 
