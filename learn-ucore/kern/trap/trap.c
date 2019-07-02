@@ -18,6 +18,7 @@
 #include "proc.h"
 #include "string.h"
 #include "cpu.h"
+#include "spinlock.h"
 
 #define TICK_NUM        5000
 #define T_TASKGATE      0x90
@@ -247,7 +248,8 @@ static const char *IA32flags[] = {
 
 void print_trapframe(struct trapframe *tf)
 {
-    cprintf("\ntrapframe at %p\n", tf);
+    int cid = thiscpu->cpu_id;
+    cprintf("\ntrapframe at cpu:%d, %p\n", cid, tf);
     
     char *csDes = "Trap from User";
     if (tf->tf_cs == (uint16_t)KERNEL_CS)
@@ -489,8 +491,6 @@ static void trap_dispatch(struct trapframe *tf)
 // 参数 tf 在汇编函数 __alltraps 里设置好，再调用 c 函数 trap
 void trap(struct trapframe *tf)
 {
-    // dispatch based on what type of trap occurred
-    // used for previous projects
     // current 为空说明当前还未创建进程就收到了中断，直接处理就行
     if (current == NULL)
     {

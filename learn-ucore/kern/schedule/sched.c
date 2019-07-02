@@ -5,6 +5,7 @@
 #include "stdio.h"
 #include "assert.h"
 #include "default_sched.h"
+#include "spinlock.h"
 
 static list_entry_t timer_list;
 

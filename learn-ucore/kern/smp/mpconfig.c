@@ -64,6 +64,16 @@ struct mpproc
     uint8_t         reserved[8];
 } __attribute__((__packed__));
 
+struct mpioapic
+{
+    // I/O APIC table entry
+    uint8_t         type;           // entry type (2)
+    uint8_t         apicno;         // I/O APIC id
+    uint8_t         version;        // I/O APIC version
+    uint8_t         flags;          // I/O APIC flags
+    uint32_t       *addr;           // I/O APIC address
+};
+
 // mpproc flags
 #define MPPROC_BOOT     0x02    // This mpproc is the bootstrap processor
 
@@ -88,6 +98,8 @@ static uint8_t sum(void *addr, int len)
 }
 
 // Look for an MP structure in the len bytes at physical address addr.
+// 此方法将 “MP” 字符串作为了 MP 浮点结构的标识，匹配到此字符串即找到了 MP 浮点结构，
+// 本函数返回指向该 MP 浮点结构的指针。
 static struct mp *mpsearch1(physaddr_t a, int len)
 {
     struct mp *mp = KADDR(a), *end = KADDR(a + len);
@@ -107,6 +119,17 @@ static struct mp *mpsearch1(physaddr_t a, int len)
 // 1) in the first KB of the EBDA;
 // 2) if there is no EBDA, in the last KB of system base memory;
 // 3) in the BIOS ROM between 0xE0000 and 0xFFFFF.
+/*
+ 当计算机通电时，BIOS 数据区（BIOS Data Area）将在 000400h 处创建。
+ 它长度为 256 字节（000400h - 0004FFh），包含有关系统环境的信息。该信息可以被任何程序访问和更改。
+ 计算机的大部分操作由此数据控制。此数据在启动过程中由POST（BIOS开机自检）加载。
+ 
+ 如果 EBDA（扩展 BIOS 数据区）不存在，BDA[0x0E] 和 BDA[0x0F] 的值为 0,
+ 如果 EBDA 存在，其段地址被保存在 BDA[0x0E] 和 BDA[0x0F] 中，其中 BDA[0x0E]
+ 保存 EBDA 段地址的低 8 位，BDA[0x0F] 保存 EDBA 段地址的高 8 位，所以 (BDA[0x0F]<<8) | BDA[0x0E]
+ 就表示了 EDBA 的段地址，将段地址左移 4 位即为 EBDA 的物理地址.
+ BDA[0x13] 和 BDA[0x14] 分别存放着系统基本内存的大小的低 8 位和高 8 位.
+*/
 static struct mp *mpsearch(void)
 {
     uint8_t *bda;
@@ -184,11 +207,19 @@ static struct mpconf *mpconfig(struct mp **pmp)
     return conf;
 }
 
+/*
+ SMP: CPU proc, type:0, apicid:0, version:20, flags:3, signature:c, feature:1781abfd
+ SMP: CPU proc, type:0, apicid:4, version:20, flags:1, signature:c, feature:1781abfd
+ SMP: CPU proc, type:0, apicid:8, version:20, flags:1, signature:c, feature:1781abfd
+ SMP: CPU proc, type:0, apicid:12, version:20, flags:1, signature:c, feature:1781abfd
+ SMP: CPU 0 found 4 CPU(s), lapicaddr fee00000
+*/
 void mp_init(void)
 {
     struct mp *mp;
     struct mpconf *conf;
     struct mpproc *proc;
+    struct mpioapic *ioapic;
     uint8_t *p;
     unsigned int i;
     
@@ -211,7 +242,8 @@ void mp_init(void)
                 if (ncpu < NCPU)
                 {
                     cprintf("SMP: CPU proc, type:%d, apicid:%d, version:%d, flags:%x, signature:%c%c%c%c, feature:%x\n", proc->type, proc->apicid, proc->version, proc->flags, proc->signature[0], proc->signature[1], proc->signature[2], proc->signature[3], proc->feature);
-                    cpus[ncpu].cpu_id = ncpu; //设置id
+                    cpus[ncpu].cpu_id = ncpu;
+                    cpus[ncpu].apic_id = proc->apicid;
                     ncpu++;
                 }
                 else
@@ -221,11 +253,25 @@ void mp_init(void)
                 
                 p += sizeof(struct mpproc);
                 continue;
+            
+            case MPIOAPIC:
+                ioapic = (struct mpioapic *)p;
+                cprintf("SMP: IOAPIC proc, type:%d, apicno:%x, version:%d, flags:%x, addr:%x\n", ioapic->type, ioapic->apicno, ioapic->version, ioapic->flags, ioapic->addr);
+                p += sizeof(struct mpioapic);
+                continue;
                 
             case MPBUS:
-            case MPIOAPIC:
+                cprintf("SMP: BUS proc\n");
+                p += 8;
+                continue;
+
             case MPIOINTR:
+                cprintf("SMP: IOINTR proc\n");
+                p += 8;
+                continue;
+                
             case MPLINTR:
+                cprintf("SMP: LINTR proc\n");
                 p += 8;
                 continue;
                 

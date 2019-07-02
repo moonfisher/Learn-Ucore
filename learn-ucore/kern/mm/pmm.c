@@ -16,13 +16,6 @@
 #include "slab.h"
 #include "cpu.h"
 
-// 内核栈，内核栈顶
-#if ASM_NO_64
-    extern char bootstack[], bootstacktop[];
-#else
-    char bootstack[1], bootstacktop[1];
-#endif
-
 /* *
  * Task State Segment:
  *
@@ -278,9 +271,9 @@ struct segdesc gdt[NCPU + 7] = {
     }
 */
 #if ASM_NO_64
-    static struct pseudodesc gdt_pd = {sizeof(gdt) - 1, (uintptr_t)gdt};
+    struct pseudodesc gdt_pd = {sizeof(gdt) - 1, (uintptr_t)gdt};
 #else
-    static struct pseudodesc gdt_pd;
+    struct pseudodesc gdt_pd;
 #endif
 
 static void check_alloc_page(void);
@@ -291,7 +284,7 @@ static void check_boot_pgdir(void);
  * lgdt - load the global descriptor table register and reset the
  * data/code segement registers for kernel.
  * */
-static inline void lgdt(struct pseudodesc *pd)
+void lgdt(struct pseudodesc *pd)
 {
 #if ASM_NO_64
     asm volatile ("lgdt (%0)" :: "r" (pd));

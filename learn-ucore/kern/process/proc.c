@@ -18,6 +18,7 @@
 #include "stat.h"
 #include "net.h"
 #include "cpu.h"
+#include "spinlock.h"
 
 /* ------------- process/thread mechanism design&implementation -------------
 (an simplified Linux process/thread mechanism )
@@ -250,8 +251,9 @@ void proc_run(struct proc_struct *proc)
 {
     if (proc != current)
     {
-//        char *name = get_proc_name(proc);
-//        cprintf("proc_run: pid = %d, name = \"%s\", runs = %d.\n", proc->pid, name, proc->runs);
+        int cid = thiscpu->cpu_id;
+        char *name = get_proc_name(proc);
+        cprintf("proc_run: cpuid = %d, pid = %d, name = \"%s\", runs = %d.\n", cid, proc->pid, name, proc->runs);
         
         bool intr_flag;
         struct proc_struct *prev = current, *next = proc;
@@ -1339,7 +1341,7 @@ static int init_main(void *arg)
     set_proc_name(userproc, "user_main");
     
     // 启动网络
-    start_net_mechanics();
+//    start_net_mechanics();
     
     extern void check_sync(void);
 //    check_sync();                // check philosopher sync problem
@@ -1390,8 +1392,6 @@ void proc_init(void)
     // 还是用户进程，都是重新分配的内核栈空间
     int cid = thiscpu->cpu_id;
     idleproc->kstack = (uintptr_t)percpu_kstacks[cid];
-//    extern char bootstack[];
-//    idleproc->kstack = (uintptr_t)bootstack;    //0xC0152000
     idleproc->need_resched = 1;
     
     // idleproc 只分配了文件系统资源，但没有关联实际的文件系统
@@ -1419,15 +1419,18 @@ void proc_init(void)
     assert(initproc != NULL && initproc->pid == 1);
 }
 
-int get_initproc_pid() {
+int get_initproc_pid()
+{
     return initproc->pid;
 }
 
-int get_idleproc_pid() {
+int get_idleproc_pid()
+{
     return idleproc->pid;
 }
 
-int32_t getpid() {
+int32_t getpid()
+{
     return current->pid;
 }
 

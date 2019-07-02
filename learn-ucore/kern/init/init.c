@@ -49,14 +49,8 @@ int kern_init(void)
 
     pmm_init();                 // init physical memory management
 
-    mp_init();                  // init smp cpus apic
-    lapic_init();               // init smp local apic
-    
     pic_init();                 // init interrupt controller
     idt_init();                 // init interrupt descriptor table
-
-    lock_kernel();              // smp acquire the big kernel lock before waking up APs
-    boot_aps();                 // smp starting non-boot CPUs
 
     vmm_init();                 // init virtual memory management
     sched_init();               // init scheduler
@@ -70,9 +64,15 @@ int kern_init(void)
     
     clock_init();               // init clock interrupt
     
-    net_init();                  // init nic
-    net_check();
+//    net_init();                  // init nic
+//    net_check();
     
+    lock_kernel();              // smp acquire the big kernel lock before waking up APs
+    
+    mp_init();                  // init smp cpus apic
+    lapic_init();               // init smp local apic
+    boot_aps();                 // smp starting non-boot CPUs
+
     intr_enable();              // enable irq interrupt
     cpu_idle();                 // run idle process
 }
@@ -95,7 +95,7 @@ void boot_aps(void)
     
     // Write entry code to unused memory at MPENTRY_PADDR
     /*
-     我们将 AP 入口代码拷贝到 0x7000(MPENTRY_PADDR)，
+     我们将 AP 入口代码拷贝到 0x7000(MPENTRY_PADDR)，这个地址没人使用
      当然其实你拷贝到 640KB 之下的任何可用的按页对齐的物理地址都是可以的。
     */
     code = KADDR(MPENTRY_PADDR);
@@ -112,9 +112,12 @@ void boot_aps(void)
         
         // Start the CPU at mpentry_start
         cprintf("boot_aps, start up cpu:%x, stack:%x\n", c->cpu_id, mpentry_kstack);
+        // 这里启动 ap 用的是 cpu_id 数组索引，而不是真正的 apic_id，是因为不同 CPU 的
+        // apic_id 不是连续的数字，不便于 cpus 数组索引
         lapic_startap(c->cpu_id, PADDR(code));
         
         // Wait for the CPU to finish some basic setup in mp_main()
+        // 这里是循环同步等待
         while (c->cpu_status != CPU_STARTED)
         {
             ;
@@ -123,6 +126,7 @@ void boot_aps(void)
 }
 
 // Setup code for APs
+// AP CPU 初始化入口
 void mp_main(void)
 {
     // We are in high EIP now, safe to switch to kern_pgdir
@@ -130,9 +134,16 @@ void mp_main(void)
     cprintf("SMP: CPU %d starting\n", cpunum());
     
     lapic_init();
-//    env_init_percpu();                         //设置GDT，每个CPU都需要执行一次
-    trap_init_percpu();                         //安装TSS描述符，每个CPU都需要执行一次
-    xchg(&thiscpu->cpu_status, CPU_STARTED); // tell boot_aps() we're up，需要原子操作
+    
+    //设置 GDT，每个 CPU 都需要执行一次
+    extern struct pseudodesc gdt_pd;
+    lgdt(&gdt_pd);
+    
+    //安装 TSS 描述符，每个 CPU 都需要执行一次
+    trap_init_percpu();
+    
+    // tell boot_aps() we're up，需要原子操作
+    xchg(&thiscpu->cpu_status, CPU_STARTED);
     
     // Now that we have finished some basic setup, call sched_yield()
     // to start running processes on this CPU.  But make sure that

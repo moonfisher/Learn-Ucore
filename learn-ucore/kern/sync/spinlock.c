@@ -53,7 +53,10 @@ void __spin_initlock(struct spinlock *lk, char *name)
 void spin_lock(struct spinlock *lk)
 {
 	if (holding(lk))
-		panic("CPU %d cannot acquire %s: already holding", cpunum(), lk->name);
+    {
+		cprintf("CPU %d cannot acquire %s: already holding", cpunum(), lk->name);
+        return;
+    }
     
 	// The xchg is atomic.
 	// It also serializes, so that reads after acquire are not
@@ -75,8 +78,7 @@ void spin_unlock(struct spinlock *lk)
 		uint32_t pcs[10];
 		// Nab the acquiring EIP chain before it gets released
 		memmove(pcs, lk->pcs, sizeof pcs);
-		cprintf("CPU %d cannot release %s: held by CPU %d\nAcquired at:",
-				cpunum(), lk->name, lk->cpu->cpu_id);
+		cprintf("CPU %d cannot release %s: held by CPU %d\nAcquired at:", cpunum(), lk->name, lk->cpu->cpu_id);
 		for (i = 0; i < 10 && pcs[i]; i++)
 		{
 //            struct Eipdebuginfo info;

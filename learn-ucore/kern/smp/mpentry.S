@@ -33,6 +33,7 @@
 .set PROT_MODE_CSEG, 0x8	# kernel code segment selector
 .set PROT_MODE_DSEG, 0x10	# kernel data segment selector
 
+# AP CPU 初始化入口
 .code16           
 .globl mpentry_start
 mpentry_start:

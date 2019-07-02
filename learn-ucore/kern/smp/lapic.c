@@ -44,6 +44,8 @@
 
 #define IO_RTC      0x70
 
+// lapic 是通过 MMIO 映射之后的地址，指向的是每个 CPU 自己的 local apic I/O 地址空间
+// 并不是指向内存，看起来多个 CPU 都在访问同一个地址，实际访问的是不同的 I/O 硬件
 physaddr_t lapicaddr; // Initialized in mpconfig.c 0xFEE00000
 volatile uint32_t *lapic;
 
@@ -115,11 +117,16 @@ void lapic_init(void)
     lapicw(TPR, 0);
 }
 
+// 从 local apic 里读取 cpu id
+// lapic 是通过 MMIO 映射之后的地址，指向的是每个 CPU 自己的 local apic I/O 地址空间
+// 并不是指向内存，看起来多个 CPU 都在访问同一个地址，实际访问的是不同的 I/O 硬件
 int cpunum(void)
 {
+    uint32_t lapicid = 0;
     if (lapic)
     {
-        return lapic[ID] >> 24;
+        lapicid = lapic[ID];
+        return lapicid >> 24;
     }
     
     return 0;
@@ -143,6 +150,11 @@ static void microdelay(int us)
 
 // Start additional processor running entry code at addr.
 // See Appendix B of MultiProcessor Specification.
+/*
+ 中断命令寄存器（ICR）是一个 64 位本地 APIC 寄存器，允许运行在处理器上的软件指定和发送
+ 处理器间中断（IPI）给系统中的其它处理器。
+ 发送 IPI 时，必须设置 ICR 以指明将要发送的 IPI 消息的类型和目的处理器或处理器组
+*/
 void lapic_startap(uint8_t apicid, uint32_t addr)
 {
     int i;
@@ -159,9 +171,14 @@ void lapic_startap(uint8_t apicid, uint32_t addr)
 
     // "Universal startup algorithm."
     // Send INIT (level-triggered) interrupt to reset other CPU.
+    // 将目标 CPU 的 ID 写入 ICR 寄存器的目的地址域中
     lapicw(ICRHI, apicid << 24);
+    
+    // 在 ASSERT 的情况下将 INIT 中断写入 ICR 寄存器
     lapicw(ICRLO, INIT | LEVEL | ASSERT);
     microdelay(200);
+    
+    // 在非 ASSERT 的情况下将 INIT 中断写入 ICR 寄存器
     lapicw(ICRLO, INIT | LEVEL);
     microdelay(100); // should be 10ms, but too slow in Bochs!
 
@@ -170,9 +187,12 @@ void lapic_startap(uint8_t apicid, uint32_t addr)
     // when it is in the halted state due to an INIT.  So the second
     // should be ignored, but it is part of the official Intel algorithm.
     // Bochs complains about the second one.  Too bad for Bochs.
+    // INTEL 官方规定发送两次 startup IPI 中断
     for (i = 0; i < 2; i++)
     {
+        // 将目标 CPU 的 ID 写入 ICR 寄存器的目的地址域中
         lapicw(ICRHI, apicid << 24);
+        // 将 SIPI 中断写入 ICR 寄存器的传送模式域中，将启动代码写入向量域中
         lapicw(ICRLO, STARTUP | (addr >> 12));
         microdelay(200);
     }
