@@ -34,13 +34,14 @@ next:
     # 只保留 0xC0000000 ~ 0xC1000000 映射到物理地址 0 ~ 16M 这个关系
     # 这是因为 0 ~ 4M 的内存映射只是在最开始几句代码执行时会用到，跳转之后已经跳转到虚拟地址了
     xorl %eax, %eax
-    movl %eax, __boot_pgdir # mov dword ptr 0x0010:0xC0156000, eax
+    movl %eax, __boot_pgdir   # mov dword ptr 0x0010:0xC0156000, eax
 
     # set ebp, esp
     movl $0x0, %ebp             # mov ebp, 0x00000000
     # the kernel stack region is from bootstack -- bootstacktop,
     # the kernel stack size is KSTACKSIZE (8KB)defined in memlayout.h
-    # 重新设置内核栈空间，当前栈空间还是 bootloader 设置的，现在分页开启之后，可以重新规划栈空间，这里规划了8k
+    # 重新设置内核栈空间，当前栈空间还是 bootloader 设置的，
+    # 现在分页开启之后，可以重新规划栈空间，这里规划了 8k
     movl $bootstacktop, %esp    # mov esp, 0xC0154000
     # now kernel stack is ready , call the first C function
     call kern_init              # call .+2 (0xC0100036)

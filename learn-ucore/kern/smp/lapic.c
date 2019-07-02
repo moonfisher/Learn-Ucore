@@ -49,10 +49,10 @@ volatile uint32_t *lapic;
 
 static void lapicw(int index, int value)
 {
-    cprintf("lapicw before: index:%x, value:%x\n", index, value);
+//    cprintf("lapicw before: index:%x, value:%x\n", index, value);
     lapic[index] = value;
-    int ret = lapic[index]; // wait for write to finish, by reading
-    cprintf("lapicw after: index:%x, value:%x\n", index, ret);
+    lapic[index]; // wait for write to finish, by reading
+//    cprintf("lapicw after: index:%x, value:%x\n", index, ret);
 }
 
 void lapic_init(void)

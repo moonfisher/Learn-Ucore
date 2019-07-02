@@ -109,8 +109,11 @@ void boot_aps(void)
         
         // Tell mpentry.S what stack to use
         mpentry_kstack = percpu_kstacks[c - cpus] + KSTACKSIZE;
+        
         // Start the CPU at mpentry_start
+        cprintf("boot_aps, start up cpu:%x, stack:%x\n", c->cpu_id, mpentry_kstack);
         lapic_startap(c->cpu_id, PADDR(code));
+        
         // Wait for the CPU to finish some basic setup in mp_main()
         while (c->cpu_status != CPU_STARTED)
         {

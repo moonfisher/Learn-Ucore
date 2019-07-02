@@ -27,7 +27,7 @@
 #    - it uses MPBOOTPHYS to calculate absolute addresses of its
 #      symbols, rather than relying on the linker to fill them
 
-#define RELOC(x) ((x) - KERNBASE)
+#define REALLOC(x) (x - KERNBASE)
 #define MPBOOTPHYS(s) ((s) - mpentry_start + MPENTRY_PADDR)
 
 .set PROT_MODE_CSEG, 0x8	# kernel code segment selector
@@ -62,7 +62,8 @@ start32:
 
 	# Set up initial page table. We cannot use kern_pgdir yet because
 	# we are still running at a low EIP.
-	movl    $(RELOC(__boot_pgdir)), %eax
+    # AP 初始化也是从实模式开始的，也需要加载临时分页，和 BSP 初始化类似
+	movl    $(REALLOC(__boot_pgdir_ap)), %eax
 	movl    %eax, %cr3
 	# Turn on paging.
 	movl    %cr0, %eax
@@ -70,7 +71,7 @@ start32:
 	movl    %eax, %cr0
 
 	# Switch to the per-cpu stack allocated in boot_aps()
-	movl    $mpentry_start, %esp
+	movl    mpentry_kstack, %esp
 	movl    $0x0, %ebp       # nuke frame pointer
 
 	# Call mp_main().  (Exercise for the reader: why the indirect call?)
@@ -80,6 +81,26 @@ start32:
 	# If mp_main returns (it shouldn't), loop.
 spin:
 	jmp     spin
+
+# kernel builtin pgdir
+# an initial page directory (Page Directory Table, PDT)
+# These page directory table and page table can be reused!
+.align PGSIZE
+__boot_pgdir_ap:
+.globl __boot_pgdir_ap
+    # map va 0 ~ 4M to pa 0 ~ 4M (temporary)
+    .long REALLOC(__boot_pt_ap) + (PTE_P | PTE_U | PTE_W)
+    .space (KERNBASE >> PGSHIFT >> 10 << 2) - (. - __boot_pgdir_ap) # pad to PDE of KERNBASE
+    # map va KERNBASE + (0 ~ 4M) to pa 0 ~ 4M
+    .long REALLOC(__boot_pt_ap) + (PTE_P | PTE_U | PTE_W)
+    .space PGSIZE - (. - __boot_pgdir_ap) # pad to PGSIZE
+
+.set i, 0
+__boot_pt_ap:
+    .rept 1024
+    .long i * PGSIZE + (PTE_P | PTE_W)
+    .set i, i + 1
+.endr
 
 # Bootstrap GDT
 .p2align 2					# force 4 byte alignment
