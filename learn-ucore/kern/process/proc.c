@@ -251,9 +251,9 @@ void proc_run(struct proc_struct *proc)
 {
     if (proc != current)
     {
-        int cid = thiscpu->cpu_id;
-        char *name = get_proc_name(proc);
-        cprintf("proc_run: cpuid = %d, pid = %d, name = \"%s\", runs = %d.\n", cid, proc->pid, name, proc->runs);
+//        int cid = thiscpu->cpu_id;
+//        char *name = get_proc_name(proc);
+//        cprintf("proc_run: cpuid = %d, pid = %d, name = \"%s\", runs = %d.\n", cid, proc->pid, name, proc->runs);
         
         bool intr_flag;
         struct proc_struct *prev = current, *next = proc;
@@ -1341,7 +1341,7 @@ static int init_main(void *arg)
     set_proc_name(userproc, "user_main");
     
     // 启动网络
-//    start_net_mechanics();
+    start_net_mechanics();
     
     extern void check_sync(void);
 //    check_sync();                // check philosopher sync problem

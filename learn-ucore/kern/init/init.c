@@ -64,8 +64,8 @@ int kern_init(void)
     
     clock_init();               // init clock interrupt
     
-//    net_init();                  // init nic
-//    net_check();
+    net_init();                  // init nic
+    net_check();
     
     lock_kernel();              // smp acquire the big kernel lock before waking up APs
     

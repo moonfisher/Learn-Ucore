@@ -15,6 +15,5 @@
 int e1000_output_proc(void *arg)
 {
     unlock(&network_mtx);
-
     return 0;
 }

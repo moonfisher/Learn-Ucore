@@ -104,6 +104,14 @@ static const char *pci_class[] =
     [0x6] = "Bridge device",
 };
 
+/*
+ PCI: 00:00.0: 8086:1237: class: 6.0 (Bridge device) irq: 0
+ PCI: 00:01.0: 8086:7000: class: 6.1 (Bridge device) irq: 0
+ PCI: 00:01.1: 8086:7010: class: 1.1 (Storage controller) irq: 0
+ PCI: 00:01.3: 8086:7113: class: 6.80 (Bridge device) irq: 9
+ PCI: 00:02.0: 1234:1111: class: 3.0 (Display controller) irq: 0
+ PCI: 00:03.0: 8086:100e: class: 2.0 (Network controller) irq: 11
+*/
 static void pci_print_func(struct pci_func *f)
 {
 	const char *class = pci_class[0];
@@ -129,8 +137,7 @@ static int pci_scan_bus(struct pci_bus *bus)
 		totaldev++;
 
 		struct pci_func f = df;
-		for (f.func = 0; f.func < (PCI_HDRTYPE_MULTIFN(bhlc) ? 8 : 1);
-			 f.func++)
+		for (f.func = 0; f.func < (PCI_HDRTYPE_MULTIFN(bhlc) ? 8 : 1); f.func++)
 		{
 			struct pci_func af = f;
 

@@ -17,10 +17,10 @@ typedef struct event_t
 
 typedef struct
 {
-   mutex    mtx;
-   event_t* pfront;
-   event_t* prear;
-   wait_t  wait;
+   mutex        mtx;
+   event_t*     pfront;
+   event_t*     prear;
+   wait_t       wait;
 } event_box_t;
 
 void event_box_init(struct proc_struct *proc);

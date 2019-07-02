@@ -65,38 +65,46 @@ static bool add_event(event_box_t* box, event_t *pevent)
 
 static event_t *del_event(event_box_t* box, int type)
 {
-    if (is_empty_event_box(box)) {
-       return NULL;
+    if (is_empty_event_box(box))
+    {
+        return NULL;
     }
 
     //event_t* ret =false;
-    event_t* found_event=NULL;
+    event_t* found_event = NULL;
     event_t* event = box->pfront;
 
-    while(event) {
-      if(event->event_type == type) {
-        found_event = event;
-        break;
-      }
+    while (event)
+    {
+        if (event->event_type == type)
+        {
+            found_event = event;
+            break;
+        }
     }
     
-    if(found_event == box->pfront) {
+    if (found_event == box->pfront)
+    {
         //头
-        if(box->pfront == box->prear) {
+        if (box->pfront == box->prear)
+        {
             //只有一个
             box->pfront = box->prear = NULL;
             return found_event;
         }
         box->pfront = found_event->pnext;
         return found_event;
-    } else if(found_event == box->prear) {
+    }
+    else if (found_event == box->prear)
+    {
         found_event->pprev->pnext = NULL;
-        box->prear= found_event->pprev;
+        box->prear = found_event->pprev;
 
         return found_event;
-    } else if (found_event != NULL) {
+    }
+    else if (found_event != NULL)
+    {
         found_event->pprev->pnext = found_event->pnext;
-
         found_event->pnext->pprev = found_event->pprev;
         return found_event;
     }
@@ -104,39 +112,44 @@ static event_t *del_event(event_box_t* box, int type)
     return NULL;
 }
 
-
-
-
-int
-ipc_event_recv(int *pid_store,int event_type, int *event_store, unsigned int timeout){   
-    long now=0;
+int ipc_event_recv(int *pid_store,int event_type, int *event_store, unsigned int timeout)
+{
+    long now = 0;
     event_t* eve = del_event(&(current->event_box), event_type);
     long starttime = gettime2();
-    if (eve != NULL) {
-       goto recvd;
+    if (eve != NULL)
+    {
+        goto recvd;
     }
 
-    while(1) {
-          schedule();
-          eve = del_event(&(current->event_box), event_type);
-          if(eve != NULL){
-            goto recvd;// return 
-          }
+    while (1)
+    {
+        schedule();
+        eve = del_event(&(current->event_box), event_type);
+        if(eve != NULL)
+        {
+            goto recvd;// return
+        }
 
-          now= gettime2();
-          
-          if (now - starttime >= timeout){
+        now = gettime2();
+
+        if (now - starttime >= timeout)
+        {
             //cprintf("recv: is_empty_event_box? %d\n",is_empty_event_box(&(current->event_box)));
             return -E_TIMEOUT;
-          }
+        }
     }
 
 recvd:
-    if(eve != NULL) {
-        if(pid_store != NULL) {
+    if (eve != NULL)
+    {
+        if (pid_store != NULL)
+        {
             *pid_store = eve->sender_pid;
         }
-        if(event_store != NULL) {
+        
+        if (event_store != NULL)
+        {
             *event_store = eve->event;
         }
         free_event(eve);
@@ -145,24 +158,26 @@ recvd:
     //return ipc_check_timeout(timeout, saved_ticks);
 }
 
-bool 
-ipc_event_send(int pid,int evnet_type, int event){
+bool ipc_event_send(int pid,int evnet_type, int event)
+{
     struct proc_struct *proc;
-    if ((proc = find_proc(pid)) == NULL || proc->state == PROC_ZOMBIE) {
+    if ((proc = find_proc(pid)) == NULL || proc->state == PROC_ZOMBIE)
+    {
         return -E_INVAL;
     }
 
-    if (proc == current || proc == idleproc || proc == initproc ) {
+    if (proc == current || proc == idleproc || proc == initproc)
+    {
         //自己不能给自己发消息，idleproc和initproc不能接受消息
-        cprintf("ipc_event_send 2  %d %d %d\n",proc==current, proc==idleproc,proc==initproc);
+        cprintf("ipc_event_send 2  %d %d %d\n", proc == current, proc == idleproc, proc == initproc);
         return -E_INVAL;
     }
     
     event_t* eve = get_event(evnet_type, event, current->pid);
 
-    event_box_t* box= &proc->event_box;
-    add_event(box,eve);
-    cprintf("send: is_empty_event_box? %d\n",is_empty_event_box(&(proc->event_box)));
+    event_box_t* box = &proc->event_box;
+    add_event(box, eve);
+    cprintf("send: is_empty_event_box? %d\n", is_empty_event_box(&(proc->event_box)));
 
     return 1; //ipc_check_timeout(timeout, saved_ticks);
 }
