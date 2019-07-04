@@ -88,17 +88,20 @@ bool try_down(semaphore_t *sem)
     return ret;
 }
 
-int
-sem_val(semaphore_t *sem) {
+int sem_val(semaphore_t *sem)
+{
     return sem->value;
 }
 
-uint32_t sem_wait_count(semaphore_t *sem) {
+uint32_t sem_wait_count(semaphore_t *sem)
+{
     return wait_count(&(sem->wait_queue));
 }
 
-void wakeup_all(semaphore_t *sem) {
-    while(!wait_queue_empty( &(sem->wait_queue) )) {
+void wakeup_all(semaphore_t *sem)
+{
+    while(!wait_queue_empty( &(sem->wait_queue) ))
+    {
         __up(sem, WT_SEM_ALL);
     }
 }

@@ -74,8 +74,7 @@ void mbox_init(void)
     static_assert(MBOX_P_PAGE != 0);
 }
 
-static struct msg_mbox *
-get_mbox(int id)
+static struct msg_mbox *get_mbox(int id)
 {
     if (id >= 0 && id < MAX_MBOX_NUM)
     {
@@ -92,8 +91,7 @@ get_mbox(int id)
     return NULL;
 }
 
-static void
-mbox_free(struct msg_mbox *mbox)
+static void mbox_free(struct msg_mbox *mbox)
 {
     assert(mbox->state == CLOSING && mbox->inuse == 0);
     assert(list_empty(&(mbox->msg_link)));
@@ -105,8 +103,7 @@ mbox_free(struct msg_mbox *mbox)
 }
 
 //将msg挂载到mbox->msg_link之后
-static void
-add_msg(struct msg_mbox *mbox, struct msg_msg *msg, bool append)
+static void add_msg(struct msg_mbox *mbox, struct msg_msg *msg, bool append)
 {
     assert(mbox->state == OPENED);
     mbox->slots++;
@@ -123,8 +120,7 @@ add_msg(struct msg_mbox *mbox, struct msg_msg *msg, bool append)
 }
 
 //从mbox->msg_link摘得一个msg_msg，唤醒一个mbox->senders
-static int
-pick_msg(struct msg_mbox *mbox, size_t max_bytes, struct msg_msg **msg_store)
+static int pick_msg(struct msg_mbox *mbox, size_t max_bytes, struct msg_msg **msg_store)
 {
     assert(mbox->state == OPENED && mbox->slots > 0);
     assert(!list_empty(&(mbox->msg_link)));
@@ -133,15 +129,15 @@ pick_msg(struct msg_mbox *mbox, size_t max_bytes, struct msg_msg **msg_store)
     {
         return -E_TOO_BIG;
     }
-    mbox->slots--, *msg_store = msg;
+    mbox->slots--;
+    *msg_store = msg;
     list_del(&(msg->msg_link));
     //取走信息了，唤醒发送进程
     wakeup_first(&(mbox->senders), WT_MBOX_SEND, 1);
     return 0;
 }
 
-static struct msg_mbox *
-new_mbox(unsigned int max_slots)
+static struct msg_mbox *new_mbox(unsigned int max_slots)
 {
     bool intr_flag;
     struct msg_mbox *mbox = NULL;
@@ -213,8 +209,7 @@ int ipc_mbox_init(unsigned int max_slots)
     return ret;
 }
 
-static void
-free_seg(struct msg_seg *seg)
+static void free_seg(struct msg_seg *seg)
 {
     if (seg->next != NULL)
     {
@@ -223,8 +218,7 @@ free_seg(struct msg_seg *seg)
     kfree(seg);
 }
 
-static void
-free_msg(struct msg_msg *msg)
+static void free_msg(struct msg_msg *msg)
 {
     if (msg->next != NULL)
     {
@@ -234,8 +228,7 @@ free_msg(struct msg_msg *msg)
 }
 
 // 将字符串缓冲数据包装成 msg_msg
-static struct msg_msg *
-load_msg(const void *src, size_t len)
+static struct msg_msg *load_msg(const void *src, size_t len)
 {
     size_t alen, bytes = len;
     if ((alen = len) > MAX_MSG_DATALEN)
@@ -282,8 +275,7 @@ failed:
     return NULL;
 }
 
-static uint32_t
-send_msg(struct msg_mbox *mbox, struct msg_msg *msg, timer_t *timer)
+static uint32_t send_msg(struct msg_mbox *mbox, struct msg_msg *msg, timer_t *timer)
 {
     uint32_t ret;
     bool intr_flag;
@@ -333,8 +325,7 @@ out:
 }
 
 //拷贝msg中的数据到dst中去
-static void
-store_msg(struct msg_msg *msg, void *dst)
+static void store_msg(struct msg_msg *msg, void *dst)
 {
     size_t alen, len = msg->bytes;
     if ((alen = len) > MAX_MSG_DATALEN)
@@ -361,8 +352,7 @@ store_msg(struct msg_msg *msg, void *dst)
     }
 }
 
-static int
-recv_msg(struct msg_mbox *mbox, size_t max_bytes, struct msg_msg **msg_store, timer_t *timer)
+static int recv_msg(struct msg_mbox *mbox, size_t max_bytes, struct msg_msg **msg_store, timer_t *timer)
 {
     int ret = -1;
     bool intr_flag;
@@ -516,13 +506,15 @@ int ipc_mbox_recv(int id, struct mboxbuf *buf, unsigned int timeout)
     lock_mm(mm);
     {
         size_t len;
-        local_buf->len = len = msg->bytes, local_buf->from = msg->pid;
+        local_buf->len = len = msg->bytes;
+        local_buf->from = msg->pid;
         if (copy_to_user(mm, buf, local_buf, sizeof(struct mboxbuf)))
         {
             void *dst = local_buf->data;
             if (user_mem_check(mm, (uintptr_t)dst, len, 1))
             {
-                ret = 0, store_msg(msg, dst);
+                ret = 0;
+                store_msg(msg, dst);
             }
         }
     }
