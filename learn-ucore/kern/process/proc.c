@@ -1543,53 +1543,64 @@ int do_sleep(unsigned int time)
 }
 
 // do_shmem - create a share memory with addr, len, flags(VM_READ/M_WRITE/VM_STACK)
-//int do_shmem(uintptr_t *addr_store, size_t len, uint32_t mmap_flags)
-//{
-//    struct mm_struct *mm = current->mm;
-//    if (mm == NULL) {
-//        panic("kernel thread call mmap!!.\n");
-//    }
-//
-//    if (addr_store == NULL || len == 0) {
-//        return -E_INVAL;
-//    }
-//
-//    int ret = -E_INVAL;
-//
-//    uintptr_t addr;
-//    lock_mm(mm);
-//    if (!copy_from_user(mm, &addr, addr_store, sizeof(uintptr_t), 1)) {
-//        goto out_unlock;
-//    }
-//    uintptr_t start = ROUNDDOWN(addr, PGSIZE), end = ROUNDUP(addr + len, PGSIZE);
-//    addr = start , len = end - start;
-//
-//    uint32_t vm_flags = VM_READ;
-//    if (mmap_flags & MMAP_WRITE) vm_flags |= VM_WRITE;
-//    if (mmap_flags & MMAP_STACK) vm_flags |= VM_STACK;
-//
-//    ret = -E_NO_MEM;
-//    if (addr == 0) {
-//        if ((addr = get_unmapped_area(mm, len)) == 0) {
-//            goto out_unlock;
-//        }
-//    }
-//
-//    struct shmem_struct *shmem;
-//    if ((shmem = shmem_create(len)) == NULL) {
-//        goto out_unlock;
-//    }
-//
-//    if ((ret = mm_map_shmem(mm, addr, vm_flags, shmem, NULL)) != 0) {
+int do_shmem(uintptr_t *addr_store, size_t len, uint32_t mmap_flags)
+{
+    struct mm_struct *mm = current->mm;
+    if (mm == NULL)
+    {
+        panic("kernel thread call mmap!!.\n");
+    }
+
+    if (addr_store == NULL || len == 0)
+    {
+        return -E_INVAL;
+    }
+
+    int ret = -E_INVAL;
+
+    uintptr_t addr;
+    lock_mm(mm);
+    if (!copy_from_user(mm, &addr, addr_store, sizeof(uintptr_t), 1))
+    {
+        goto out_unlock;
+    }
+    
+    uintptr_t start = ROUNDDOWN(addr, PGSIZE);
+    uintptr_t end = ROUNDUP(addr + len, PGSIZE);
+    addr = start;
+    len = end - start;
+
+    uint32_t vm_flags = VM_READ;
+    if (mmap_flags & MMAP_WRITE) vm_flags |= VM_WRITE;
+    if (mmap_flags & MMAP_STACK) vm_flags |= VM_STACK;
+
+    ret = -E_NO_MEM;
+    if (addr == 0)
+    {
+        if ((addr = get_unmapped_area(mm, len)) == 0)
+        {
+            goto out_unlock;
+        }
+    }
+
+    struct shmem_struct *shmem;
+    if ((shmem = shmem_create(len)) == NULL)
+    {
+        goto out_unlock;
+    }
+
+//    if ((ret = mm_map_shmem(mm, addr, vm_flags, shmem, NULL)) != 0)
+//    {
 //        assert(shmem_ref(shmem) == 0);
 //        shmem_destroy(shmem);
 //        goto out_unlock;
 //    }
 //    *addr_store = addr;
-//out_unlock:
-//     unlock_mm(mm);
-//     return ret;
-//}
+    
+out_unlock:
+     unlock_mm(mm);
+     return ret;
+}
 
 //int process_dump()
 //{
