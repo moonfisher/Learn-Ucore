@@ -22,6 +22,9 @@ void fs_init(void)
 {
     vfs_init();
     dev_init();
+    // 这里 sfs 文件系统就相当于 rootfs，用户态的 shell 就位于 sfs 上
+    // 操作系统要支持更多的文件系统，需要通过 rootfs 上的 init 程序去挂载
+    // 只要文件系统能满足虚拟文件系统接口，就能注册并被操作系统挂载
     sfs_init();
 }
 
