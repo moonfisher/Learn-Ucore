@@ -78,11 +78,11 @@ struct mpioapic
 #define MPPROC_BOOT     0x02    // This mpproc is the bootstrap processor
 
 // Table entry types
-#define MPPROC          0x00    // One per processor
-#define MPBUS           0x01    // One per bus
-#define MPIOAPIC        0x02    // One per I/O APIC
-#define MPIOINTR        0x03    // One per bus interrupt source
-#define MPLINTR         0x04    // One per system interrupt source
+#define MPPROC          0x00  //入口类型为处理器
+#define MPBUS           0x01  //入口类型为总线
+#define MPIOAPIC        0x02  //入口类型为 I/O APIC
+#define MPIOINTR        0x03  //入口类型为 I/O 中断分配
+#define MPLINTR         0x04  //入口类型为逻辑中断分配
 
 static uint8_t sum(void *addr, int len)
 {
@@ -208,6 +208,7 @@ static struct mpconf *mpconfig(struct mp **pmp)
 }
 
 /*
+ smp 原理参考 https://www.jianshu.com/p/fc9a8572a830
  SMP: CPU proc, type:0, apicid:0, version:20, flags:3, signature:c, feature:1781abfd
  SMP: CPU proc, type:0, apicid:4, version:20, flags:1, signature:c, feature:1781abfd
  SMP: CPU proc, type:0, apicid:8, version:20, flags:1, signature:c, feature:1781abfd
@@ -256,6 +257,7 @@ void mp_init(void)
             
             case MPIOAPIC:
                 ioapic = (struct mpioapic *)p;
+                ioapicid = ioapic->apicno;
                 cprintf("SMP: IOAPIC proc, type:%d, apicno:%x, version:%d, flags:%x, addr:%x\n", ioapic->type, ioapic->apicno, ioapic->version, ioapic->flags, ioapic->addr);
                 p += sizeof(struct mpioapic);
                 continue;

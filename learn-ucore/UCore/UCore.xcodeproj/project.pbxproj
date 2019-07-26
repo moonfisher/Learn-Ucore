@@ -351,6 +351,7 @@
 		C4CB32C22248F5830014426C /* string.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB32572248F5830014426C /* string.c */; };
 		C4CB32C32248F5830014426C /* hash.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB32582248F5830014426C /* hash.c */; };
 		C4CB32C42248F5830014426C /* printfmt.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB325C2248F5830014426C /* printfmt.c */; };
+		C4D3474822EB0C0500F84AFC /* ioapic.c in Sources */ = {isa = PBXBuildFile; fileRef = C4D3474722EB0C0500F84AFC /* ioapic.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -820,6 +821,7 @@
 		C4CB325F2248F5830014426C /* stdarg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdarg.h; sourceTree = "<group>"; };
 		C4CB32602248F5830014426C /* string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = string.h; sourceTree = "<group>"; };
 		C4CB32612248F5830014426C /* atomic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = atomic.h; sourceTree = "<group>"; };
+		C4D3474722EB0C0500F84AFC /* ioapic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ioapic.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -845,6 +847,7 @@
 			children = (
 				735AB83022C7ACBC00192769 /* cpu.h */,
 				735AB82D22C7A1BE00192769 /* lapic.c */,
+				C4D3474722EB0C0500F84AFC /* ioapic.c */,
 				735AB83122C7B97800192769 /* mpentry.S */,
 				735AB82B22C7A1BE00192769 /* mpconfig.c */,
 			);
@@ -1969,6 +1972,7 @@
 				C40545E422C9DD1E0046536A /* spinlock.c in Sources */,
 				C480E31522A0D9170093D61D /* tcpwakeup.c in Sources */,
 				C480E2BD22A0D9170093D61D /* tcpgetc.c in Sources */,
+				C4D3474822EB0C0500F84AFC /* ioapic.c in Sources */,
 				C4CB32712248F5830014426C /* clock.c in Sources */,
 				C480E37622A0DA9A0093D61D /* sync.c in Sources */,
 				C480E2A122A0D9170093D61D /* ripfset.c in Sources */,

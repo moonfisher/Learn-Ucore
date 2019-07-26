@@ -108,7 +108,7 @@ static void serial_init(void)
     serial_exists = (inb(COM1 + COM_LSR) != 0xFF);
     (void) inb(COM1 + COM_IIR);
     (void) inb(COM1 + COM_RX);
-
+    
     if (serial_exists)
     {
         irq_setmask_8259A(irq_mask_8259A & ~(1 << IRQ_COM1));

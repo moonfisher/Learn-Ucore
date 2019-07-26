@@ -46,7 +46,7 @@ int page_insert(pde_t *pgdir, struct Page *page, uintptr_t la, uint32_t perm);
 
 void load_esp0(uintptr_t esp0);
 void tlb_invalidate(pde_t *pgdir, uintptr_t la);
-void *  mmio_map_region(physaddr_t pa, size_t size);
+void *mmio_map_region(physaddr_t pa, size_t size);
 struct Page *pgdir_alloc_page(struct mm_struct *mm, uintptr_t la, uint32_t perm);
 void unmap_range(pde_t *pgdir, uintptr_t start, uintptr_t end);
 void exit_range(pde_t *pgdir, uintptr_t start, uintptr_t end);

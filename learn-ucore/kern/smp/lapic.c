@@ -9,6 +9,7 @@
 #include "x86.h"
 #include "pmm.h"
 #include "cpu.h"
+#include "string.h"
 
 // Local APIC registers, divided by 4 for use as uint32_t[] indices.
 #define ID          (0x0020 / 4)	// ID
@@ -47,14 +48,22 @@
 // lapic 是通过 MMIO 映射之后的地址，指向的是每个 CPU 自己的 local apic I/O 地址空间
 // 并不是指向内存，看起来多个 CPU 都在访问同一个地址，实际访问的是不同的 I/O 硬件
 physaddr_t lapicaddr; // Initialized in mpconfig.c 0xFEE00000
+
+uint8_t ioapicid;
+
+/*
+ volatile 关键字是一种类型修饰符，表明某个变量的值可能在外部被改变，因此对这些变量的存取
+ 不能缓存到寄存器，每次使用时需要重新存取。
+ 该关键字在多线程环境下经常使用，因为在编写多线程的程序时，同一个变量可能被多个线程修改，
+ 而程序通过该变量同步各个线程
+*/
 volatile uint32_t *lapic;
 
 static void lapicw(int index, int value)
 {
-//    cprintf("lapicw before: index:%x, value:%x\n", index, value);
+//    cprintf("lapicw lapic:%x, index:%x, value:%x\n", lapic, index, value);
     lapic[index] = value;
     lapic[index]; // wait for write to finish, by reading
-//    cprintf("lapicw after: index:%x, value:%x\n", index, ret);
 }
 
 void lapic_init(void)
@@ -64,7 +73,9 @@ void lapic_init(void)
 
     // lapicaddr is the physical address of the LAPIC's 4K MMIO
     // region.  Map it in to virtual memory so we can access it.
+    // 不同 cpu 映射到的虚拟地址 lapic 是不同的
     lapic = mmio_map_region(lapicaddr, 4096);
+    cprintf("lapic_init mmio_map_region: lapicaddr:%x, lapic:%x\n", lapicaddr, lapic);
 
     // Enable local APIC; set spurious interrupt vector.
     lapicw(SVR, ENABLE | (IRQ_OFFSET + IRQ_SPURIOUS));
@@ -123,10 +134,21 @@ void lapic_init(void)
 int cpunum(void)
 {
     uint32_t lapicid = 0;
+    uint32_t cpuid = 0;
     if (lapic)
     {
-        lapicid = lapic[ID];
-        return lapicid >> 24;
+        lapicid = lapic[ID] >> 24;
+        for (int i = 0; i < ncpu; ++i)
+        {
+            if (cpus[i].apic_id == lapicid)
+            {
+                cpuid = i;
+                cprintf("cpunum lapic:%x, lapicid:%x, cpuid:%x\n", lapic, lapicid, cpuid);
+                break;
+            }
+        }
+        
+        return cpuid;
     }
     
     return 0;
@@ -206,3 +228,84 @@ void lapic_ipi(int vector)
         ;
     }
 }
+
+#define CMOS_PORT       0x70
+#define CMOS_RETURN     0x71
+#define CMOS_STATA      0x0a
+#define CMOS_STATB      0x0b
+#define CMOS_UIP        (1 << 7)        // RTC update in progress
+
+#define SECS            0x00
+#define MINS            0x02
+#define HOURS           0x04
+#define DAY             0x07
+#define MONTH           0x08
+#define YEAR            0x09
+
+struct rtcdate
+{
+    uint32_t second;
+    uint32_t minute;
+    uint32_t hour;
+    uint32_t day;
+    uint32_t month;
+    uint32_t year;
+};
+
+static uint32_t cmos_read(uint32_t reg)
+{
+    outb(CMOS_PORT,  reg);
+    microdelay(200);
+    
+    return inb(CMOS_RETURN);
+}
+
+static void fill_rtcdate(struct rtcdate *r)
+{
+    r->second = cmos_read(SECS);
+    r->minute = cmos_read(MINS);
+    r->hour   = cmos_read(HOURS);
+    r->day    = cmos_read(DAY);
+    r->month  = cmos_read(MONTH);
+    r->year   = cmos_read(YEAR);
+}
+
+// qemu seems to use 24-hour GWT and the values are BCD encoded
+void cmostime(struct rtcdate *r)
+{
+    struct rtcdate t1, t2;
+    int sb, bcd;
+    
+    sb = cmos_read(CMOS_STATB);
+    
+    bcd = (sb & (1 << 2)) == 0;
+    
+    // make sure CMOS doesn't modify time while we read it
+    for (;;)
+    {
+        fill_rtcdate(&t1);
+        if (cmos_read(CMOS_STATA) & CMOS_UIP)
+            continue;
+        
+        fill_rtcdate(&t2);
+        if (memcmp(&t1, &t2, sizeof(t1)) == 0)
+            break;
+    }
+    
+    // convert
+    if(bcd)
+    {
+#define    CONV(x)     (t1.x = ((t1.x >> 4) * 10) + (t1.x & 0xf))
+        CONV(second);
+        CONV(minute);
+        CONV(hour);
+        CONV(day);
+        CONV(month);
+        CONV(year);
+#undef     CONV
+    }
+    
+    *r = t1;
+    r->year += 2000;
+}
+

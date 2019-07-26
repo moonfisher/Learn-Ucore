@@ -23,6 +23,8 @@
 int kern_init(void) __attribute__((noreturn));
 int mon_backtrace(int argc, char **argv, struct trapframe *tf);
 void boot_aps(void);
+void ioapicinit(void);
+void ioapicenable(int irq, int cpunum);
 
 //static void lab1_switch_test(void);
 void grade_backtrace(void);
@@ -49,7 +51,13 @@ int kern_init(void)
 
     pmm_init();                 // init physical memory management
 
+    mp_init();                  // init smp cpus apic
+    lapic_init();               // init smp local apic
+    
     pic_init();                 // init interrupt controller
+    ioapicinit();               // another interrupt controller
+    ioapicenable(IRQ_COM1, 0);
+    
     idt_init();                 // init interrupt descriptor table
 
     vmm_init();                 // init virtual memory management
@@ -68,9 +76,6 @@ int kern_init(void)
     net_check();
     
     lock_kernel();              // smp acquire the big kernel lock before waking up APs
-    
-    mp_init();                  // init smp cpus apic
-    lapic_init();               // init smp local apic
     boot_aps();                 // smp starting non-boot CPUs
 
     intr_enable();              // enable irq interrupt
@@ -83,6 +88,7 @@ int kern_init(void)
 void *mpentry_kstack;
 
 // Start the non-boot (AP) processors.
+// https://www.jianshu.com/p/fc9a8572a830
 void boot_aps(void)
 {
 #if ASM_NO_64
@@ -112,9 +118,11 @@ void boot_aps(void)
         
         // Start the CPU at mpentry_start
         cprintf("boot_aps, start up cpu:%x, stack:%x\n", c->cpu_id, mpentry_kstack);
+        
         // 这里启动 ap 用的是 cpu_id 数组索引，而不是真正的 apic_id，是因为不同 CPU 的
         // apic_id 不是连续的数字，不便于 cpus 数组索引
-        lapic_startap(c->cpu_id, PADDR(code));
+//        lapic_startap(c->cpu_id, PADDR(code));
+        lapic_startap(c->apic_id, PADDR(code));
         
         // Wait for the CPU to finish some basic setup in mp_main()
         // 这里是循环同步等待
