@@ -31,26 +31,26 @@ struct ioapic
     uint32_t data;
 };
 
-static uint32_t ioapicread(int reg)
+static uint32_t ioapic_read(int reg)
 {
     ioapic->reg = reg;
     return ioapic->data;
 }
 
-static void ioapicwrite(int reg, uint32_t data)
+static void ioapic_write(int reg, uint32_t data)
 {
     ioapic->reg = reg;
     ioapic->data = data;
 }
 
-void ioapicinit(void)
+void ioapic_init(void)
 {
     int i, id, maxintr;
 
     ioapic = mmio_map_region(ioapicid, 4096);
     
-    maxintr = (ioapicread(REG_VER) >> 16) & 0xFF;
-    id = ioapicread(REG_ID) >> 24;
+    maxintr = (ioapic_read(REG_VER) >> 16) & 0xFF;
+    id = ioapic_read(REG_ID) >> 24;
     if (id != ioapicid)
         cprintf("ioapicinit: id isn't equal to ioapicid; not a MP\n");
 
@@ -58,16 +58,16 @@ void ioapicinit(void)
     // and not routed to any CPUs.
     for (i = 0; i <= maxintr; i++)
     {
-        ioapicwrite(REG_TABLE + 2 * i, INT_DISABLED | (IRQ_OFFSET + i));
-        ioapicwrite(REG_TABLE + 2 * i + 1, 0);
+        ioapic_write(REG_TABLE + 2 * i, INT_DISABLED | (IRQ_OFFSET + i));
+        ioapic_write(REG_TABLE + 2 * i + 1, 0);
     }
 }
 
-void ioapicenable(int irq, int cpunum)
+void ioapic_enable(int irq, int cpunum)
 {
     // Mark interrupt edge-triggered, active high,
     // enabled, and routed to the given cpunum,
     // which happens to be that cpu's APIC ID.
-    ioapicwrite(REG_TABLE + 2 * irq, IRQ_OFFSET + irq);
-    ioapicwrite(REG_TABLE + 2 * irq + 1, cpunum << 24);
+    ioapic_write(REG_TABLE + 2 * irq, IRQ_OFFSET + irq);
+    ioapic_write(REG_TABLE + 2 * irq + 1, cpunum << 24);
 }

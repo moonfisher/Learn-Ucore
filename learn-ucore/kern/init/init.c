@@ -23,8 +23,8 @@
 int kern_init(void) __attribute__((noreturn));
 int mon_backtrace(int argc, char **argv, struct trapframe *tf);
 void boot_aps(void);
-void ioapicinit(void);
-void ioapicenable(int irq, int cpunum);
+void ioapic_init(void);
+void ioapic_enable(int irq, int cpunum);
 
 //static void lab1_switch_test(void);
 void grade_backtrace(void);
@@ -55,8 +55,12 @@ int kern_init(void)
     lapic_init();               // init smp local apic
     
     pic_init();                 // init interrupt controller
-    ioapicinit();               // another interrupt controller
-    ioapicenable(IRQ_COM1, 0);
+    ioapic_init();               // another interrupt controller
+    
+    ioapic_enable(IRQ_COM1, 0);
+    ioapic_enable(IRQ_KBD, 0);
+    ioapic_enable(IRQ_IDE1, ncpu - 1);
+    ioapic_enable(IRQ_IDE2, ncpu - 1);
     
     idt_init();                 // init interrupt descriptor table
 
