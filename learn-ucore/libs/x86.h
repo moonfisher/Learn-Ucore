@@ -64,6 +64,7 @@ struct pseudodesc {
 } __attribute__ ((packed));
 
 static inline void lidt(struct pseudodesc *pd) __attribute__((always_inline));
+static inline void loadgs(uint16_t v) __attribute__((always_inline));
 static inline void sti(void) __attribute__((always_inline));
 static inline void cli(void) __attribute__((always_inline));
 static inline void ltr(uint16_t sel) __attribute__((always_inline));
@@ -230,6 +231,11 @@ static inline void lidt(struct pseudodesc *pd)
 #if ASM_NO_64
     asm volatile ("lidt (%0)" :: "r" (pd) : "memory");
 #endif
+}
+
+static inline void loadgs(uint16_t v)
+{
+    asm volatile("movw %0, %%gs" : : "r" (v));
 }
 
 static inline void sti(void)

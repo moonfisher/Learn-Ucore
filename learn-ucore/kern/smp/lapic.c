@@ -49,8 +49,6 @@
 // 并不是指向内存，看起来多个 CPU 都在访问同一个地址，实际访问的是不同的 I/O 硬件
 physaddr_t lapicaddr; // Initialized in mpconfig.c 0xFEE00000
 
-uint8_t ioapicid;
-
 /*
  volatile 关键字是一种类型修饰符，表明某个变量的值可能在外部被改变，因此对这些变量的存取
  不能缓存到寄存器，每次使用时需要重新存取。
@@ -143,7 +141,7 @@ int cpunum(void)
             if (cpus[i].apic_id == lapicid)
             {
                 cpuid = i;
-                cprintf("cpunum lapic:%x, lapicid:%x, cpuid:%x\n", lapic, lapicid, cpuid);
+//                cprintf("cpunum lapic:%x, lapicid:%x, cpuid:%x\n", lapic, lapicid, cpuid);
                 break;
             }
         }

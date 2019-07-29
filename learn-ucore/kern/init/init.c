@@ -55,12 +55,12 @@ int kern_init(void)
     lapic_init();               // init smp local apic
     
     pic_init();                 // init interrupt controller
-    ioapic_init();               // another interrupt controller
+    ioapic_init();              // another interrupt controller
     
-    ioapic_enable(IRQ_COM1, 0);
-    ioapic_enable(IRQ_KBD, 0);
-    ioapic_enable(IRQ_IDE1, ncpu - 1);
-    ioapic_enable(IRQ_IDE2, ncpu - 1);
+    ioapic_enable(IRQ_COM1, 1);
+    ioapic_enable(IRQ_KBD, 1);
+    ioapic_enable(IRQ_IDE1, 2);
+    ioapic_enable(IRQ_IDE2, 2);
     
     idt_init();                 // init interrupt descriptor table
 
@@ -143,19 +143,18 @@ void mp_main(void)
 {
     // We are in high EIP now, safe to switch to kern_pgdir
     lcr3(boot_cr3);
-    cprintf("SMP: CPU %d starting\n", cpunum());
+    cprintf("SMP: mp_main CPU %d starting\n", cpunum());
     
     lapic_init();
-    
-    //设置 GDT，每个 CPU 都需要执行一次
-    extern struct pseudodesc gdt_pd;
-    lgdt(&gdt_pd);
-    
+
     //安装 TSS 描述符，每个 CPU 都需要执行一次
     trap_init_percpu();
     
     // tell boot_aps() we're up，需要原子操作
     xchg(&thiscpu->cpu_status, CPU_STARTED);
+    
+    struct cpu_info *cpu = current_cpu;
+    cprintf("SMP: mp_main CPU %d started\n", cpu->cpu_id);
     
     // Now that we have finished some basic setup, call sched_yield()
     // to start running processes on this CPU.  But make sure that

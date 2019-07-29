@@ -6,6 +6,7 @@
 #include "trap.h"
 #include "cpu.h"
 #include "pmm.h"
+#include "stdio.h"
 
 #define REG_ID          0x00  // Register index: ID
 #define REG_VER         0x01  // Register index: version
@@ -21,6 +22,8 @@
 #define INT_ACTIVELOW  0x00002000  // Active low (vs high)
 #define INT_LOGICAL    0x00000800  // Destination is CPU id (vs APIC ID)
 
+physaddr_t ioapicaddr;  // 0xFEC00000
+uint8_t ioapicid;       // 0x0
 volatile struct ioapic *ioapic;
 
 // IO APIC MMIO structure: write reg, then read or write data.
@@ -47,7 +50,8 @@ void ioapic_init(void)
 {
     int i, id, maxintr;
 
-    ioapic = mmio_map_region(ioapicid, 4096);
+    ioapic = mmio_map_region(ioapicaddr, 4096);
+    cprintf("ioapic_init mmio_map_region: ioapicaddr:%x, ioapic:%x\n", ioapicaddr, ioapic);
     
     maxintr = (ioapic_read(REG_VER) >> 16) & 0xFF;
     id = ioapic_read(REG_ID) >> 24;

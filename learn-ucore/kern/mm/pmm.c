@@ -262,6 +262,7 @@ struct segdesc gdt[NCPU + 7] = {
     [SEG_CALL_GATE] = SEG_NULL,
     [SEG_TASK_GATE] = SEG_NULL,
     [SEG_TSS]       = SEG_NULL,
+    [SEG_KCPU]      = SEG_NULL,
 };
 
 /*

@@ -14,7 +14,7 @@
 struct cpu_info cpus[NCPU];
 struct cpu_info *bootcpu;
 int ismp;
-int ncpu; //总CPU数，不超过NCPU(8)
+int ncpu; //总 CPU 数，不超过 NCPU(8)
 
 // Per-CPU kernel stacks
 unsigned char percpu_kstacks[NCPU][KSTACKSIZE] __attribute__((aligned(PGSIZE)));
@@ -71,7 +71,7 @@ struct mpioapic
     uint8_t         apicno;         // I/O APIC id
     uint8_t         version;        // I/O APIC version
     uint8_t         flags;          // I/O APIC flags
-    uint32_t       *addr;           // I/O APIC address
+    uint32_t        addr;           // I/O APIC address
 };
 
 // mpproc flags
@@ -214,6 +214,16 @@ static struct mpconf *mpconfig(struct mp **pmp)
  SMP: CPU proc, type:0, apicid:8, version:20, flags:1, signature:c, feature:1781abfd
  SMP: CPU proc, type:0, apicid:12, version:20, flags:1, signature:c, feature:1781abfd
  SMP: CPU 0 found 4 CPU(s), lapicaddr fee00000
+ 
+ APIC ID 分为 LAPIC ID 和 IOAPIC ID。前者唯一的标识系统中某个 LAPIC，
+ 后者唯一标识某个 IOAPIC。
+ 根据 MP spec（Multiple Processor Specification，多处理器规范）规定，LAPIC ID 必须唯一，
+ 但可以不连续。与 LAPIC ID 不同，IOAPIC ID 在系统 RESET 后统一清零，操作系统或 BIOS 负责验证
+ IOAPIC ID 是否唯一，如果有冲突检测到，由操作系统或 BIOS 重新分配。重分配的原则是从系统中所有
+ LAPIC ID 后最小的数字开始分配。如当前系统有两个 LAPIC，ID 为 0、1，则分配 IOAPIC ID 应该从 2 开始。
+ 需要注意的是，MP spec 对 APIC ID 的分配规则只适用于系统用 APIC BUS 的情况。X86 spec 说 4bit
+ 的 LAPIC ID 可以表示 15 个 CPU，还有一个 0x0f 预留给了广播。当 RTE 的 destination field 字段
+ 代表 APIC ID，且值为 0x0f 时，该中断消息广播给所有 CPU。
 */
 void mp_init(void)
 {
@@ -229,7 +239,7 @@ void mp_init(void)
         return;
     
     ismp = 1;
-    lapicaddr = conf->lapicaddr;
+    lapicaddr = conf->lapicaddr;    // 0xFEE00000
     
     for (p = conf->entries, i = 0; i < conf->entry; i++)
     {
@@ -237,7 +247,7 @@ void mp_init(void)
         {
             case MPPROC:
                 proc = (struct mpproc *)p;
-                if (proc->flags & MPPROC_BOOT) //如果设置了该标志位表明当前CPU是BSP
+                if (proc->flags & MPPROC_BOOT) //如果设置了该标志位表明当前 CPU 是 BSP
                     bootcpu = &cpus[ncpu];
                 
                 if (ncpu < NCPU)
@@ -257,7 +267,8 @@ void mp_init(void)
             
             case MPIOAPIC:
                 ioapic = (struct mpioapic *)p;
-                ioapicid = ioapic->apicno;
+                ioapicid = ioapic->apicno;  // 0x0
+                ioapicaddr = ioapic->addr;  // 0xFEC00000
                 cprintf("SMP: IOAPIC proc, type:%d, apicno:%x, version:%d, flags:%x, addr:%x\n", ioapic->type, ioapic->apicno, ioapic->version, ioapic->flags, ioapic->addr);
                 p += sizeof(struct mpioapic);
                 continue;
