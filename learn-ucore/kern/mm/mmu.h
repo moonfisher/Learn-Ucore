@@ -66,6 +66,8 @@
 
 #include "defs.h"
 
+#define NSEGS           9
+
 /* Gate descriptors for interrupts and traps */
 // 门描述符，8字节，64位
 struct gatedesc

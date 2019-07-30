@@ -86,25 +86,24 @@ void trap_init_percpu(void)
     cpu->cpu_ts.ts_ss0 = KERNEL_DS;
     cpu->cpu_ts.ts_iomb = sizeof(struct taskstate); //修复这里的一个bug
     
-    extern struct segdesc gdt[];
     // Initialize the TSS slot of the gdt.
-    gdt[SEG_TSS + cid] = SEG16(STS_T32A, (uint32_t)(&(cpu->cpu_ts)), sizeof(struct taskstate), 0);
-    gdt[SEG_TSS + cid].sd_s = 0;
+    cpu->gdt[SEG_TSS] = SEG16(STS_T32A, (uint32_t)(&(cpu->cpu_ts)), sizeof(struct taskstate), 0);
+    cpu->gdt[SEG_TSS].sd_s = 0;
+    
+    // Load the TSS selector (like other segment selectors, the
+    // bottom three bits are special; we leave them 0)
+    ltr(GD_TSS);
     
     // Map cpu, and curproc
-    // 不同 cpu 虽然使用同一个变量，但实际变量的虚拟地址是不同的
-    gdt[SEG_KCPU] = SEG16(STA_W, (uint32_t)(&(cpu->cpu)), 2 * sizeof(uint32_t), 0);
+    // 不同 cpu 所在的 SEG_KCPU 对应的段基地址不同，这里段基地址都设置为当前 cpu info 地址
+    cpu->gdt[SEG_KCPU] = SEG16(STA_W, (uint32_t)(&(cpu->cpu)), 2 * sizeof(uint32_t), 0);
     
     //设置 GDT，每个 CPU 都需要执行一次
     extern struct pseudodesc gdt_pd;
     lgdt(&gdt_pd);
     
-    // 加载 gs 寄存器
+    // 加载 gs 寄存器，fs / gs 寄存器可以用来做一些和 cpu 相关的本地存储
     loadgs(GD_KCPU);
-    
-    // Load the TSS selector (like other segment selectors, the
-    // bottom three bits are special; we leave them 0)
-    ltr(GD_TSS + 8 * cid);
     
     // Load the IDT
     lidt(&idt_pd);

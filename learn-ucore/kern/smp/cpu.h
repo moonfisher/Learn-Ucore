@@ -25,24 +25,25 @@ struct cpu_info
     uint8_t apic_id;                // Local APIC ID
     volatile unsigned cpu_status;   // The status of the CPU
 //    struct Env *cpu_env;          // The currently-running environment.
+    struct segdesc gdt[NSEGS];      // x86 global descriptor table
     struct taskstate cpu_ts;        // Used by x86 to find stack for interrupt
-    struct cpu_info *cpu;
+    struct cpu_info *cpu;           // The currently-running cpu.
     struct proc_struct *proc;       // The currently-running process.
 };
 
 // Initialized in mpconfig.c
 extern struct cpu_info cpus[NCPU];
-extern int ncpu;				// Total number of CPUs in the system
-extern struct cpu_info *bootcpu; // The boot-strap processor (BSP)
-extern physaddr_t lapicaddr;	// Physical MMIO address of the local APIC
-extern physaddr_t ioapicaddr;
+extern int ncpu;				    // Total number of CPUs in the system
+extern struct cpu_info *bootcpu;    // The boot-strap processor (BSP)
+extern physaddr_t lapicaddr;	    // Physical MMIO address of the local APIC
+extern physaddr_t ioapicaddr;       // Physical MMIO address of the io APIC
 extern uint8_t ioapicid;
 
-// Per-CPU kernel stacks
+// Per-CPU kernel stacks 每个 cpu 有自己的栈空间
 extern unsigned char percpu_kstacks[NCPU][KSTACKSIZE];
 
 /*
- 每个 cpu 如何知道自身的当前运行状态呢？
+ 每个 cpu 如何知道自身的当前运行状态呢？（这个做法类似 linux Per-Cpu 变量原理）
  
  我们可以通过 lapic 获取 cpu 自身编号，再利用编号对 cpus 寻址即可，也就是说，对于任意一个 cpu，
  自身状态的存储位置可以这样获得： C struct cpu *c = &cpus[cpunum()]

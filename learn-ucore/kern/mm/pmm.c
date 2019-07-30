@@ -253,7 +253,7 @@ pde_t * const vpd = (pde_t *)PGADDR(PDX(VPT), PDX(VPT), 0); // 0xFAFEB000
      }
 }
  */
-struct segdesc gdt[NCPU + 7] = {
+struct segdesc gdt[NSEGS] = {
     SEG_NULL,
     [SEG_KTEXT]     = SEG_NULL,
     [SEG_KDATA]     = SEG_NULL,
