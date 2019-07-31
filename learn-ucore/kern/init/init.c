@@ -25,7 +25,6 @@ int kern_init(void) __attribute__((noreturn));
 int mon_backtrace(int argc, char **argv, struct trapframe *tf);
 void boot_aps(void);
 void ioapic_init(void);
-void ioapic_enable(int irq, int cpunum);
 //static void lab1_switch_test(void);
 void grade_backtrace(void);
 int main(void) {}
@@ -94,12 +93,16 @@ int kern_init(void)
 #endif
     memset(edata, 0, (size_t)(end - edata));
 
-    // 这里要先初始化输入输出，否则后续的 printf 无法输出日志
-    cons_init();                // init the console
+    // 这里要先初始化输出，否则后续的 printf 无法输出日志
+    cons_early_init();          // init the console
 
+    cprintf("==================================\n");
+    struct rtcdate date;
+    cmos_time(&date);
     const char *message = "UCore os is loading ...";
-    cprintf("%s\n\n", message);
-
+    cprintf("%s at %d-%d-%d %d:%d:%d\n", message, date.year, date.month, date.day, date.hour, date.minute, date.second);
+    cprintf("==================================\n");
+    
     validate_cpuid();
     print_kerninfo();
     grade_backtrace();
@@ -111,15 +114,12 @@ int kern_init(void)
 
     lapic_init();               // init smp local apic
     
-    // 启动 smp 之后，8259A 的中断方式将不可用，改为 ioapic 方式
+    // 启动 smp 之后，8259A 的中断方式将不再用，改为 ioapic 方式
     pic_init();                 // init 8259A interrupt controller
     ioapic_init();              // init ioapic interrupt controller
     
-    ioapic_enable(IRQ_COM1, 1);
-    ioapic_enable(IRQ_KBD, 0);
-//    ioapic_enable(IRQ_IDE1, 0);
-//    ioapic_enable(IRQ_IDE2, 0);
-    
+    cons_init();
+
     idt_init();                 // init interrupt descriptor table
 
     vmm_init();                 // init virtual memory management
@@ -132,7 +132,9 @@ int kern_init(void)
     swap_init();                // init swap
     fs_init();                  // init fs
     
-    clock_init();               // init clock interrupt
+    // 启动 smp 之后，定时器也改为使用 local apic 实现
+    if (!ismp)
+        clock_init();           // init clock interrupt
     
     net_init();                  // init nic
     net_check();
@@ -218,8 +220,12 @@ void mp_main(void)
     // to start running processes on this CPU.  But make sure that
     // only one CPU can enter the scheduler at a time!
     //
-    lock_kernel();
-    schedule();
+//    lock_kernel();
+//    schedule();
+    while (1)
+    {
+        ;
+    }
 }
 
 void __attribute__((noinline)) grade_backtrace2(int arg0, int arg1, int arg2, int arg3)

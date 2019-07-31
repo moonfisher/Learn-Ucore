@@ -420,7 +420,7 @@ static void trap_dispatch(struct trapframe *tf)
 
         case IRQ_OFFSET + IRQ_COM1:
             c = cons_getc();
-            cprintf("serial [%03d] %c\n", c, c);
+            cprintf("serial [%03d] %c from cpu %d\n", c, c, thiscpu->cpu_id);
             extern void dev_stdin_write(char c);
             dev_stdin_write(c);
             lapic_eoi();
@@ -428,7 +428,7 @@ static void trap_dispatch(struct trapframe *tf)
             
         case IRQ_OFFSET + IRQ_KBD:
             c = cons_getc();
-            cprintf("kbd [%03d] %c\n", c, c);
+            cprintf("kbd [%03d] %c from cpu %d\n", c, c, thiscpu->cpu_id);
             extern void dev_stdin_write(char c);
             dev_stdin_write(c);
             lapic_eoi();
@@ -437,7 +437,7 @@ static void trap_dispatch(struct trapframe *tf)
         case IRQ_OFFSET + IRQ_IDE1:
         case IRQ_OFFSET + IRQ_IDE2:
             /* do nothing */
-            print_trapframe(tf);
+//            print_trapframe(tf);
             lapic_eoi();
             break;
             

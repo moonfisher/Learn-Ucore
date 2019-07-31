@@ -7,6 +7,7 @@
 #include "trap.h"
 #include "memlayout.h"
 #include "sync.h"
+#include "cpu.h"
 
 /* stupid I/O delay routine necessitated by historical PC design flaws */
 static void delay(void)
@@ -113,6 +114,8 @@ static void serial_init(void)
     {
         irq_setmask_8259A(irq_mask_8259A & ~(1 << IRQ_COM1));
     }
+    
+    ioapic_enable(IRQ_COM1, ncpu - 1);
 }
 
 static void lpt_putc_sub(int c)
@@ -447,12 +450,17 @@ static void kbd_init(void)
     // drain the kbd buffer
     kbd_intr();
     irq_setmask_8259A(irq_mask_8259A & ~(1 << IRQ_KBD));
+    ioapic_enable(IRQ_KBD, 0);
+}
+
+void cons_early_init(void)
+{
+    cga_init();
 }
 
 /* cons_init - initializes the console devices */
 void cons_init(void)
 {
-    cga_init();
     serial_init();
     kbd_init();
     if (!serial_exists)

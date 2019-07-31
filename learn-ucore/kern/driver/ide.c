@@ -6,6 +6,7 @@
 #include "ide.h"
 #include "x86.h"
 #include "assert.h"
+#include "cpu.h"
 
 #define ISA_DATA                0x00
 #define ISA_ERROR               0x01
@@ -182,6 +183,9 @@ void ide_init(void)
     // enable ide interrupt
     irq_setmask_8259A(irq_mask_8259A & ~(1 << IRQ_IDE1));
     irq_setmask_8259A(irq_mask_8259A & ~(1 << IRQ_IDE2));
+    
+    ioapic_enable(IRQ_IDE1, ncpu - 1);
+    ioapic_enable(IRQ_IDE2, ncpu - 1);
 }
 
 bool ide_device_valid(unsigned short ideno)

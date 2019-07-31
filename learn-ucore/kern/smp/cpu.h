@@ -8,6 +8,16 @@
 #include "proc.h"
 #include "x86.h"
 
+struct rtcdate
+{
+    uint32_t second;
+    uint32_t minute;
+    uint32_t hour;
+    uint32_t day;
+    uint32_t month;
+    uint32_t year;
+};
+
 // Maximum number of CPUs
 #define NCPU    32
 
@@ -79,5 +89,7 @@ void lapic_init(void);
 void lapic_startap(uint8_t apicid, uint32_t addr);
 void lapic_eoi(void);
 void lapic_ipi(int vector);
+void ioapic_enable(int irq, int cpunum);
+void cmos_time(struct rtcdate *r);
 
 #endif
