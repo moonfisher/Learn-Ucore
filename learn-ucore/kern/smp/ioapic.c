@@ -50,6 +50,9 @@ void ioapic_init(void)
 {
     int i, id, maxintr;
 
+    if (!ismp)
+        return;
+    
     ioapic = mmio_map_region(ioapicaddr, 4096);
     cprintf("ioapic_init mmio_map_region: ioapicaddr:%x, ioapic:%x\n", ioapicaddr, ioapic);
     
@@ -69,6 +72,9 @@ void ioapic_init(void)
 
 void ioapic_enable(int irq, int cpunum)
 {
+    if (!ismp)
+        return;
+    
     // Mark interrupt edge-triggered, active high,
     // enabled, and routed to the given cpunum,
     // which happens to be that cpu's APIC ID.

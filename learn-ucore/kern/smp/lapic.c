@@ -76,14 +76,19 @@ void lapic_init(void)
     cprintf("lapic_init mmio_map_region: lapicaddr:%x, lapic:%x\n", lapicaddr, lapic);
 
     // Enable local APIC; set spurious interrupt vector.
+    // 使用 SVR 来打开 APIC 还可以使用 global enable / disable APIC
     lapicw(SVR, ENABLE | (IRQ_OFFSET + IRQ_SPURIOUS));
 
     // The timer repeatedly counts down at bus frequency
     // from lapic[TICR] and then issues an interrupt.
     // If we cared more about precise timekeeping,
     // TICR would be calibrated using an external time source.
+    // 设置时钟频率
     lapicw(TDCR, X1);
+    // 设置定期计数模式
     lapicw(TIMER, PERIODIC | (IRQ_OFFSET + IRQ_TIMER));
+    // 写入 initial-count 值为 0 时产生中断
+    // 为零后会重新装入再次计数
     lapicw(TICR, 10000000);
 
     // Leave LINT0 of the BSP enabled so that it can get
@@ -93,6 +98,7 @@ void lapic_init(void)
     // BSP's local APIC in Virtual Wire Mode, in which 8259A's
     // INTR is virtually connected to BSP's LINTIN0. In this mode,
     // we do not need to program the IOAPIC.
+    // 如果当前 CPU 不是 BSP 那么屏蔽来自 8259 PIC 的中断请求
     if (thiscpu != bootcpu)
         lapicw(LINT0, MASKED);
 
@@ -123,6 +129,7 @@ void lapic_init(void)
     }
 
     // Enable interrupts on the APIC (but not on the processor).
+    // 允许响应所有的中断请求
     lapicw(TPR, 0);
 }
 

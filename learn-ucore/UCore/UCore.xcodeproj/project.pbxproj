@@ -352,6 +352,7 @@
 		C4CB32C32248F5830014426C /* hash.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB32582248F5830014426C /* hash.c */; };
 		C4CB32C42248F5830014426C /* printfmt.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB325C2248F5830014426C /* printfmt.c */; };
 		C4D3474822EB0C0500F84AFC /* ioapic.c in Sources */ = {isa = PBXBuildFile; fileRef = C4D3474722EB0C0500F84AFC /* ioapic.c */; };
+		C4D3485822F12D4D00F84AFC /* acpi.c in Sources */ = {isa = PBXBuildFile; fileRef = C4D3485722F12D4D00F84AFC /* acpi.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -822,6 +823,8 @@
 		C4CB32602248F5830014426C /* string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = string.h; sourceTree = "<group>"; };
 		C4CB32612248F5830014426C /* atomic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = atomic.h; sourceTree = "<group>"; };
 		C4D3474722EB0C0500F84AFC /* ioapic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ioapic.c; sourceTree = "<group>"; };
+		C4D3485622F12D4D00F84AFC /* acpi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = acpi.h; sourceTree = "<group>"; };
+		C4D3485722F12D4D00F84AFC /* acpi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = acpi.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -845,6 +848,8 @@
 		735AB82922C7A1BE00192769 /* smp */ = {
 			isa = PBXGroup;
 			children = (
+				C4D3485622F12D4D00F84AFC /* acpi.h */,
+				C4D3485722F12D4D00F84AFC /* acpi.c */,
 				735AB83022C7ACBC00192769 /* cpu.h */,
 				735AB82D22C7A1BE00192769 /* lapic.c */,
 				C4D3474722EB0C0500F84AFC /* ioapic.c */,
@@ -1846,6 +1851,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C4D3485822F12D4D00F84AFC /* acpi.c in Sources */,
 				C4CB32842248F5830014426C /* wait.c in Sources */,
 				C480E34322A0D9180093D61D /* arpqsend.c in Sources */,
 				C480E2C622A0D9170093D61D /* netnum.c in Sources */,

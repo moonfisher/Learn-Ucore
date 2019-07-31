@@ -87,26 +87,32 @@ void trap_init_percpu(void)
     cpu->cpu_ts.ts_iomb = sizeof(struct taskstate); //修复这里的一个bug
     
     // Initialize the TSS slot of the gdt.
+    // 之前初始化了一个全局 gdt，但这里需要修改 gdt，因此每个 cpu 都维护一个 gdt 结构
+    extern struct segdesc gdt[NSEGS];
+    memcpy(cpu->gdt, gdt, sizeof(gdt));
+    
+    cpu->gdt_pd.pd_base = cpu->gdt;
+    cpu->gdt_pd.pd_lim = sizeof(cpu->gdt) - 1;
+    
     cpu->gdt[SEG_TSS] = SEG16(STS_T32A, (uint32_t)(&(cpu->cpu_ts)), sizeof(struct taskstate), 0);
     cpu->gdt[SEG_TSS].sd_s = 0;
-    
-    // Load the TSS selector (like other segment selectors, the
-    // bottom three bits are special; we leave them 0)
-    ltr(GD_TSS);
     
     // Map cpu, and curproc
     // 不同 cpu 所在的 SEG_KCPU 对应的段基地址不同，这里段基地址都设置为当前 cpu info 地址
     cpu->gdt[SEG_KCPU] = SEG16(STA_W, (uint32_t)(&(cpu->cpu)), 2 * sizeof(uint32_t), 0);
     
-    //设置 GDT，每个 CPU 都需要执行一次
-    extern struct pseudodesc gdt_pd;
-    lgdt(&gdt_pd);
+    // 设置 GDT，每个 CPU 都需要执行一次
+    lgdt(&(cpu->gdt_pd));
     
     // 加载 gs 寄存器，fs / gs 寄存器可以用来做一些和 cpu 相关的本地存储
     loadgs(GD_KCPU);
     
     // Load the IDT
     lidt(&idt_pd);
+        
+    // Load the TSS selector (like other segment selectors, the
+    // bottom three bits are special; we leave them 0)
+    ltr(GD_TSS);
     
     // 这里看起来每个 CPU 都是在给同一个 cpu 和 proc 变量赋值，好像会覆盖
     // 但实际上因为 gs 段表映射不同，cpu 和 proc 这 2 个变量的虚拟地址是不同的
@@ -193,7 +199,7 @@ void idt_init(void)
     idt[T_TASKGATE].gd_rsv1 = 0;
     idt[T_TASKGATE].gd_type = STS_TG;       // 这是任务门
     idt[T_TASKGATE].gd_s = 0;               // 任务门是系统段，这里必须为 0
-    idt[T_TASKGATE].gd_dpl = DPL_KERNEL;      // 陷阱门是提供给用户进程使用的，要设置为 DPL_USER
+    idt[T_TASKGATE].gd_dpl = DPL_KERNEL;    // 陷阱门是提供给用户进程使用的，要设置为 DPL_USER
     idt[T_TASKGATE].gd_p = 1;
     idt[T_TASKGATE].gd_off_31_16 = 0;
 
@@ -404,21 +410,20 @@ static void trap_dispatch(struct trapframe *tf)
             {
                 print_ticks();
             }
+            lapic_eoi();
             break;
             
         case IRQ_OFFSET + IRQ_NIC:
             cprintf("nic irq\n");
+            lapic_eoi();
             break;
-            
-        case 11:
-            cprintf("nic irq 11\n");
-            break;
-            
+
         case IRQ_OFFSET + IRQ_COM1:
             c = cons_getc();
             cprintf("serial [%03d] %c\n", c, c);
             extern void dev_stdin_write(char c);
             dev_stdin_write(c);
+            lapic_eoi();
             break;
             
         case IRQ_OFFSET + IRQ_KBD:
@@ -426,6 +431,14 @@ static void trap_dispatch(struct trapframe *tf)
             cprintf("kbd [%03d] %c\n", c, c);
             extern void dev_stdin_write(char c);
             dev_stdin_write(c);
+            lapic_eoi();
+            break;
+            
+        case IRQ_OFFSET + IRQ_IDE1:
+        case IRQ_OFFSET + IRQ_IDE2:
+            /* do nothing */
+            print_trapframe(tf);
+            lapic_eoi();
             break;
             
         case T_SWITCH_TOU:
@@ -474,12 +487,6 @@ static void trap_dispatch(struct trapframe *tf)
                 memmove(switchu2k, tf, sizeof(struct trapframe) - 8);
                 *((uint32_t *)tf - 1) = (uint32_t)switchu2k;
             }
-            break;
-            
-        case IRQ_OFFSET + IRQ_IDE1:
-        case IRQ_OFFSET + IRQ_IDE2:
-            /* do nothing */
-            print_trapframe(tf);
             break;
             
         default:

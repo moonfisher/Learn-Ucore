@@ -209,6 +209,8 @@ static struct mpconf *mpconfig(struct mp **pmp)
 
 /*
  smp 原理参考 https://www.jianshu.com/p/fc9a8572a830
+ qemu smp 配置参考 https://zhensheng.im/2015/11/22/2521/MIAO_LE_GE_MI
+ 
  SMP: CPU proc, type:0, apicid:0, version:20, flags:3, signature:c, feature:1781abfd
  SMP: CPU proc, type:0, apicid:4, version:20, flags:1, signature:c, feature:1781abfd
  SMP: CPU proc, type:0, apicid:8, version:20, flags:1, signature:c, feature:1781abfd
@@ -224,6 +226,35 @@ static struct mpconf *mpconfig(struct mp **pmp)
  需要注意的是，MP spec 对 APIC ID 的分配规则只适用于系统用 APIC BUS 的情况。X86 spec 说 4bit
  的 LAPIC ID 可以表示 15 个 CPU，还有一个 0x0f 预留给了广播。当 RTE 的 destination field 字段
  代表 APIC ID，且值为 0x0f 时，该中断消息广播给所有 CPU。
+ 
+ (gdb) p *mp
+ {
+    signature = "_MP_",
+    physaddr = 0xf5ad0,
+    length = 1 '\001',
+    specrev = 4 '\004',
+    checksum = 103 'g',
+    type = 0 '\000',
+    imcrp = 0 '\000',
+    reserved = "\000\000"
+ }
+ 
+ (gdb) p *conf
+ {
+    signature = "PCMP",
+    length = 268,
+    version = 4 '\004',
+    checksum = 87 'W',
+    product = "BOCHSCPU0.1",
+    oemtable = 0,
+    oemlength = 0,
+    entry = 22,
+    lapicaddr = 0xfee00000,
+    xlength = 0,
+    xchecksum = 0 '\000',
+    reserved = 0 '\000',
+    entries = 0xc00f5afc
+ }
 */
 void mp_init(void)
 {
@@ -250,6 +281,7 @@ void mp_init(void)
                 if (proc->flags & MPPROC_BOOT) //如果设置了该标志位表明当前 CPU 是 BSP
                     bootcpu = &cpus[ncpu];
                 
+                // bios 这里统计的是物理 cpu 的个数，和 acpi 不同
                 if (ncpu < NCPU)
                 {
                     cprintf("SMP: CPU proc, type:%d, apicid:%d, version:%d, flags:%x, signature:%c%c%c%c, feature:%x\n", proc->type, proc->apicid, proc->version, proc->flags, proc->signature[0], proc->signature[1], proc->signature[2], proc->signature[3], proc->feature);

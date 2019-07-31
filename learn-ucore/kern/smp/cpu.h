@@ -6,9 +6,10 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+#include "x86.h"
 
 // Maximum number of CPUs
-#define NCPU    8
+#define NCPU    32
 
 // Values of status in struct Cpu
 enum
@@ -23,9 +24,10 @@ struct cpu_info
 {
     uint8_t cpu_id;                 // index into cpus[] below
     uint8_t apic_id;                // Local APIC ID
+    uint8_t acpi_id;                // ACPI ID
     volatile unsigned cpu_status;   // The status of the CPU
-//    struct Env *cpu_env;          // The currently-running environment.
     struct segdesc gdt[NSEGS];      // x86 global descriptor table
+    struct pseudodesc gdt_pd;       // x86 global descriptor table
     struct taskstate cpu_ts;        // Used by x86 to find stack for interrupt
     struct cpu_info *cpu;           // The currently-running cpu.
     struct proc_struct *proc;       // The currently-running process.
@@ -38,6 +40,7 @@ extern struct cpu_info *bootcpu;    // The boot-strap processor (BSP)
 extern physaddr_t lapicaddr;	    // Physical MMIO address of the local APIC
 extern physaddr_t ioapicaddr;       // Physical MMIO address of the io APIC
 extern uint8_t ioapicid;
+extern int ismp;
 
 // Per-CPU kernel stacks 每个 cpu 有自己的栈空间
 extern unsigned char percpu_kstacks[NCPU][KSTACKSIZE];

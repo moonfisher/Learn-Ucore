@@ -228,7 +228,7 @@
  这是内核地址空间的地址转换关系，注意内核的虚拟地址在“高端”，但是内核映射的物理内存地址在低端。
  https://blog.csdn.net/qq_26222859/article/details/80901104
 */
-#define KMEMSIZE            0x38000000                  // the maximum amount of physical memory
+#define KMEMSIZE            0x38000000  // the maximum amount of physical memory
 #define KERNTOP             (KERNBASE + KMEMSIZE)
 
 /* *

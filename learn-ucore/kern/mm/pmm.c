@@ -261,8 +261,8 @@ struct segdesc gdt[NSEGS] = {
     [SEG_UDATA]     = SEG_NULL,
     [SEG_CALL_GATE] = SEG_NULL,
     [SEG_TASK_GATE] = SEG_NULL,
-    [SEG_TSS]       = SEG_NULL,
     [SEG_KCPU]      = SEG_NULL,
+    [SEG_TSS]       = SEG_NULL,
 };
 
 /*
@@ -443,20 +443,20 @@ static void gdt_init(void)
     gdt[SEG_UDATA].sd_g = 1;
     gdt[SEG_UDATA].sd_base_31_24 = 0;
 
-//    // tss 任务描述符
-//    gdt[SEG_TSS].sd_lim_15_0 = (sizeof(ts)) & 0xffff;
-//    gdt[SEG_TSS].sd_base_15_0 = ((uintptr_t)&ts) & 0xffff;
-//    gdt[SEG_TSS].sd_base_23_16 = (((uintptr_t)&ts) >> 16) & 0xff;
-//    gdt[SEG_TSS].sd_type = STS_T32A;    // 说明这个段是 tss 段
-//    gdt[SEG_TSS].sd_s = 0;              // tss 是系统段，这里必须为 0
-//    gdt[SEG_TSS].sd_dpl = DPL_KERNEL;
-//    gdt[SEG_TSS].sd_p = 1;
-//    gdt[SEG_TSS].sd_lim_19_16 = (unsigned)(sizeof(ts)) >> 16;
-//    gdt[SEG_TSS].sd_avl = 0;
-//    gdt[SEG_TSS].sd_rsv1 = 0;
-//    gdt[SEG_TSS].sd_db = 1;
-//    gdt[SEG_TSS].sd_g = 0;      // tss 段界限粒度是字节，不是 4k
-//    gdt[SEG_TSS].sd_base_31_24 = (unsigned)((uintptr_t)&ts) >> 24;
+    // tss 任务描述符
+    gdt[SEG_TSS].sd_lim_15_0 = (sizeof(taskgate)) & 0xffff;
+    gdt[SEG_TSS].sd_base_15_0 = ((uintptr_t)&taskgate) & 0xffff;
+    gdt[SEG_TSS].sd_base_23_16 = (((uintptr_t)&taskgate) >> 16) & 0xff;
+    gdt[SEG_TSS].sd_type = STS_T32A;    // 说明这个段是 tss 段
+    gdt[SEG_TSS].sd_s = 0;              // tss 是系统段，这里必须为 0
+    gdt[SEG_TSS].sd_dpl = DPL_KERNEL;
+    gdt[SEG_TSS].sd_p = 1;
+    gdt[SEG_TSS].sd_lim_19_16 = (unsigned)(sizeof(taskgate)) >> 16;
+    gdt[SEG_TSS].sd_avl = 0;
+    gdt[SEG_TSS].sd_rsv1 = 0;
+    gdt[SEG_TSS].sd_db = 1;
+    gdt[SEG_TSS].sd_g = 0;      // tss 段界限粒度是字节，不是 4k
+    gdt[SEG_TSS].sd_base_31_24 = (unsigned)((uintptr_t)&taskgate) >> 24;
 
     /*
      调用门虽然是 CPU 提供给使用者提权的一种手段，通过调用门也可以实现各种系统调用，但是
@@ -498,7 +498,7 @@ static void gdt_init(void)
     gdt[SEG_TASK_GATE].sd_db = 1;
     gdt[SEG_TASK_GATE].sd_g = 0;  // tss 段界限粒度是字节，不是 4k
     gdt[SEG_TASK_GATE].sd_base_31_24 = (unsigned)((uintptr_t)&taskgate) >> 24;
-    
+
     // reload all segment registers
     lgdt(&gdt_pd);
 }
@@ -824,13 +824,15 @@ void pmm_init(void)
     // map all physical memory to linear memory with base linear addr KERNBASE
     // linear_addr KERNBASE ~ KERNBASE + KMEMSIZE = phy_addr 0 ~ KMEMSIZE
     // 映射虚拟地址 0xC0000000 ~ 0xF8000000 到物理地址 0 ~ 0x38000000
-    // 这段代码其实可以不执行，虚拟地址映射全部挪到 entry.S 里提前映射完，防止后续代码访问到未映射的地址
+    // 这段代码其实可以不执行，虚拟地址映射全部挪到 entry.S 里提前映射完，
+    // 防止后续代码访问到未映射的地址
     boot_map_segment(boot_pgdir, KERNBASE, KMEMSIZE, 0, PTE_W);
 
     // Since we are using bootloader's GDT,
     // we should reload gdt (second time, the last time) to get user segments and the TSS
     // map virtual_addr 0 ~ 4G = linear_addr 0 ~ 4G
     // then set kernel stack (ss:esp) in TSS, setup TSS in gdt, load TSS
+    // 这里 gdt 只是给 BSP cpu 设置，AP cpu 后续单独设置
     gdt_init();
 
     //use pmm->check to verify the correctness of the alloc/free function in a pmm

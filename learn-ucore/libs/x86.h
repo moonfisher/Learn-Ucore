@@ -110,6 +110,27 @@ static inline void invlpg(void *addr) __attribute__((always_inline));
     #define ntohs(num)  (num)
 #endif
 
+#define X86_FEATURE_APIC    ( 0 * 32 + 9) /* Onboard APIC */
+
+static inline void native_cpuid(uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx)
+{
+    /* ecx is often an input as well as an output. */
+    asm volatile("cpuid" : "=a" (*eax), "=b" (*ebx), "=c" (*ecx), "=d" (*edx) : "0" (*eax), "2" (*ecx) : "memory");
+}
+
+/* Should work well enough on modern CPUs for testing */
+static inline uint32_t cpu_has_feature(int flag)
+{
+    uint32_t eax, ebx, ecx, edx;
+    
+    eax = (flag & 0x100) ? 7 : (flag & 0x20) ? 0x80000001 : 1;
+    ecx = 0;
+    
+    asm volatile("cpuid" : "+a" (eax), "=b" (ebx), "=d" (edx), "+c" (ecx));
+    
+    return ((flag & 0x100 ? ebx : (flag & 0x80) ? ecx : edx) >> (flag & 31)) & 1;
+}
+
 static inline uint32_t inl(int port)
 {
     uint32_t data;

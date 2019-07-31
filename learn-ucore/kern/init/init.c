@@ -19,21 +19,74 @@
 #include "netcheck.h"
 #include "cpu.h"
 #include "spinlock.h"
+#include "acpi.h"
 
 int kern_init(void) __attribute__((noreturn));
 int mon_backtrace(int argc, char **argv, struct trapframe *tf);
 void boot_aps(void);
 void ioapic_init(void);
 void ioapic_enable(int irq, int cpunum);
-
 //static void lab1_switch_test(void);
 void grade_backtrace(void);
-
 int main(void) {}
+
+/*
+ * validate_cpuid()
+ * returns on success, quietly exits on failure (make verbose with -v)
+ * cpuid 指令详情 https://en.wikipedia.org/wiki/CPUID
+ */
+void validate_cpuid(void)
+{
+    unsigned int eax, ebx, ecx, edx, max_level;
+    unsigned int fms, family, model, stepping;
+    
+    eax = ebx = ecx = edx = 0;
+    
+    asm("cpuid" : "=a" (max_level), "=b" (ebx), "=c" (ecx), "=d" (edx) : "a" (0));
+    
+    if (ebx != 0x756e6547 || edx != 0x49656e69 || ecx != 0x6c65746e)
+    {
+        cprintf("%.4s%.4s%.4s != GenuineIntel", (char *)&ebx, (char *)&edx, (char *)&ecx);
+        return;
+    }
+    
+    asm("cpuid" : "=a" (fms), "=c" (ecx), "=d" (edx) : "a" (1) : "ebx");
+    family = (fms >> 8) & 0xf;
+    model = (fms >> 4) & 0xf;
+    stepping = fms & 0xf;
+    if (family == 6 || family == 0xf)
+        model += ((fms >> 16) & 0xf) << 4;
+    
+    cprintf("CPUID %d levels family : model : stepping " "0x%x : %x : %x (%d : %d : %d)\n", max_level, family, model, stepping, family, model, stepping);
+    
+    if (!(edx & (1 << 5)))
+    {
+        cprintf("CPUID: no MSR\n");
+    }
+    
+    /*
+     * Support for MSR_IA32_ENERGY_PERF_BIAS
+     * is indicated by CPUID.06H.ECX.bit3
+     */
+    asm("cpuid" : "=a" (eax), "=b" (ebx), "=c" (ecx), "=d" (edx) : "a" (6));
+    cprintf("CPUID.06H.ECX: 0x%x\n", ecx);
+    
+    if (!(ecx & (1 << 3)))
+    {
+        cprintf("CPUID: No MSR_IA32_ENERGY_PERF_BIAS\n");
+    }
+    
+    if (cpu_has_feature(X86_FEATURE_APIC))
+    {
+        cprintf("CPUID: cpu has apic feature\n");
+    }
+    
+    return;    /* success */
+}
 
 int kern_init(void)
 {
-    // 对于位于BSS段中未初始化的全局变量，需要初始化为0，确保代码能正确执行
+    // 对于位于 BSS 段中未初始化的全局变量，需要初始化为 0，确保代码能正确执行
 #if ASM_NO_64
     extern char edata[], end[];
 #else
@@ -41,26 +94,31 @@ int kern_init(void)
 #endif
     memset(edata, 0, (size_t)(end - edata));
 
+    // 这里要先初始化输入输出，否则后续的 printf 无法输出日志
     cons_init();                // init the console
 
-    const char *message = "(THU.CST) os is loading ...";
+    const char *message = "UCore os is loading ...";
     cprintf("%s\n\n", message);
 
+    validate_cpuid();
     print_kerninfo();
     grade_backtrace();
 
     pmm_init();                 // init physical memory management
 
-    mp_init();                  // init smp cpus apic
+    if (acpi_init())            // try to use acpi for machine info
+        mp_init();              // otherwise use bios MP tables
+
     lapic_init();               // init smp local apic
     
-    pic_init();                 // init interrupt controller
-    ioapic_init();              // another interrupt controller
+    // 启动 smp 之后，8259A 的中断方式将不可用，改为 ioapic 方式
+    pic_init();                 // init 8259A interrupt controller
+    ioapic_init();              // init ioapic interrupt controller
     
     ioapic_enable(IRQ_COM1, 1);
-    ioapic_enable(IRQ_KBD, 1);
-    ioapic_enable(IRQ_IDE1, 2);
-    ioapic_enable(IRQ_IDE2, 2);
+    ioapic_enable(IRQ_KBD, 0);
+//    ioapic_enable(IRQ_IDE1, 0);
+//    ioapic_enable(IRQ_IDE2, 0);
     
     idt_init();                 // init interrupt descriptor table
 
