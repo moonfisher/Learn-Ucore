@@ -220,8 +220,8 @@ void mp_main(void)
     // to start running processes on this CPU.  But make sure that
     // only one CPU can enter the scheduler at a time!
     //
-    lock_kernel();
     intr_enable();
+    lock_kernel();    
     schedule();
 }
 

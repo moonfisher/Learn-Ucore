@@ -2,6 +2,7 @@
 #include "stdio.h"
 #include "intr.h"
 #include "kmonitor.h"
+#include "cpu.h"
 
 void print_stackframe(void);
 static bool is_panic = 0;
@@ -19,10 +20,11 @@ void __panic(const char *file, int line, const char *fmt, ...)
     }
     is_panic = 1;
 
+    int cid = thiscpu->cpu_id;
     // print the 'message'
     va_list ap;
     va_start(ap, fmt);
-    cprintf("kernel panic at %s:%d:\n    ", file, line);
+    cprintf("kernel panic on cpu:%d at %s:%d: \n    ", cid, file, line);
     vcprintf(fmt, ap);
     cprintf("\n");
 
