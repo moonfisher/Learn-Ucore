@@ -53,6 +53,8 @@ void ioapic_init(void)
     if (!ismp)
         return;
     
+    // ioapicaddr 这个是一个 MMIO 地址，也是物理地址，但不在内存上
+    // 这里需要映射到虚拟地址才能访问
     ioapic = mmio_map_region(ioapicaddr, 4096);
     cprintf("ioapic_init mmio_map_region: ioapicaddr:%x, ioapic:%x\n", ioapicaddr, ioapic);
     
@@ -70,6 +72,8 @@ void ioapic_init(void)
     }
 }
 
+// 将中断号和某个 cpu 绑定起来，这样当中断触发时，可以选择指定的 cpu 来响应
+// 等同于分流，防止某个中断频繁触发到同一个 cpu 上，导致 cpu 太忙，无法处理进程
 void ioapic_enable(int irq, int cpunum)
 {
     if (!ismp)

@@ -37,6 +37,7 @@
 #define IDE_IDENT_MAX_LBA       120
 #define IDE_IDENT_MAX_LBA_EXT   200
 
+// 端口地址参考 cat /proc/ioports
 #define IO_BASE0                0x1F0
 #define IO_BASE1                0x170
 #define IO_CTRL0                0x3F4

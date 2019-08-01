@@ -577,6 +577,10 @@ size_t nr_free_pages(void)
 
 /* pmm_init - initialize the physical memory management */
 /*
+ DRAM:          0x00000 - 0x9FFFF, 640K;
+ Peripherals:   0xA0000 - 0xEFFFF, 320K (Graphic memory mapping: 0xB8000 - 0xBFFFF).
+ BIOS ROM:      0xF0000 - 0xFFFFF, 64K;
+ 
  e820map: qemu 模拟 512M 内存后的分布
      memory: 0009fc00, [00000000, 0009fbff], type = 1.
      memory: 00000400, [0009fc00, 0009ffff], type = 2.
@@ -584,7 +588,33 @@ size_t nr_free_pages(void)
      memory: 1fee0000, [00100000, 1ffdffff], type = 1.
      memory: 00020000, [1ffe0000, 1fffffff], type = 2.
      memory: 00040000, [fffc0000, ffffffff], type = 2.
- */
+ 
+ e820map: qemu 模拟 1024M 内存后的分布
+     memory: 0009fc00, [00000000, 0009fbff], type = 1.
+     memory: 00000400, [0009fc00, 0009ffff], type = 2.
+     memory: 00010000, [000f0000, 000fffff], type = 2.
+     memory: 3fee0000, [00100000, 3ffdffff], type = 1.
+     memory: 00020000, [3ffe0000, 3fffffff], type = 2.
+     memory: 00040000, [fffc0000, ffffffff], type = 2.
+ 
+ e820map: qemu 模拟 4096M 内存后的分布
+     memory: 0009fc00, [00000000, 0009fbff],    type = 1.
+     memory: 00000400, [0009fc00, 0009ffff],    type = 2.
+     memory: 00010000, [000f0000, 000fffff],    type = 2.
+     memory: bfee0000, [00100000, bffdffff],    type = 1.
+     memory: 00020000, [bffe0000, bfffffff],    type = 2.
+     memory: 00040000, [fffc0000, ffffffff],    type = 2.
+     memory: 40000000, [100000000, 13fffffff],  type = 1.
+ 
+ e820map: qemu 模拟 8192M 内存后的分布
+     memory: 0009fc00, [00000000, 0009fbff],    type = 1.
+     memory: 00000400, [0009fc00, 0009ffff],    type = 2.
+     memory: 00010000, [000f0000, 000fffff],    type = 2.
+     memory: bfee0000, [00100000, bffdffff],    type = 1.
+     memory: 00020000, [bffe0000, bfffffff],    type = 2.
+     memory: 00040000, [fffc0000, ffffffff],    type = 2.
+     memory: 140000000, [100000000, 23fffffff], type = 1.
+*/
 static void page_init(void)
 {
     //可用内存的数据结构在启动时通过 probe_memory 函数探测得来，结果存放在 0x8000 处

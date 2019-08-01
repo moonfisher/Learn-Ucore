@@ -43,6 +43,7 @@
 #define TCCR        (0x0390 / 4)    // Timer Current Count
 #define TDCR        (0x03E0 / 4)    // Timer Divide Configuration
 
+// 端口地址参考 cat /proc/ioports
 #define IO_RTC      0x70
 
 // lapic 是通过 MMIO 映射之后的地址，指向的是每个 CPU 自己的 local apic I/O 地址空间
@@ -68,12 +69,6 @@ void lapic_init(void)
 {
     if (!lapicaddr)
         return;
-
-    // lapicaddr is the physical address of the LAPIC's 4K MMIO
-    // region.  Map it in to virtual memory so we can access it.
-    // 不同 cpu 映射到的虚拟地址 lapic 是不同的
-    lapic = mmio_map_region(lapicaddr, 4096);
-    cprintf("lapic_init mmio_map_region: lapicaddr:%x, lapic:%x\n", lapicaddr, lapic);
 
     // Enable local APIC; set spurious interrupt vector.
     // 使用 SVR 来打开 APIC 还可以使用 global enable / disable APIC
@@ -160,6 +155,7 @@ int cpunum(void)
 }
 
 // Acknowledge interrupt.
+// 基于 apic 的硬中断，收到后必须要发送 eoi 确认，否则后续中断无法进来
 void lapic_eoi(void)
 {
     if (lapic)
@@ -234,6 +230,7 @@ void lapic_ipi(int vector)
     }
 }
 
+// 端口地址参考 cat /proc/ioports
 #define CMOS_PORT       0x70
 #define CMOS_RETURN     0x71
 #define CMOS_STATA      0x0a

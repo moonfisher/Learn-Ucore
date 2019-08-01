@@ -1583,11 +1583,11 @@ int do_shmem(uintptr_t *addr_store, size_t len, uint32_t mmap_flags)
         }
     }
 
-    struct shmem_struct *shmem;
-    if ((shmem = shmem_create(len)) == NULL)
-    {
-        goto out_unlock;
-    }
+//    struct shmem_struct *shmem;
+//    if ((shmem = shmem_create(len)) == NULL)
+//    {
+//        goto out_unlock;
+//    }
 
 //    if ((ret = mm_map_shmem(mm, addr, vm_flags, shmem, NULL)) != 0)
 //    {

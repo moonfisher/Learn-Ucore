@@ -98,10 +98,10 @@ static int sys_munmap(uint32_t arg[])
 
 static int sys_shmem(uint32_t arg[])
 {
-    uintptr_t *addr_store = (uintptr_t *)arg[0];
-    size_t len = (size_t)arg[1];
-    uint32_t mmap_flags = (uint32_t)arg[2];
-    return do_shmem(addr_store, len, mmap_flags);
+//    uintptr_t *addr_store = (uintptr_t *)arg[0];
+//    size_t len = (size_t)arg[1];
+//    uint32_t mmap_flags = (uint32_t)arg[2];
+//    return do_shmem(addr_store, len, mmap_flags);
     return -1;
 }
 

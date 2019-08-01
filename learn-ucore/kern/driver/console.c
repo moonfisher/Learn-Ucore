@@ -19,6 +19,7 @@ static void delay(void)
 }
 
 /***** Serial I/O code *****/
+// 端口地址参考 cat /proc/ioports
 #define COM1            0x3F8
 
 #define COM_RX          0       // In:  Receive buffer (DLAB=0)
@@ -41,10 +42,11 @@ static void delay(void)
 #define COM_LSR_TXRDY   0x20    // Transmit buffer avail
 #define COM_LSR_TSRE    0x40    // Transmitter off
 
+// 端口地址参考 cat /proc/ioports
 #define MONO_BASE       0x3B4
 #define MONO_BUF        0xB0000
 #define CGA_BASE        0x3D4
-#define CGA_BUF         0xB8000
+#define CGA_BUF         0xB8000 // MMIO address
 #define CRT_ROWS        25
 #define CRT_COLS        80
 #define CRT_SIZE        (CRT_ROWS * CRT_COLS)
@@ -56,7 +58,21 @@ static uint16_t crt_pos;
 static uint16_t addr_6845;
 
 /* TEXT-mode CGA/VGA display output */
-
+/*
+ CPU 通过 MMIO 的方式来驱动显卡的 VGA text mode。
+ 具体规则是在内存地址 0xB8000（这是一个 MMIO 地址） 处有一个 25 * 80，单个元素 2 字节
+ 大小的二维数组（VGA text buffer），对应显示区域的 25 行 80 列的显示区域。
+ 每个数组元素就是一个单元格内的显示数据。程序只要指定读写该区域的数据，就能实现显示控制。
+ 
+ Volatile 的原意是挥发性的，不稳定。而 Volatile variable 指的是那些可能通过多种途径进行
+ 修改的数据。比如下面的 CGA_BUF，如果在程序中使用那么指针对应的数据，除了程序本身会修改，
+ 其他的程序也会修改，显卡驱动（bios?）也会修改。
+ 
+ 这样的数据会有一个问题，就是很多时候对于单一程序只会进行读取/写入这种操作中的一种，比如
+ VGA text buffer 读取很多时候是显卡的事，程序则只负责写入。这样的数据，
+ 编译器会认为是没有意义的，很可能会在优化的时候被去掉，反而出现错误。所以一些语言中会把这样
+ 的数据标记出来。MMIO 是 volatile 最常用的场景之一。
+*/
 static void cga_init(void)
 {
     volatile uint16_t *cp = (uint16_t *)(CGA_BUF + KERNBASE);

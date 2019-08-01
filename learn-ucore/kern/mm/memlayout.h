@@ -212,6 +212,86 @@
  * */
 
 /*
+ cat /proc/iomem
+ 00000000-00000fff : reserved
+ 00001000-0009fbff : System RAM
+ 0009fc00-0009ffff : reserved
+ 000a0000-000bffff : PCI Bus 0000:00
+ 000c0000-000c8bff : Video ROM
+ 000c9000-000c99ff : Adapter ROM
+ 000ca000-000cc3ff : Adapter ROM
+ 000f0000-000fffff : reserved
+ 000f0000-000fffff : System ROM
+ 00100000-3fffdfff : System RAM
+ 01000000-0169c350 : Kernel code
+ 0169c351-01af38bf : Kernel data
+ 01ca2000-01fa1fff : Kernel bss
+ 3fffe000-3fffffff : reserved
+ 40000000-febfffff : PCI Bus 0000:00
+ fc000000-fdffffff : 0000:00:02.0
+ fc000000-fdffffff : cirrusdrmfb_vram
+ febd0000-febdffff : 0000:00:02.0
+ febe0000-febeffff : 0000:00:03.0
+ febf0000-febf0fff : 0000:00:02.0
+ febf0000-febf0fff : cirrusdrmfb_mmio
+ febf1000-febf1fff : 0000:00:03.0
+ febf2000-febf2fff : 0000:00:04.0
+ fec00000-fec003ff : IOAPIC 0
+ fee00000-fee00fff : Local APIC
+ feffc000-feffffff : reserved
+ fffc0000-ffffffff : reserved
+*/
+
+/*
+ cat /proc/ioports
+ 0000-0cf7 : PCI Bus 0000:00
+ 0000-001f : dma1
+ 0020-0021 : pic1
+ 0040-0043 : timer0
+ 0050-0053 : timer1
+ 0060-0060 : keyboard
+ 0064-0064 : keyboard
+ 0070-0071 : rtc0
+ 0080-008f : dma page reg
+ 00a0-00a1 : pic2
+ 00c0-00df : dma2
+ 00f0-00ff : fpu
+ 0170-0177 : 0000:00:01.1
+ 0170-0177 : ata_piix
+ 01f0-01f7 : 0000:00:01.1
+ 01f0-01f7 : ata_piix
+ 0376-0376 : 0000:00:01.1
+ 0376-0376 : ata_piix
+ 03c0-03df : vga+
+ 03f2-03f2 : floppy
+ 03f4-03f5 : floppy
+ 03f6-03f6 : 0000:00:01.1
+ 03f6-03f6 : ata_piix
+ 03f7-03f7 : floppy
+ 03f8-03ff : serial
+ 0cf8-0cff : PCI conf1
+ 0d00-ffff : PCI Bus 0000:00
+ afe0-afe3 : ACPI GPE0_BLK
+ b000-b03f : 0000:00:01.3
+ b000-b003 : ACPI PM1a_EVT_BLK
+ b004-b005 : ACPI PM1a_CNT_BLK
+ b008-b00b : ACPI PM_TMR
+ b010-b015 : ACPI CPU throttle
+ b100-b10f : 0000:00:01.3
+ b100-b107 : piix4_smbus
+ c000-c03f : 0000:00:04.0
+ c000-c03f : virtio-pci-legacy
+ c040-c05f : 0000:00:01.2
+ c040-c05f : uhci_hcd
+ c060-c07f : 0000:00:03.0
+ c060-c07f : virtio-pci-legacy
+ c080-c09f : 0000:00:05.0
+ c080-c09f : virtio-pci-legacy
+ c0a0-c0af : 0000:00:01.1
+ c0a0-c0af : ata_piix
+*/
+
+/*
  Linux 操作系统和驱动程序运行在内核空间，应用程序运行在用户空间，两者不能简单地使用指针传递数据，
  因为Linux使用的虚拟内存机制，用户空间的数据可能被换出，当内核空间使用用户空间指针时，
  对应的数据可能不在内存中。用户空间的内存映射采用段页式，而内核空间有自己的规则

@@ -8,6 +8,7 @@
 #define IRQ_OFFSET  32
 
 // I/O Addresses of the two 8259A programmable interrupt controllers
+// 端口地址参考 cat /proc/ioports
 #define IO_PIC1     0x20    // Master (IRQs 0-7)
 #define IO_PIC2     0xA0    // Slave (IRQs 8-15)
 

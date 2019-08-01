@@ -40,6 +40,7 @@ static void waitdisk(void)
 }
 
 /* readsect - read a single sector at @secno into @dst */
+// 端口地址参考 cat /proc/ioports
 static void readsect(void *dst, uint32_t secno)
 {
     // wait for disk to be ready

@@ -91,7 +91,7 @@ void trap_init_percpu(void)
     extern struct segdesc gdt[NSEGS];
     memcpy(cpu->gdt, gdt, sizeof(gdt));
     
-    cpu->gdt_pd.pd_base = cpu->gdt;
+    cpu->gdt_pd.pd_base = (uintptr_t)(cpu->gdt);
     cpu->gdt_pd.pd_lim = sizeof(cpu->gdt) - 1;
     
     cpu->gdt[SEG_TSS] = SEG16(STS_T32A, (uint32_t)(&(cpu->cpu_ts)), sizeof(struct taskstate), 0);

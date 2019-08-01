@@ -336,7 +336,14 @@ void mp_init(void)
         cprintf("SMP: configuration not found, SMP disabled\n");
         return;
     }
-    
+        
+    // lapicaddr is the physical address of the LAPIC's 4K MMIO
+    // region.  Map it in to virtual memory so we can access it.
+    // lapicaddr 这个是一个 MMIO 地址，也是物理地址，但不在内存上
+    // 这里需要映射到虚拟地址才能访问
+    lapic = mmio_map_region(lapicaddr, 4096);
+    cprintf("SMP mmio_map_region: lapicaddr:%x, lapic:%x\n", lapicaddr, lapic);
+
     cprintf("SMP: CPU %d found %d CPU(s), lapicaddr %x\n", bootcpu->cpu_id, ncpu, lapicaddr);
     
     if (mp->imcrp)

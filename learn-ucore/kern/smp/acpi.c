@@ -173,6 +173,10 @@ static int acpi_config_smp(struct acpi_madt *madt)
     {
         ismp = 1;
         lapicaddr = lapic_addr;
+        // lapicaddr 这个是一个 MMIO 地址，也是物理地址，但不在内存上
+        // 这里需要映射到虚拟地址才能访问
+        lapic = mmio_map_region(lapicaddr, 4096);
+        cprintf("acpi_config_smp mmio_map_region: lapicaddr:%x, lapic:%x\n", lapicaddr, lapic);
         return 0;
     }
 

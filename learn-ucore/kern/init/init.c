@@ -220,12 +220,9 @@ void mp_main(void)
     // to start running processes on this CPU.  But make sure that
     // only one CPU can enter the scheduler at a time!
     //
-//    lock_kernel();
-//    schedule();
-    while (1)
-    {
-        ;
-    }
+    lock_kernel();
+    intr_enable();
+    schedule();
 }
 
 void __attribute__((noinline)) grade_backtrace2(int arg0, int arg1, int arg2, int arg3)

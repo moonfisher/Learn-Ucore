@@ -51,6 +51,7 @@ extern physaddr_t lapicaddr;	    // Physical MMIO address of the local APIC
 extern physaddr_t ioapicaddr;       // Physical MMIO address of the io APIC
 extern uint8_t ioapicid;
 extern int ismp;
+extern volatile uint32_t *lapic;
 
 // Per-CPU kernel stacks 每个 cpu 有自己的栈空间
 extern unsigned char percpu_kstacks[NCPU][KSTACKSIZE];
