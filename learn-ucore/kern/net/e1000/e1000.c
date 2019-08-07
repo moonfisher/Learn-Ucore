@@ -32,6 +32,7 @@ int attach_fn(struct pci_func *pcif)
 {
     pci_func_enable(pcif);
     init_desc();
+    // pcif->reg_base[0] = 0xfebc0000 这是一个 MMIO 地址，需要做页表映射
     mmio_e1000 = mmio_map_region(pcif->reg_base[0], pcif->reg_size[0]);
 
     cprintf("Printing the status register = %x\n", mmio_e1000[E1000_STATUS]);
@@ -136,18 +137,18 @@ int e1000_transmit(uint8_t *pkt, uint32_t length)
     pkt = pkt + EXTRAEPSIZ;
     length = length - EXTRAEPSIZ;
 
-    cprintf("--------------------------------------\n");
-    int i;
-    for (i = 0; i < length; i++)
-    {
-        if (i % 12 == 0)
-        {
-            cprintf("\n");
-        }
-        cprintf("%2x ", pkt[i]);
-    }
-    cprintf("\n");
-    cprintf("--------------------------------------\n");
+//    cprintf("--------------------------------------\n");
+//    int i;
+//    for (i = 0; i < length; i++)
+//    {
+//        if (i % 12 == 0)
+//        {
+//            cprintf("\n");
+//        }
+//        cprintf("%2x ", pkt[i]);
+//    }
+//    cprintf("\n");
+//    cprintf("--------------------------------------\n");
 
     uint32_t tail_idx = mmio_e1000[E1000_TDT];
 
@@ -184,19 +185,19 @@ int e1000_recv(uint8_t *data, size_t len)
 
     memmove(data + EXTRAEPSIZ, &rxdata_buf[tail], length);
 
-    //dump_protocol(data);
+    dump_protocol((struct ep *)data);
 
     cprintf("e1000_recv length = %d\n", length);
-    cprintf("\n*****************************************\n");
-    for (idx = 0; idx < length; idx++)
-    {
-        if (idx % 12 == 0)
-        {
-            cprintf("\n");
-        }
-        cprintf("0x%02x, ", data[idx + EXTRAEPSIZ]);
-    }
-    cprintf("\n*****************************************\n");
+//    cprintf("\n*****************************************\n");
+//    for (idx = 0; idx < length; idx++)
+//    {
+//        if (idx % 12 == 0)
+//        {
+//            cprintf("\n");
+//        }
+//        cprintf("0x%02x, ", data[idx + EXTRAEPSIZ]);
+//    }
+//    cprintf("\n*****************************************\n");
 
     tail_desc->status = 0;
     mmio_e1000[E1000_RDT] = tail;

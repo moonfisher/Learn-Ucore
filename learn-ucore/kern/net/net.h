@@ -8,7 +8,6 @@
 
 extern mutex network_mtx;
 
-void net_init(void);
 void start_net_mechanics(void);
 
 #endif // !__KERN_NET_NET_H__

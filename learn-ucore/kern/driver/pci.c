@@ -10,7 +10,7 @@
 static int pci_show_devs = 1;
 static int pci_show_addrs = 0;
 
-// PCI "configuration mechanism one"
+// PCI "configuration mechanism one" 端口地址参考 cat /proc/ioports
 static uint32_t pci_conf1_addr_ioport = 0x0cf8;
 static uint32_t pci_conf1_data_ioport = 0x0cfc;
 
@@ -20,7 +20,8 @@ static int pci_bridge_attach(struct pci_func *pcif);
 // PCI driver table
 struct pci_driver
 {
-	uint32_t key1, key2;
+    uint32_t key1;
+    uint32_t key2;
 	int (*attachfn)(struct pci_func *pcif);
 };
 

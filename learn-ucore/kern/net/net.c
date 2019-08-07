@@ -88,8 +88,3 @@ void start_net_mechanics()
 
     //lock(&network_mtx);
 }
-
-void net_init()
-{
-    pci_init();
-}

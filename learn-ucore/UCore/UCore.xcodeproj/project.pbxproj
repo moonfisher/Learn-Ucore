@@ -880,14 +880,14 @@
 		C480E19022A0D9170093D61D /* net */ = {
 			isa = PBXGroup;
 			children = (
+				C480E19722A0D9170093D61D /* netcheck.h */,
 				C480E19122A0D9170093D61D /* netcheck.c */,
+				C480E19A22A0D9170093D61D /* e1000_input_proc.c */,
 				C480E19222A0D9170093D61D /* e1000_output_proc.c */,
 				C480E19322A0D9170093D61D /* e1000 */,
 				C480E19622A0D9170093D61D /* net.h */,
-				C480E19722A0D9170093D61D /* netcheck.h */,
 				C480E19822A0D9170093D61D /* net.c */,
 				C480E19922A0D9170093D61D /* architecture.txt */,
-				C480E19A22A0D9170093D61D /* e1000_input_proc.c */,
 				C480E19B22A0D9170093D61D /* tcpip */,
 			);
 			path = net;
@@ -896,8 +896,8 @@
 		C480E19322A0D9170093D61D /* e1000 */ = {
 			isa = PBXGroup;
 			children = (
-				C480E19422A0D9170093D61D /* e1000.c */,
 				C480E19522A0D9170093D61D /* e1000.h */,
+				C480E19422A0D9170093D61D /* e1000.c */,
 			);
 			path = e1000;
 			sourceTree = "<group>";

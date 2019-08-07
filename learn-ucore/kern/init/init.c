@@ -20,6 +20,7 @@
 #include "cpu.h"
 #include "spinlock.h"
 #include "acpi.h"
+#include "pci.h"
 
 int kern_init(void) __attribute__((noreturn));
 int mon_backtrace(int argc, char **argv, struct trapframe *tf);
@@ -136,13 +137,13 @@ int kern_init(void)
     if (!ismp)
         clock_init();           // init clock interrupt
     
-    net_init();                  // init nic
-    net_check();
+    pci_init();                 // init pci
     
     lock_kernel();              // smp acquire the big kernel lock before waking up APs
     boot_aps();                 // smp starting non-boot CPUs
-
     intr_enable();              // enable irq interrupt
+    unlock_kernel();
+    
     cpu_idle();                 // run idle process
 }
 
@@ -220,9 +221,13 @@ void mp_main(void)
     // to start running processes on this CPU.  But make sure that
     // only one CPU can enter the scheduler at a time!
     //
-    intr_enable();
-    lock_kernel();    
-    schedule();
+    lock_kernel();
+//    intr_enable();
+    
+//    schedule();
+    while (1) {
+        ;
+    }
 }
 
 void __attribute__((noinline)) grade_backtrace2(int arg0, int arg1, int arg2, int arg3)

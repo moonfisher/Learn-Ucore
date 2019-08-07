@@ -403,12 +403,17 @@ static void trap_dispatch(struct trapframe *tf)
             break;
 
         case IRQ_OFFSET + IRQ_TIMER:
-            ticks++;
-            assert(current != NULL);
-            run_timer_list();
-            if (ticks % TICK_NUM == 0)
+            // 每个 cpu 都启动了 local apic 定时器，
+            // 但只能一个 cpu 来处理计时，否则乱了
+            if (thiscpu->cpu_id == 0)
             {
-                print_ticks();
+                ticks++;
+                assert(current != NULL);
+                run_timer_list();
+                if (ticks % TICK_NUM == 0)
+                {
+                    print_ticks();
+                }
             }
             lapic_eoi();
             break;
