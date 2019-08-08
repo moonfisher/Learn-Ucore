@@ -3,7 +3,8 @@
 
 /* Atomic operations that C can't guarantee us. Useful for resource counting etc.. */
 
-typedef struct {
+typedef struct
+{
     volatile int counter;
 } atomic_t;
 
@@ -33,8 +34,8 @@ static inline bool test_bit(int nr, volatile void *addr) __attribute__((always_i
  *
  * Atomically reads the value of @v.
  * */
-static inline  int
-atomic_read(const atomic_t *v) {
+static inline int atomic_read(const atomic_t *v)
+{
     return v->counter;
 }
 
@@ -45,8 +46,8 @@ atomic_read(const atomic_t *v) {
  *
  * Atomically sets the value of @v to @i.
  * */
-static inline  void
-atomic_set(atomic_t *v, int i) {
+static inline void atomic_set(atomic_t *v, int i)
+{
     v->counter = i;
 }
 
@@ -57,8 +58,8 @@ atomic_set(atomic_t *v, int i) {
  *
  * Atomically adds @i to @v.
  * */
-static inline  void
-atomic_add(atomic_t *v, int i) {
+static inline void atomic_add(atomic_t *v, int i)
+{
     asm volatile ("addl %1, %0" : "+m" (v->counter) : "ir" (i));
 }
 
@@ -69,8 +70,8 @@ atomic_add(atomic_t *v, int i) {
  *
  * Atomically subtracts @i from @v.
  * */
-static inline  void
-atomic_sub(atomic_t *v, int i) {
+static inline void atomic_sub(atomic_t *v, int i)
+{
     asm volatile("subl %1, %0" : "+m" (v->counter) : "ir" (i));
 }
 
@@ -82,8 +83,8 @@ atomic_sub(atomic_t *v, int i) {
  * Atomically subtracts @i from @v and
  * returns true if the result is zero, or false for all other cases.
  * */
-static inline  bool
-atomic_sub_test_zero(atomic_t *v, int i) {
+static inline bool atomic_sub_test_zero(atomic_t *v, int i)
+{
     unsigned char c;
     asm volatile("subl %2, %0; sete %1" : "+m" (v->counter), "=qm" (c) : "ir" (i) : "memory");
     return c != 0;
@@ -95,8 +96,8 @@ atomic_sub_test_zero(atomic_t *v, int i) {
  *
  * Atomically increments @v by 1.
  * */
-static inline  void
-atomic_inc(atomic_t *v) {
+static inline void atomic_inc(atomic_t *v)
+{
     asm volatile("incl %0" : "+m" (v->counter));
 }
 
@@ -106,8 +107,8 @@ atomic_inc(atomic_t *v) {
  *
  * Atomically decrements @v by 1.
  * */
-static inline  void
-atomic_dec(atomic_t *v) {
+static inline void atomic_dec(atomic_t *v)
+{
     asm volatile("decl %0" : "+m" (v->counter));
 }
 
@@ -118,8 +119,8 @@ atomic_dec(atomic_t *v) {
  * Atomically increments @v by 1 and
  * returns true if the result is zero, or false for all other cases.
  * */
-static inline  bool
-atomic_inc_test_zero(atomic_t *v) {
+static inline bool atomic_inc_test_zero(atomic_t *v)
+{
     unsigned char c;
     asm volatile("incl %0; sete %1" : "+m" (v->counter), "=qm" (c) :: "memory");
     return c != 0;
@@ -132,8 +133,8 @@ atomic_inc_test_zero(atomic_t *v) {
  * Atomically decrements @v by 1 and
  * returns true if the result is 0, or false for all other cases.
  * */
-static inline  bool
-atomic_dec_test_zero(atomic_t *v) {
+static inline bool atomic_dec_test_zero(atomic_t *v)
+{
     unsigned char c;
     asm volatile("decl %0; sete %1" : "+m" (v->counter), "=qm" (c) :: "memory");
     return c != 0;
@@ -147,8 +148,8 @@ atomic_dec_test_zero(atomic_t *v) {
  * Atomically adds @i to @v and returns @i + @v
  * Requires Modern 486+ processor
  * */
-static inline  int
-atomic_add_return(atomic_t *v, int i) {
+static inline int atomic_add_return(atomic_t *v, int i)
+{
     int __i = i;
     asm volatile("xaddl %0, %1" : "+r" (i), "+m" (v->counter) :: "memory");
     return i + __i;
@@ -161,8 +162,8 @@ atomic_add_return(atomic_t *v, int i) {
  *
  * Atomically subtracts @i from @v and returns @v - @i
  * */
-static inline  int
-atomic_sub_return(atomic_t *v, int i) {
+static inline int atomic_sub_return(atomic_t *v, int i)
+{
     return atomic_add_return(v, -i);
 }
 

@@ -46,6 +46,7 @@ void mbox_vars_init()
 }
 
 // called from init proc (in init_main 在proc.c中)
+// 这里创建多个内核线程，来处理网络相关的数据
 void start_net_mechanics()
 {
     mbox_vars_init();

@@ -124,7 +124,7 @@ void e1000_mac(unsigned char *buf)
 }
 
 // Return 0 on success.
-//int e1000_transmit(uint8_t *pkt, uint32_t length )
+// 这里是 MMIO 写入，类似把需要显示的数据写入 MMIO 显存地址一样
 int e1000_transmit(uint8_t *pkt, uint32_t length)
 {
     struct ep *pep = (struct ep *)pkt;
@@ -169,10 +169,12 @@ int e1000_transmit(uint8_t *pkt, uint32_t length)
     return 0;
 }
 
+// 这里是 MMIO 读数据，上层采用主动轮询的方式来从 MMIO 地址里读取网络数据
+// 并没有采用中断的方式，这种方式性能很低，最好采用 DMA 中断方式
 int e1000_recv(uint8_t *data, size_t len)
 {
     static uint32_t real_tail = 0;
-    int idx = 0;
+//    int idx = 0;
     uint32_t tail = real_tail;
     
     struct e1000_rx_desc *tail_desc = &rxdesc_array[tail];

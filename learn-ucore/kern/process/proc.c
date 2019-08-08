@@ -929,7 +929,8 @@ static int load_icode(int fd, int argc, char **kargv)
     *(int *)stacktop = argc;
     
     // 用户进程是通过 sys_exec 系统调用作为入口进来加载的，实际也是中断，中断返回就需要构造中断帧
-    // 这里中断桢设置的是 USER_CS 和 USER_DS，所以进程运行起来后直接是用户态
+    // 这里中断桢是从父进程那里继承过来的，父进程可能是内核进程，也可能是用户进程
+    // 这里需要先清空，重新设置为 USER_CS 和 USER_DS，这样进程运行起来后直接是用户态
     struct trapframe *tf = current->tf;
     memset(tf, 0, sizeof(struct trapframe));
     tf->tf_cs = USER_CS;

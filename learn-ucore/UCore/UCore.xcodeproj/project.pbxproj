@@ -298,6 +298,7 @@
 		C480E97822A0FCD40093D61D /* rtdump.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96722A0F8F40093D61D /* rtdump.c */; };
 		C480E97922A0FCD60093D61D /* shmemtest.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96322A0F8F40093D61D /* shmemtest.c */; };
 		C480E97C22A0FD3B0093D61D /* malloc.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E97B22A0FD3B0093D61D /* malloc.c */; };
+		C4A234AC22FBC2F60098074B /* longjmp.S in Sources */ = {isa = PBXBuildFile; fileRef = C4A234AB22FBC2F60098074B /* longjmp.S */; };
 		C4CB326C2248F5830014426C /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31BD2248F5820014426C /* init.c */; };
 		C4CB326E2248F5830014426C /* default_sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C02248F5820014426C /* default_sched.c */; };
 		C4CB326F2248F5830014426C /* sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C22248F5820014426C /* sched.c */; };
@@ -674,6 +675,8 @@
 		C480E96922A0F8F40093D61D /* ping.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ping.c; sourceTree = "<group>"; };
 		C480E97A22A0FD3A0093D61D /* malloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = malloc.h; sourceTree = "<group>"; };
 		C480E97B22A0FD3B0093D61D /* malloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = malloc.c; sourceTree = "<group>"; };
+		C4A234AA22FBC2F50098074B /* setjmp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = setjmp.h; sourceTree = "<group>"; };
+		C4A234AB22FBC2F60098074B /* longjmp.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = longjmp.S; sourceTree = "<group>"; };
 		C4CB31B12248F53F0014426C /* UCore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = UCore; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4CB31BD2248F5820014426C /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = init.c; sourceTree = "<group>"; };
 		C4CB31BE2248F5820014426C /* entry.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = entry.S; sourceTree = "<group>"; };
@@ -1669,6 +1672,8 @@
 		C4CB324F2248F5830014426C /* libs */ = {
 			isa = PBXGroup;
 			children = (
+				C4A234AA22FBC2F50098074B /* setjmp.h */,
+				C4A234AB22FBC2F60098074B /* longjmp.S */,
 				C480E96022A0F1600093D61D /* ctype_.c */,
 				C480E37C22A0E5810093D61D /* mboxbuf.h */,
 				C480E37D22A0E5810093D61D /* protobuf.h */,
@@ -2020,6 +2025,7 @@
 				C480E2E322A0D9170093D61D /* tfcoalesce.c in Sources */,
 				C480E2CA22A0D9170093D61D /* up_alloc.c in Sources */,
 				C480E2C522A0D9170093D61D /* local_out.c in Sources */,
+				C4A234AC22FBC2F60098074B /* longjmp.S in Sources */,
 				C480E2EC22A0D9170093D61D /* tcpswindow.c in Sources */,
 				C4CB32A02248F5830014426C /* kmonitor.c in Sources */,
 				C480E31A22A0D9170093D61D /* icsetbuf.c in Sources */,

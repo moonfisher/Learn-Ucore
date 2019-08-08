@@ -245,9 +245,9 @@ static void serial_putc(int c)
 // io 输入缓冲区
 static struct
 {
-    uint8_t buf[CONSBUFSIZE];
-    uint32_t rpos;
-    uint32_t wpos;
+    uint8_t buf[CONSBUFSIZE];   // 输入缓冲区，串口或者键盘输入都缓存在这里
+    uint32_t rpos;              // 指向当前可读的位置
+    uint32_t wpos;              // 指向当前可写的位置
 } cons;
 
 /* *
@@ -268,6 +268,8 @@ static void cons_intr(int (*proc)(void))
         if (c != 0)
         {
             cons.buf[cons.wpos ++] = c;
+            // 如果已经写到末尾，又重头开始写，没有管 rpos 读没读完
+            // 如果前面的没有读取完，会覆盖，所以实际这个缓存是一个环形缓存
             if (cons.wpos == CONSBUFSIZE)
             {
                 cons.wpos = 0;
@@ -523,6 +525,8 @@ int cons_getc(void)
         kbd_intr();
 
         // grab the next character from the input buffer.
+        // 读和写的位置不同，说明还有读的内容，相同说明已经读完了
+        // 这里只是判断内容是不是读完，如果是写得快读的慢，缓冲前面被覆盖，读取内容会丢失
         if (cons.rpos != cons.wpos)
         {
             c = cons.buf[cons.rpos++];

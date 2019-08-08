@@ -292,6 +292,44 @@
 */
 
 /*
+ cat /proc/interrupts
+   0:         78   IO-APIC-edge      timer
+   1:         10   IO-APIC-edge      i8042
+   4:        786   IO-APIC-edge      serial
+   6:          3   IO-APIC-edge      floppy
+   8:          0   IO-APIC-edge      rtc0
+   9:          0   IO-APIC-fasteoi   acpi
+  10:          0   IO-APIC-fasteoi   virtio2
+  11:          0   IO-APIC-fasteoi   uhci_hcd:usb1
+  12:         15   IO-APIC-edge      i8042
+  14:          0   IO-APIC-edge      ata_piix
+  15:          0   IO-APIC-edge      ata_piix
+  24:          0   PCI-MSI-edge      virtio0-config
+  25:  226824135   PCI-MSI-edge      virtio0-input.0
+  26:       3892   PCI-MSI-edge      virtio0-output.0
+  27:          0   PCI-MSI-edge      virtio1-config
+  28:  171752297   PCI-MSI-edge      virtio1-req.0
+ NMI:          0   Non-maskable interrupts
+ LOC:  858246000   Local timer interrupts
+ SPU:          0   Spurious interrupts
+ PMI:          0   Performance monitoring interrupts
+ IWI:  188120746   IRQ work interrupts
+ RTR:          0   APIC ICR read retries
+ RES:          0   Rescheduling interrupts
+ CAL:          0   Function call interrupts
+ TLB:          0   TLB shootdowns
+ TRM:          0   Thermal event interrupts
+ THR:          0   Threshold APIC interrupts
+ DFR:          0   Deferred Error APIC interrupts
+ MCE:          0   Machine check exceptions
+ MCP:     149737   Machine check polls
+ ERR:          0
+ MIS:          0
+ PIN:          0   Posted-interrupt notification event
+ PIW:          0   Posted-interrupt wakeup event
+*/
+
+/*
  Linux 操作系统和驱动程序运行在内核空间，应用程序运行在用户空间，两者不能简单地使用指针传递数据，
  因为Linux使用的虚拟内存机制，用户空间的数据可能被换出，当内核空间使用用户空间指针时，
  对应的数据可能不在内存中。用户空间的内存映射采用段页式，而内核空间有自己的规则
