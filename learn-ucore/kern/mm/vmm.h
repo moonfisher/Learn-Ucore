@@ -61,7 +61,8 @@ struct mm_struct
     int mm_count;                  // the number ofprocess which shared the mm
     semaphore_t mm_sem;            // mutex for using dup_mmap fun to duplicat the mm 
     int locked_by;                 // the lock owner process's pid
-    uintptr_t brk_start, brk;
+    uintptr_t brk_start;
+    uintptr_t brk;
     list_entry_t proc_mm_link;
 };
 

@@ -432,17 +432,17 @@ static int copy_mm(uint32_t clone_flags, struct proc_struct *proc)
     }
 
 good_mm:
-//    if (mm != oldmm)
-//    {
-//        mm->brk_start = oldmm->brk_start;
-//        mm->brk = oldmm->brk;
-//        bool intr_flag;
-//        local_intr_save(intr_flag);
-//        {
+    if (mm != oldmm)
+    {
+        mm->brk_start = oldmm->brk_start;
+        mm->brk = oldmm->brk;
+        bool intr_flag;
+        local_intr_save(intr_flag);
+        {
 //            list_add(&(proc_mm_list), &(mm->proc_mm_link));
-//        }
-//        local_intr_restore(intr_flag);
-//    }
+        }
+        local_intr_restore(intr_flag);
+    }
     mm_count_inc(mm);
     proc->mm = mm;
     proc->cr3 = PADDR(mm->pgdir);
@@ -848,6 +848,11 @@ static int load_icode(int fd, int argc, char **kargv)
         }
         end = ph->p_va + ph->p_memsz;
 
+        if (mm->brk_start < ph->p_va + ph->p_memsz)
+        {
+            mm->brk_start = ph->p_va + ph->p_memsz;
+        }
+        
         if (start < la)
         {
             /* ph->p_memsz == ph->p_filesz */
@@ -885,6 +890,8 @@ static int load_icode(int fd, int argc, char **kargv)
     // elf 程序已经全部加载到内存，可以关闭文件了
     sysfile_close(fd);
 
+    mm->brk_start = mm->brk = ROUNDUP(mm->brk_start, PGSIZE);
+    
     // 映射用户进程堆栈地址空间
     vm_flags = VM_READ | VM_WRITE | VM_STACK;
     if ((ret = mm_map(mm, USTACKTOP - USTACKSIZE, USTACKSIZE, vm_flags, NULL)) != 0)
@@ -1476,7 +1483,7 @@ int do_brk(uintptr_t *brk_store)
     }
     if (brk_store == NULL)
     {
-        return -E_INVAL;
+        return mm->brk_start;
     }
 
     uintptr_t brk;

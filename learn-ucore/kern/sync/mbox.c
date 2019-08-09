@@ -29,8 +29,7 @@ struct msg_msg
     list_entry_t msg_link;
 };
 
-#define le2msg(le, member) \
-    to_struct((le), struct msg_msg, member)
+#define le2msg(le, member) to_struct((le), struct msg_msg, member)
 
 enum mbox_state
 {
@@ -44,19 +43,19 @@ struct msg_mbox
     int id;
     int inuse;
     enum mbox_state state;
-    unsigned int max_slots, slots;
+    unsigned int max_slots;
+    unsigned int slots;
     list_entry_t msg_link;
     wait_queue_t senders;
     wait_queue_t receivers;
 };
 
-#define le2mbox(le, member) \
-    to_struct((le), struct msg_mbox, member)
+#define le2mbox(le, member) to_struct((le), struct msg_mbox, member)
 
-#define MAX_MBOX_NUM 8192
-#define MBOX_P_PAGE (PGSIZE / sizeof(struct msg_mbox))
-#define MAX_MBOX_PAGES ((MAX_MBOX_NUM + MBOX_P_PAGE - 1) / MBOX_P_PAGE)
-#define MAX_MSG_DATALEN (512 - sizeof(struct msg_msg))
+#define MAX_MBOX_NUM        8192
+#define MBOX_P_PAGE         (PGSIZE / sizeof(struct msg_mbox))
+#define MAX_MBOX_PAGES      ((MAX_MBOX_NUM + MBOX_P_PAGE - 1) / MBOX_P_PAGE)
+#define MAX_MSG_DATALEN     (512 - sizeof(struct msg_msg))
 
 static struct msg_mbox *mbox_map[MAX_MBOX_PAGES];
 static list_entry_t free_mbox_list;
@@ -167,7 +166,8 @@ static struct msg_mbox *new_mbox(unsigned int max_slots)
             mbox = mbox_map[i] = (struct msg_mbox *)page2kva(page);
             for (i = 0; i < MBOX_P_PAGE; i++, id++, mbox++)
             {
-                mbox->id = id, mbox->inuse = 0;
+                mbox->id = id;
+                mbox->inuse = 0;
                 mbox->state = CLOSED;
                 mbox->max_slots = mbox->slots = 0;
                 list_init(&(mbox->msg_link));
@@ -258,11 +258,13 @@ static struct msg_msg *load_msg(const void *src, size_t len)
             goto failed;
         }
         //设置next
-        *segp = seg, segp = &(seg->next);
+        *segp = seg;
+        segp = &(seg->next);
         dst = seg + 1;
     inside:
         memcpy(dst, src, alen);
-        len -= alen, src = ((char *)src) + alen;
+        len -= alen;
+        src = ((char *)src) + alen;
         *segp = NULL;
     }
 
@@ -308,7 +310,8 @@ static uint32_t send_msg(struct msg_mbox *mbox, struct msg_msg *msg, timer_t *ti
     assert(mbox->state == OPENED && mbox->max_slots > mbox->slots);
 
     //添加msg到mbox->msg_link,唤醒mbox->receivers
-    ret = 0, add_msg(mbox, msg, 1);
+    ret = 0;
+    add_msg(mbox, msg, 1);
 
 out:
     mbox->inuse--;
@@ -407,7 +410,7 @@ int ipc_mbox_send(int id, struct mboxbuf *buf, unsigned int timeout)
         return -E_INVAL;
     }
 
-    struct msg_msg *msg;
+    struct msg_msg *msg = NULL;
     struct msg_mbox *mbox;
     struct mm_struct *mm = current->mm;
     struct mboxbuf __local_buf, *local_buf = &__local_buf;

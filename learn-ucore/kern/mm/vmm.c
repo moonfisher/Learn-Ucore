@@ -56,6 +56,9 @@ struct mm_struct *mm_create(void)
             mm->sm_priv = NULL;
         
         set_mm_count(mm, 0);
+        mm->locked_by = 0;
+        mm->brk_start = 0;
+        mm->brk = 0;
         sem_init(&(mm->mm_sem), 1);
     }    
     return mm;
@@ -141,9 +144,15 @@ struct vma_struct *find_vma(struct mm_struct *mm, uintptr_t addr)
     return vma;
 }
 
+/* Look up the first VMA which intersects the interval start_addr..end_addr-1,
+ NULL if none.  Assume start_addr < end_addr. */
 struct vma_struct *find_vma_intersection(struct mm_struct *mm, uintptr_t start, uintptr_t end)
 {
-    return mm->mmap_cache;
+    struct vma_struct *vma = find_vma(mm, start);
+    if (vma && end <= vma->vm_start)
+        vma = NULL;
+    
+    return vma;
 }
 
 // check_vma_overlap - check if vma1 overlaps vma2 ?

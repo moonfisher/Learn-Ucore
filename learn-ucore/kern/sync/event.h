@@ -23,6 +23,9 @@ typedef struct
    wait_t       wait;
 } event_box_t;
 
+/*
+ event 方式在进程间通信比较轻量，相互只能传递整形数字，属于异步通信，类似 signal 信号
+*/
 void event_box_init(struct proc_struct *proc);
 int ipc_event_send(int pid, int event_type, int event);
 int ipc_event_recv(int *pid_store, int event_type, int *event_store, unsigned int timeout);

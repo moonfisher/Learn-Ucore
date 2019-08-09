@@ -140,7 +140,6 @@ int mbox_info(int id, struct mboxinfo *info)
     return sys_mbox_info(id, info);
 }
 
-
 int receive_packet(uint8_t *buf, size_t len)
 {
     size_t len_store;

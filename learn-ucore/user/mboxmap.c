@@ -138,7 +138,11 @@ int main(void)
 
     for (i = 0; i < mod; i ++)
     {
-        if ((s_pids[i] = fork("")) == 0)
+        char local_name[20];
+        memset(local_name, 0, sizeof(local_name));
+        snprintf(local_name, sizeof(local_name), "mod-%d", i);
+        
+        if ((s_pids[i] = fork(local_name)) == 0)
         {
             //child process
             select_main(mbox[i], this);
@@ -155,7 +159,11 @@ int main(void)
 
     for (i = 0; i < f_pids_num; i ++)
     {
-        if ((f_pids[i] = fork("")) == 0)
+        char local_name[20];
+        memset(local_name, 0, sizeof(local_name));
+        snprintf(local_name, sizeof(local_name), "fpid-%d", i);
+        
+        if ((f_pids[i] = fork(local_name)) == 0)
         {
             //children process
             filter_main(data, mbox_data, mbox);
