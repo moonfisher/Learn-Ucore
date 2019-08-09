@@ -14,6 +14,7 @@
 #include "slab.h"
 #include "e1000/e1000.h"
 #include "tcpip/h/network.h"
+#include "event.h"
 
 extern void netstatus();
 
@@ -253,26 +254,19 @@ static int sys_unlink(uint32_t arg[])
 
 static int sys_event_send(uint32_t arg[])
 {
-    /*
     int pid = (int)arg[0];
-    int event = (int)arg[1];
-    unsigned int timeout = (unsigned int)arg[2];
-    return ipc_event_send(pid, event, timeout);
-    */
-    panic("sys_event_send not be implemented \n");
-    return 0;
+    int event_type = (int)arg[1];
+    int event = (int)arg[2];
+    return ipc_event_send(pid, event_type, event);
 }
 
 static int sys_event_recv(uint32_t arg[])
 {
-    /*
     int *pid_store = (int *)arg[0];
-    int *event_store = (int *)arg[1];
-    unsigned int timeout = (unsigned int)arg[2];
-    return ipc_event_recv(pid_store, event_store, timeout);
-    */
-    panic("sys_event_recv not be implemented \n");
-    return 0;
+    int event_type = (int)arg[1];
+    int *event_store = (int *)arg[2];
+    unsigned int timeout = (unsigned int)arg[3];
+    return ipc_event_recv(pid_store, event_type, event_store, timeout);
 }
 
 static int sys_mbox_init(uint32_t arg[])

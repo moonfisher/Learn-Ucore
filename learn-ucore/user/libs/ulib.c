@@ -89,24 +89,19 @@ unsigned int gettime_msec(void)
     return (unsigned int)sys_gettime();
 }
 
-int send_event(int pid, int event)
+int send_event(int pid, int event_type, int event)
 {
-    return sys_send_event(pid, event, 0);
+    return sys_send_event(pid, event_type, event);
 }
 
-int send_event_timeout(int pid, int event, unsigned int timeout)
+int recv_event(int *pid_store, int event_type, int *event_store)
 {
-    return sys_send_event(pid, event, timeout);
+    return sys_recv_event(pid_store, event_type, event_store, 0);
 }
 
-int recv_event(int *pid_store, int *event_store)
+int recv_event_timeout(int *pid_store, int event_type, int *event_store, unsigned int timeout)
 {
-    return sys_recv_event(pid_store, event_store, 0);
-}
-
-int recv_event_timeout(int *pid_store, int *event_store, unsigned int timeout)
-{
-    return sys_recv_event(pid_store, event_store, timeout);
+    return sys_recv_event(pid_store, event_type, event_store, timeout);
 }
 
 // 这个是调用 new_mbox,名称不好

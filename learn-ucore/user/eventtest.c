@@ -2,24 +2,26 @@
 #include "ulib.h"
 #include "error.h"
 
+#define event_type      0x10
+
 void test1(void)
 {
     int pid, parent = getpid();
-    if ((pid = fork("")) == 0)
+    if ((pid = fork("child1")) == 0)
     {
-        cprintf("child process\n");
+        cprintf("child1 process\n");
         //子进程
-        int event, sum = 0;
-        while (recv_event(&pid, &event) == 0 && parent == pid)
+        int event, sum = 0, ret = 0;
+        while ((ret = recv_event(&pid, event_type, &event)) == 0 && parent == pid)
         {
             if (event == -1)
             {
                 cprintf("child1 Hmmm!\n");
                 sleep(100);
                 cprintf("child1 quit\n");
-                exit(-1);
+                exit(0);
             }
-            cprintf("child1 receive %08x from %d\n", event, pid);
+            cprintf("child1 receive %d from %d\n", event, pid);
             sum += event;
         }
         panic("FAIL: T.T\n");
@@ -31,37 +33,22 @@ void test1(void)
     //父、子进程
     assert(pid > 0);
     int i = 10;
-    while (send_event(pid, i) == 0)
+    while (send_event(pid, event_type, i) == 0)
     {
-        i --;
+        cprintf("test1 parent send i = %d\n", i);
+        i--;
         sleep(50);
     }
     cprintf("test1 pass.\n");
 }
 
-void test2(void)
-{
-    int pid;
-    if ((pid = fork("")) == 0)
-    {
-        cprintf("child2 is spinning...\n");
-        while (1);
-    }
-    assert(pid > 0);
-    if (send_event_timeout(pid, 0xbee, 100) == -E_TIMEOUT)
-    {
-        cprintf("test2 pass.\n");
-    }
-    kill(pid);
-}
-
 void test3(void)
 {
     int pid;
-    if ((pid = fork("")) == 0)
+    if ((pid = fork("child3")) == 0)
     {
         int event;
-        if (recv_event_timeout(NULL, &event, 100) == -E_TIMEOUT)
+        if (recv_event_timeout(NULL, event_type, &event, 100) == -E_TIMEOUT)
         {
             cprintf("test3 pass.\n");
         }
@@ -74,7 +61,6 @@ void test3(void)
 int main(void)
 {
     test1();
-    test2();
     test3();
     cprintf("eventtest pass.\n");
     return 0;

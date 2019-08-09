@@ -5,6 +5,8 @@
 #include "malloc.h"
 #include "stdlib.h"
 
+#define event_type      0x10
+
 const int mod = 23;
 const int max_data = 2048;
 const int max_slots = 1024;
@@ -57,7 +59,7 @@ void select_main(int mbox, int pid)
         assert(len == sizeof(int));
         count += ans;
     }
-    send_event(pid, count);
+    send_event(pid, event_type, count);
 }
 
 int wait_for_empty(int mbox)
@@ -83,7 +85,7 @@ int wait_for_quit(int mbox_data, int count[], int mbox[], int pids[])
     memset(ans, 0, sizeof(ans));
     for (i = 0; i < mod; i ++)
     {
-        if (recv_event(&pid, &event) != 0)
+        if (recv_event(&pid, event_type, &event) != 0)
         {
             return -1;
         }

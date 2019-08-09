@@ -43,10 +43,9 @@ unsigned int gettime_msec(void);
 int receive_packet(uint8_t *buf, size_t len);
 int transmit_packet(uint8_t *buf, size_t len, size_t *len_store);
 
-int send_event(int pid, int event);
-int send_event_timeout(int pid, int event, unsigned int timeout);
-int recv_event(int *pid_store, int *event_store);
-int recv_event_timeout(int *pid_store, int *event_store, unsigned int timeout);
+int send_event(int pid, int event_type, int event);
+int recv_event(int *pid_store, int event_type, int *event_store);
+int recv_event_timeout(int *pid_store, int event_type, int *event_store, unsigned int timeout);
 
 int clone(uint32_t clone_flags, uintptr_t stack, int (*fn)(void *), void *arg);
 struct mboxbuf;

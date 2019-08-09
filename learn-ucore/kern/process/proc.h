@@ -75,6 +75,7 @@ struct inode;
 
 struct proc_struct
 {
+    char name[PROC_NAME_LEN + 1];               // Process name
     enum proc_state state;                      // Process state
     int pid;                                    // Process ID
     int runs;                                   // the running times of Proces 进程运行过的次数
@@ -135,8 +136,7 @@ struct proc_struct
 */
     uintptr_t cr3;                              // CR3: base addr of Page Directroy Table(PDT)
     uint32_t flags;                             // Process flag
-    bool  ptcpumode;                            //  proc is in TCP urgent mode
-    char name[PROC_NAME_LEN + 1];               // Process name
+    bool ptcpumode;                             // proc is in TCP urgent mode
     list_entry_t list_link;                     // Process link list
     list_entry_t hash_link;                     // Process hash list
     // 记录进程退出的原因，这个需要返回给父进程使用

@@ -112,10 +112,10 @@ static event_t *del_event(event_box_t* box, int type)
     return NULL;
 }
 
-int ipc_event_recv(int *pid_store,int event_type, int *event_store, unsigned int timeout)
+int ipc_event_recv(int *pid_store, int event_type, int *event_store, unsigned int timeout)
 {
     long now = 0;
-    event_t* eve = del_event(&(current->event_box), event_type);
+    event_t *eve = del_event(&(current->event_box), event_type);
     long starttime = gettime2();
     if (eve != NULL)
     {
@@ -132,8 +132,7 @@ int ipc_event_recv(int *pid_store,int event_type, int *event_store, unsigned int
         }
 
         now = gettime2();
-
-        if (now - starttime >= timeout)
+        if (timeout && (now - starttime >= timeout))
         {
             //cprintf("recv: is_empty_event_box? %d\n",is_empty_event_box(&(current->event_box)));
             return -E_TIMEOUT;
@@ -158,7 +157,7 @@ recvd:
     //return ipc_check_timeout(timeout, saved_ticks);
 }
 
-bool ipc_event_send(int pid,int evnet_type, int event)
+int ipc_event_send(int pid, int event_type, int event)
 {
     struct proc_struct *proc;
     if ((proc = find_proc(pid)) == NULL || proc->state == PROC_ZOMBIE)
@@ -173,11 +172,11 @@ bool ipc_event_send(int pid,int evnet_type, int event)
         return -E_INVAL;
     }
     
-    event_t* eve = get_event(evnet_type, event, current->pid);
+    event_t *eve = get_event(event_type, event, current->pid);
 
-    event_box_t* box = &proc->event_box;
+    event_box_t *box = &proc->event_box;
     add_event(box, eve);
     cprintf("send: is_empty_event_box? %d\n", is_empty_event_box(&(proc->event_box)));
 
-    return 1; //ipc_check_timeout(timeout, saved_ticks);
+    return 0; //ipc_check_timeout(timeout, saved_ticks);
 }

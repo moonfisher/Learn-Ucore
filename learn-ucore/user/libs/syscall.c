@@ -240,39 +240,39 @@ int sys_transmit_packet(uint8_t *buf, size_t len,size_t* len_store)
     return syscall(SYS_transmit_packet, (int)buf, len, (int)len_store, 0, 0);
 }
 
-int sys_send_event(int pid, int event, unsigned int timeout)
+int sys_send_event(int pid, int event_type, int event)
 {
-    return syscall(SYS_event_send, pid, event, timeout, 0,0);
+    return syscall(SYS_event_send, pid, event_type, event, 0, 0);
 }
 
-int sys_recv_event(int *pid_store, int *event_store, unsigned int timeout)
+int sys_recv_event(int *pid_store, int event_type, int *event_store, unsigned int timeout)
 {
-    return syscall(SYS_event_recv, (int)pid_store, (int)event_store, timeout, 0,0);
+    return syscall(SYS_event_recv, (int)pid_store, (int)event_type, (int)event_store, timeout, 0, 0);
 }
 
 int sys_mbox_init(unsigned int max_slots)
 {
-    return syscall(SYS_mbox_init, max_slots, 0,0, 0,0);
+    return syscall(SYS_mbox_init, max_slots, 0, 0, 0, 0);
 }
 
 int sys_mbox_send(int id, struct mboxbuf *buf, unsigned int timeout)
 {
-    return syscall(SYS_mbox_send, id, (int)buf, timeout, 0,0);
+    return syscall(SYS_mbox_send, id, (int)buf, timeout, 0, 0);
 }
 
 int sys_mbox_recv(int id, struct mboxbuf *buf, unsigned int timeout)
 {
-    return syscall(SYS_mbox_recv, id, (int)buf, timeout, 0,0);
+    return syscall(SYS_mbox_recv, id, (int)buf, timeout, 0, 0);
 }
 
 int sys_mbox_free(int id)
 {
-    return syscall(SYS_mbox_free, id, 0,0, 0,0);
+    return syscall(SYS_mbox_free, id, 0, 0, 0, 0);
 }
 
 int sys_mbox_info(int id, struct mboxinfo *info)
 {
-    return syscall(SYS_mbox_info, id, (int)info, 0,0, 0);
+    return syscall(SYS_mbox_info, id, (int)info, 0, 0, 0);
 }
 
 int sys_ping(char *target, int len)
