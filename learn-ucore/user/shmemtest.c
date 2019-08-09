@@ -18,14 +18,14 @@ int main(void)
 		*(char *)(buf1 + i) = (char)i;
 	}
 	memset(buf2, 0, 4096);
-    *((char*)buf2 + 2) = 'c'; 
+    *((char *)buf2 + 2) = 'c';
     
     int pid, exit_code;
 
-    if ((pid = fork("")) == 0)
+    if ((pid = fork("child")) == 0)
     {
-    	cprintf("child pid =%x\n",getpid());
-    	for (i = 0; i < 4096; i ++)
+    	cprintf("child pid = %x\n", getpid());
+    	for (i = 0; i < 4096; i++)
         {
             assert(*(char *)(buf1 + i) == (char)i);
         }
@@ -36,7 +36,6 @@ int main(void)
     else
     {
     	assert(pid > 0 && waitpid(pid, &exit_code) == 0 && exit_code == 0);
-
 	    free(buf1);
 	    free(buf2);
 	    cprintf("shmemtest pass.\n");

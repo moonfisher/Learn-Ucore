@@ -8,6 +8,7 @@
 #include "x86.h"
 #include "swap.h"
 #include "slab.h"
+#include "shmem.h"
 
 /* 
   vmm design include two parts: mm_struct (mm) & vma_struct (vma)
@@ -96,7 +97,7 @@ static void vma_resize(struct vma_struct *vma, uintptr_t start, uintptr_t end)
     assert(vma->vm_start <= start && start < end && end <= vma->vm_end);
     if (vma->vm_flags & VM_SHARE)
     {
-//        vma->shmem_off += start - vma->vm_start;
+        vma->shmem_off += start - vma->vm_start;
     }
 #ifdef UCONFIG_BIONIC_LIBC
     if (vma->mfile.file != NULL)
@@ -257,6 +258,7 @@ void dump_vma(struct mm_struct *mm)
             
             cprintf("vm_start:0x%x, vm_end:0x%x, vm_length:0x%x, vm_flags:%s\n", vma->vm_start, vma->vm_end, vma->vm_end - vma->vm_start, flagstr);
         }
+        cprintf("brk_start:0x%x, brk:0x%x\n", mm->brk_start, mm->brk);
         cprintf("dump_vma end ================================\n");
     }
 }
@@ -419,10 +421,21 @@ int dup_mmap(struct mm_struct *to, struct mm_struct *from)
         {
             return -E_NO_MEM;
         }
-
+        else
+        {
+            if (vma->vm_flags & VM_SHARE)
+            {
+                nvma->shmem = vma->shmem;
+                nvma->shmem_off = vma->shmem_off;
+                shmem_ref_inc(vma->shmem);
+            }
+#ifdef UCONFIG_BIONIC_LIBC
+            nvma->mfile = vma->mfile;
+#endif //UCONFIG_BIONIC_LIBC
+        }
         insert_vma_struct(to, nvma);
 
-        bool share = 0;
+        bool share = (vma->vm_flags & VM_SHARE);
         if (copy_range(to, from, vma->vm_start, vma->vm_end, share) != 0)
         {
             return -E_NO_MEM;
@@ -446,6 +459,31 @@ void exit_mmap(struct mm_struct *mm)
         struct vma_struct *vma = le2vma(le, list_link);
         exit_range(pgdir, vma->vm_start, vma->vm_end);
     }
+}
+
+int mm_map_shmem(struct mm_struct *mm, uintptr_t addr, uint32_t vm_flags, struct shmem_struct *shmem, struct vma_struct **vma_store)
+{
+    if ((addr % PGSIZE) != 0 || shmem == NULL)
+    {
+        return -E_INVAL;
+    }
+    
+    int ret;
+    struct vma_struct *vma;
+    shmem_ref_inc(shmem);
+    if ((ret = mm_map(mm, addr, shmem->len, vm_flags, &vma)) != 0)
+    {
+        shmem_ref_dec(shmem);
+        return ret;
+    }
+    vma->shmem = shmem;
+    vma->shmem_off = 0;
+    vma->vm_flags |= VM_SHARE;
+    if (vma_store != NULL)
+    {
+        *vma_store = vma;
+    }
+    return 0;
 }
 
 /*

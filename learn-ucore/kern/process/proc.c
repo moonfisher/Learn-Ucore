@@ -19,6 +19,7 @@
 #include "net.h"
 #include "cpu.h"
 #include "spinlock.h"
+#include "shmem.h"
 
 /* ------------- process/thread mechanism design&implementation -------------
 (an simplified Linux process/thread mechanism )
@@ -402,6 +403,7 @@ static int copy_mm(uint32_t clone_flags, struct proc_struct *proc)
     }
     
     // 如果是 CLONE_VM 说明是多 task 共享地址空间，这就类似于多线程的模型
+    // 如果是独立的进程，就没必要 copy 父进程的 vm
     if (clone_flags & CLONE_VM)
     {
         mm = oldmm;
@@ -422,6 +424,7 @@ static int copy_mm(uint32_t clone_flags, struct proc_struct *proc)
     // 打开互斥锁，避免多个进程同时访问内存
     lock_mm(oldmm);
     {
+        // mmap 是多进程共享机制，这里需要 copy mmap 相关的页表
         ret = dup_mmap(mm, oldmm);
     }
     unlock_mm(oldmm);
@@ -756,7 +759,7 @@ static int load_icode(int fd, int argc, char **kargv)
     mm->brk_start = 0;
 
     //(3) copy TEXT/DATA section, build BSS parts in binary to memory space of process
-    struct Page *page;
+    struct Page *page = NULL;
     //(3.1) get the file header of the bianry program (ELF format)
     struct elfhdr __elf, *elf = &__elf;
     if ((ret = load_icode_read(fd, elf, sizeof(struct elfhdr), 0)) != 0)
@@ -771,7 +774,10 @@ static int load_icode(int fd, int argc, char **kargv)
     }
 
     struct proghdr __ph, *ph = &__ph;
-    uint32_t vm_flags, perm, phnum;
+    uint32_t vm_flags;
+    uint32_t perm;
+    uint32_t phnum;
+    
     for (phnum = 0; phnum < elf->e_phnum; phnum++)
     {
         // program header 在文件中的物理位置
@@ -787,12 +793,13 @@ static int load_icode(int fd, int argc, char **kargv)
         }
         if (ph->p_filesz > ph->p_memsz)
         {
+            // ELF 文件占用空间不可能比 ELF 加载到内存之后占用空间还大
             ret = -E_INVAL_ELF;
             goto bad_cleanup_mmap;
         }
         if (ph->p_filesz == 0)
         {
-            continue ;
+            continue;
         }
         
         vm_flags = 0;
@@ -815,14 +822,26 @@ static int load_icode(int fd, int argc, char **kargv)
             perm |= PTE_W;
         }
         
+        // 这里要按照内存占用空间来映射页表
         if ((ret = mm_map(mm, ph->p_va, ph->p_memsz, vm_flags, NULL)) != 0)
         {
             goto bad_cleanup_mmap;
         }
         
+        /*
+         Program Headers:
+         Type   Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+         LOAD   0x001000 0x00200000 0x00200000 0x0a355 0x0a355 RW  0x1000
+         LOAD   0x00c020 0x00800020 0x00800020 0x033d1 0x033d1 R E 0x1000
+         LOAD   0x010000 0x00804000 0x00804000 0x000b0 0x03240 RW  0x1000
+        */
+        
         off_t offset = ph->p_offset;
-        size_t off, size;
-        uintptr_t start = ph->p_va, end, la = ROUNDDOWN(start, PGSIZE);
+        size_t off;
+        size_t size;
+        uintptr_t start = ph->p_va;
+        uintptr_t end;
+        uintptr_t la = ROUNDDOWN(start, PGSIZE);
 
         ret = -E_NO_MEM;
 
@@ -835,22 +854,29 @@ static int load_icode(int fd, int argc, char **kargv)
                 ret = -E_NO_MEM;
                 goto bad_cleanup_mmap;
             }
-            off = start - la; size = PGSIZE - off; la += PGSIZE;
+            
+            off = start - la;
+            size = PGSIZE - off;
+            la += PGSIZE;
             if (end < la)
             {
                 size -= la - end;
             }
+            
+            // 把 elf 文件一页一页加载到内存里
             if ((ret = load_icode_read(fd, page2kva(page) + off, size, offset)) != 0)
             {
                 goto bad_cleanup_mmap;
             }
-            start += size; offset += size;
+            
+            start += size;
+            offset += size;
         }
+        
         end = ph->p_va + ph->p_memsz;
-
-        if (mm->brk_start < ph->p_va + ph->p_memsz)
+        if (mm->brk_start < end)
         {
-            mm->brk_start = ph->p_va + ph->p_memsz;
+            mm->brk_start = end;
         }
         
         if (start < la)
@@ -858,9 +884,13 @@ static int load_icode(int fd, int argc, char **kargv)
             /* ph->p_memsz == ph->p_filesz */
             if (start == end)
             {
-                continue ;
+                continue;
             }
-            off = start + PGSIZE - la; size = PGSIZE - off;
+            
+            // 如果 ph->p_memsz > ph->p_filesz，则说明存在 BSS 段，
+            // BSS 中未初始化的全局变量，需要初始化为 0，确保代码能正确执行
+            off = start + PGSIZE - la;
+            size = PGSIZE - off;
             if (end < la)
             {
                 size -= la - end;
@@ -872,12 +902,17 @@ static int load_icode(int fd, int argc, char **kargv)
         
         while (start < end)
         {
+            // 如果 ph->p_memsz > ph->p_filesz，则说明存在 BSS 段，
+            // BSS 中未初始化的全局变量，需要初始化为 0，确保代码能正确执行
             if ((page = pgdir_alloc_page(mm, la, perm)) == NULL)
             {
                 ret = -E_NO_MEM;
                 goto bad_cleanup_mmap;
             }
-            off = start - la; size = PGSIZE - off; la += PGSIZE;
+            
+            off = start - la;
+            size = PGSIZE - off;
+            la += PGSIZE;
             if (end < la)
             {
                 size -= la - end;
@@ -890,6 +925,7 @@ static int load_icode(int fd, int argc, char **kargv)
     // elf 程序已经全部加载到内存，可以关闭文件了
     sysfile_close(fd);
 
+    // 地址取整 4k 对齐
     mm->brk_start = mm->brk = ROUNDUP(mm->brk_start, PGSIZE);
     
     // 映射用户进程堆栈地址空间
@@ -1611,23 +1647,24 @@ int do_shmem(uintptr_t *addr_store, size_t len, uint32_t mmap_flags)
         }
     }
 
-//    struct shmem_struct *shmem;
-//    if ((shmem = shmem_create(len)) == NULL)
-//    {
-//        goto out_unlock;
-//    }
+    struct shmem_struct *shmem;
+    if ((shmem = shmem_create(len)) == NULL)
+    {
+        goto out_unlock;
+    }
 
-//    if ((ret = mm_map_shmem(mm, addr, vm_flags, shmem, NULL)) != 0)
-//    {
-//        assert(shmem_ref(shmem) == 0);
-//        shmem_destroy(shmem);
-//        goto out_unlock;
-//    }
-//    *addr_store = addr;
+    if ((ret = mm_map_shmem(mm, addr, vm_flags, shmem, NULL)) != 0)
+    {
+        assert(shmem_ref(shmem) == 0);
+        shmem_destroy(shmem);
+        goto out_unlock;
+    }
+    *addr_store = addr;
     
 out_unlock:
-     unlock_mm(mm);
-     return ret;
+    dump_vma(mm);
+    unlock_mm(mm);
+    return ret;
 }
 
 int process_dump()

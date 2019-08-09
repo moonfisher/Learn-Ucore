@@ -210,5 +210,6 @@ int do_munmap(uintptr_t addr, size_t len);
 void set_priority(uint32_t priority);
 int do_brk(uintptr_t *brk_store);
 int do_sleep(unsigned int time);
+int do_shmem(uintptr_t *addr_store, size_t len, uint32_t mmap_flags);
 #endif /* !__KERN_PROCESS_PROC_H__ */
 

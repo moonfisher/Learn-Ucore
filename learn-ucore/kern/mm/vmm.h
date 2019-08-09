@@ -61,8 +61,8 @@ struct mm_struct
     int mm_count;                  // the number ofprocess which shared the mm
     semaphore_t mm_sem;            // mutex for using dup_mmap fun to duplicat the mm 
     int locked_by;                 // the lock owner process's pid
-    uintptr_t brk_start;
-    uintptr_t brk;
+    uintptr_t brk_start;           // 进程内部 malloc 申请内存占用的虚拟地址起始，位于代码段数据段之后
+    uintptr_t brk;                 // 进程内部 malloc 申请内存当前可用虚拟地址起始
     list_entry_t proc_mm_link;
 };
 
@@ -75,14 +75,10 @@ struct mm_struct *mm_create(void);
 void mm_destroy(struct mm_struct *mm);
 
 void vmm_init(void);
-int mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags,
-           struct vma_struct **vma_store);
-int mm_map_shmem(struct mm_struct *mm, uintptr_t addr, uint32_t vm_flags,
-        struct shmem_struct *shmem, struct vma_struct **vma_store);
+int mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags, struct vma_struct **vma_store);
+int mm_map_shmem(struct mm_struct *mm, uintptr_t addr, uint32_t vm_flags, struct shmem_struct *shmem, struct vma_struct **vma_store);
 int mm_unmap(struct mm_struct *mm, uintptr_t addr, size_t len);
 int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr);
-
-int mm_unmap(struct mm_struct *mm, uintptr_t addr, size_t len);
 int dup_mmap(struct mm_struct *to, struct mm_struct *from);
 void exit_mmap(struct mm_struct *mm);
 uintptr_t get_unmapped_area(struct mm_struct *mm, size_t len);
