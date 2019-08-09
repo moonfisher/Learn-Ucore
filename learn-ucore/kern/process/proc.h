@@ -191,7 +191,7 @@ int kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags, const char
 int get_initproc_pid();
 int get_idleproc_pid();
 int32_t getpid();
-
+int process_dump();
 char *set_proc_name(struct proc_struct *proc, const char *name);
 char *get_proc_name(struct proc_struct *proc);
 bool set_pid_name(int32_t pid, const char *name);
@@ -208,6 +208,7 @@ int do_mmap(uintptr_t * addr_store, size_t len, uint32_t mmap_flags);
 int do_munmap(uintptr_t addr, size_t len);
 // set the process's priority (bigger value will get more CPU time)
 void set_priority(uint32_t priority);
+int do_brk(uintptr_t *brk_store);
 int do_sleep(unsigned int time);
 #endif /* !__KERN_PROCESS_PROC_H__ */
 

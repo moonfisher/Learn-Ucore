@@ -76,9 +76,8 @@ static int sys_getpid(uint32_t arg[])
 
 static int sys_brk(uint32_t arg[])
 {
-//    uintptr_t *brk_store = (uintptr_t *)arg[0];
-//    return do_brk(brk_store);
-    return 0;
+    uintptr_t *brk_store = (uintptr_t *)arg[0];
+    return do_brk(brk_store);
 }
 
 static int sys_mmap(uint32_t arg[])
@@ -366,7 +365,7 @@ static int sys_ping(uint32_t arg[])
 
 static int sys_process_dump(uint32_t arg[])
 {
-//    process_dump();
+    process_dump();
     return 0;
 }
 

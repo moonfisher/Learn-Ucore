@@ -121,7 +121,7 @@ struct vma_struct *find_vma(struct mm_struct *mm, uintptr_t addr)
             while ((le = list_next(le)) != list)
             {
                 vma = le2vma(le, list_link);
-                if (vma->vm_start<=addr && addr < vma->vm_end)
+                if (vma->vm_start <= addr && addr < vma->vm_end)
                 {
                     found = 1;
                     break;
@@ -134,10 +134,16 @@ struct vma_struct *find_vma(struct mm_struct *mm, uintptr_t addr)
         }
         if (vma != NULL)
         {
+            // 每次查找都更新下缓存，方便下次查找，提高效率
             mm->mmap_cache = vma;
         }
     }
     return vma;
+}
+
+struct vma_struct *find_vma_intersection(struct mm_struct *mm, uintptr_t start, uintptr_t end)
+{
+    return mm->mmap_cache;
 }
 
 // check_vma_overlap - check if vma1 overlaps vma2 ?
@@ -203,6 +209,49 @@ static int remove_vma_struct(struct mm_struct *mm, struct vma_struct *vma)
     return 0;
 }
 
+void dump_vma(struct mm_struct *mm)
+{
+    struct vma_struct *vma = NULL;
+    if (mm != NULL)
+    {
+        cprintf("dump_vma start ================================\n");
+        list_entry_t *list = &(mm->mmap_list), *le = list;
+        while ((le = list_next(le)) != list)
+        {
+            vma = le2vma(le, list_link);
+            
+            int8_t flagstr[100] = {0};
+            if (vma->vm_flags & VM_READ)
+            {
+                strcat(flagstr, " read");
+            }
+
+            if (vma->vm_flags & VM_WRITE)
+            {
+                strcat(flagstr, " write");
+            }
+
+            if (vma->vm_flags & VM_EXEC)
+            {
+                strcat(flagstr, " exec");
+            }
+
+            if (vma->vm_flags & VM_STACK)
+            {
+                strcat(flagstr, " stack");
+            }
+
+            if (vma->vm_flags & VM_SHARE)
+            {
+                strcat(flagstr, " share");
+            }
+            
+            cprintf("vm_start:0x%x, vm_end:0x%x, vm_length:0x%x, vm_flags:%s\n", vma->vm_start, vma->vm_end, vma->vm_end - vma->vm_start, flagstr);
+        }
+        cprintf("dump_vma end ================================\n");
+    }
+}
+
 // mm_destroy - free mm and mm internal fields
 void mm_destroy(struct mm_struct *mm)
 {
@@ -218,8 +267,8 @@ void mm_destroy(struct mm_struct *mm)
     mm = NULL;
 }
 
-int mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags,
-       struct vma_struct **vma_store)
+// 这里只是分配虚拟页表结构，并未实际分配对应的物理内存，物理内存等到缺页中断的时候再分配
+int mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags, struct vma_struct **vma_store)
 {
     uintptr_t start = ROUNDDOWN(addr, PGSIZE), end = ROUNDUP(addr + len, PGSIZE);
     if (!USER_ACCESS(start, end))
@@ -253,6 +302,7 @@ out:
     return ret;
 }
 
+// 这里不仅仅是释放虚拟页表结构，页表对应的物理内存页可能也已经分配，也需要释放
 int mm_unmap(struct mm_struct *mm, uintptr_t addr, size_t len)
 {
     uintptr_t start = ROUNDDOWN(addr, PGSIZE), end = ROUNDUP(addr + len, PGSIZE);
@@ -271,6 +321,7 @@ int mm_unmap(struct mm_struct *mm, uintptr_t addr, size_t len)
     
     if (vma->vm_start < start && end < vma->vm_end)
     {
+        // 进入这里说明需要释放的区域是一个页表中间的地方，此时页表要拆分
         struct vma_struct *nvma;
         if ((nvma = vma_create(vma->vm_start, start, vma->vm_flags)) == NULL)
         {
@@ -285,6 +336,8 @@ int mm_unmap(struct mm_struct *mm, uintptr_t addr, size_t len)
         return 0;
     }
     
+    // 走到这里，说明需要释放的空间包含了多个 vma 结构
+    // 先新建一个 free_list 把这些这 vma 找到并保存起来，后续释放
     list_entry_t free_list, *le;
     list_init(&free_list);
     while (vma->vm_start < end)
@@ -307,13 +360,15 @@ int mm_unmap(struct mm_struct *mm, uintptr_t addr, size_t len)
         uintptr_t un_start, un_end;
         if (vma->vm_start < start)
         {
-            un_start = start, un_end = vma->vm_end;
+            un_start = start;
+            un_end = vma->vm_end;
             vma_resize(vma, vma->vm_start, un_start);
             insert_vma_struct(mm, vma);
         }
         else
         {
-            un_start = vma->vm_start, un_end = vma->vm_end;
+            un_start = vma->vm_start;
+            un_end = vma->vm_end;
             if (end < un_end)
             {
                 un_end = end;
@@ -384,7 +439,11 @@ void exit_mmap(struct mm_struct *mm)
     }
 }
 
-uintptr_t get_unmapped_area(struct mm_struct * mm, size_t len)
+/*
+ 寻找没有映射的虚拟地址空间，寻找方式是从用户空间的最高端地址，往最低端地址方向(list_prev)
+ 一个个的扫描目前已经存在的 vma 结构，直到找到不重叠的空闲的连续区域
+*/
+uintptr_t get_unmapped_area(struct mm_struct *mm, size_t len)
 {
     if (len == 0 || len > USERTOP)
     {
@@ -401,6 +460,7 @@ uintptr_t get_unmapped_area(struct mm_struct * mm, size_t len)
         }
         if (start + len > vma->vm_start)
         {
+            // 进入这里说明找到的虚拟地址和现有 vma 有重叠，需要往下找下一个 vma 继续对比
             if (len >= vma->vm_start)
             {
                 return 0;

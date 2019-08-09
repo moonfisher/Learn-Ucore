@@ -86,7 +86,7 @@ int dup_mmap(struct mm_struct *to, struct mm_struct *from);
 void exit_mmap(struct mm_struct *mm);
 uintptr_t get_unmapped_area(struct mm_struct *mm, size_t len);
 int mm_brk(struct mm_struct *mm, uintptr_t addr, size_t len);
-void dump_vma(char* str, struct mm_struct* mm);
+void dump_vma(struct mm_struct* mm);
 
 extern volatile unsigned int pgfault_num;
 extern struct mm_struct *check_mm_struct;

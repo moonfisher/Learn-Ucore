@@ -928,6 +928,8 @@ static int load_icode(int fd, int argc, char **kargv)
     stacktop = (uintptr_t)uargv - sizeof(int);
     *(int *)stacktop = argc;
     
+    dump_vma(mm);
+    
     // 用户进程是通过 sys_exec 系统调用作为入口进来加载的，实际也是中断，中断返回就需要构造中断帧
     // 这里中断桢是从父进程那里继承过来的，父进程可能是内核进程，也可能是用户进程
     // 这里需要先清空，重新设置为 USER_CS 和 USER_DS，这样进程运行起来后直接是用户态
@@ -1247,6 +1249,7 @@ int do_mmap(uintptr_t *addr_store, size_t len, uint32_t mmap_flags)
         goto out_unlock;
     }
     
+    // 这里重新修改 addr 和 len，保证是 4k 对齐
     uintptr_t start = ROUNDDOWN(addr, PGSIZE), end = ROUNDUP(addr + len, PGSIZE);
     addr = start;
     len = end - start;
@@ -1254,6 +1257,7 @@ int do_mmap(uintptr_t *addr_store, size_t len, uint32_t mmap_flags)
     uint32_t vm_flags = VM_READ;
     if (mmap_flags & MMAP_WRITE)
         vm_flags |= VM_WRITE;
+    
     if (mmap_flags & MMAP_STACK)
         vm_flags |= VM_STACK;
     
@@ -1269,8 +1273,10 @@ int do_mmap(uintptr_t *addr_store, size_t len, uint32_t mmap_flags)
     {
         copy_to_user(mm, addr_store, &addr, sizeof(uintptr_t));
     }
+
 out_unlock:
     unlock_mm(mm);
+    dump_vma(mm);
     return ret;
 }
 
@@ -1292,6 +1298,7 @@ int do_munmap(uintptr_t addr, size_t len)
         ret = mm_unmap(mm, addr, len);
     }
     unlock_mm(mm);
+    dump_vma(mm);
     return ret;
 }
 
@@ -1460,65 +1467,78 @@ void set_priority(uint32_t priority)
 // do_brk - adjust(increase/decrease) the size of process heap, align with page size
 // NOTE: will change the process vma
 // 将mm->brk 确定到 ROUNDUP(*brk_store, PGSIZE) 处
-//int do_brk(uintptr_t *brk_store)
-//{
-//    struct mm_struct *mm = current->mm;
-//    if (mm == NULL) {
-//        panic("kernel thread call sys_brk!!.\n");
-//    }
-//    if (brk_store == NULL) {
-//        return -E_INVAL;
-//    }
-//
-//    uintptr_t brk;
-//    lock_mm(mm);
-//    if (!copy_from_user(mm, &brk, brk_store, sizeof(uintptr_t), 1)) {
-//        unlock_mm(mm);
-//        return -E_INVAL;
-//    }
-//    if (brk < mm->brk_start) {
-//        goto out_unlock;
-//    }
-//
-//    uintptr_t newbrk = ROUNDUP(brk, PGSIZE), oldbrk = mm->brk;
-//    assert(oldbrk % PGSIZE == 0);
-//    if (newbrk == oldbrk) {
-//        goto out_unlock;
-//    }
-//    if (newbrk < oldbrk) {
-//        //收缩了一部分内存空间
-//        if (mm_unmap(mm, newbrk, oldbrk - newbrk) != 0) {
-//            goto out_unlock;
-//        }
-//    }
-//    else {
-//        //cprintf("do_brk  oldbrk=%x  newbrk+PGSIZE = %x\n", oldbrk, newbrk+PGSIZE);
-//
-//        if (find_vma_intersection(mm, oldbrk, newbrk + PGSIZE) != NULL) {
-//            //mm中已经有这个对应的vma了
-//            goto out_unlock;
-//        } else {
-//            //如果没有，就要建立它
-//            struct vma_struct* oldvma=find_vma(mm, oldbrk);
-//            if (oldvma && (oldvma->vm_end - oldvma->vm_start) > (newbrk - oldbrk) ) {
-//               mm_map(mm, oldvma->vm_end, newbrk - oldvma->vm_end,oldvma->vm_flags,NULL);
-//            } else if (oldvma) {
-//               mm_map(mm, oldvma->vm_start, newbrk-oldbrk,oldvma->vm_flags,NULL);
-//            } else {
-//                mm_map(mm, oldbrk, newbrk - oldbrk, VM_READ|VM_WRITE, NULL);
-//            }
-//
-//        }
-//
-//
-//    }
-//    //确定新的brk位置
-//    mm->brk= newbrk;
-//out_unlock:
-//    *brk_store = mm->brk;
-//    unlock_mm(mm);
-//    return 0;
-//}
+int do_brk(uintptr_t *brk_store)
+{
+    struct mm_struct *mm = current->mm;
+    if (mm == NULL)
+    {
+        panic("kernel thread call sys_brk!!.\n");
+    }
+    if (brk_store == NULL)
+    {
+        return -E_INVAL;
+    }
+
+    uintptr_t brk;
+    lock_mm(mm);
+    if (!copy_from_user(mm, &brk, brk_store, sizeof(uintptr_t), 1))
+    {
+        unlock_mm(mm);
+        return -E_INVAL;
+    }
+    if (brk < mm->brk_start)
+    {
+        goto out_unlock;
+    }
+
+    uintptr_t newbrk = ROUNDUP(brk, PGSIZE), oldbrk = mm->brk;
+    assert(oldbrk % PGSIZE == 0);
+    if (newbrk == oldbrk)
+    {
+        goto out_unlock;
+    }
+    if (newbrk < oldbrk)
+    {
+        //收缩了一部分内存空间
+        if (mm_unmap(mm, newbrk, oldbrk - newbrk) != 0)
+        {
+            goto out_unlock;
+        }
+    }
+    else
+    {
+        //cprintf("do_brk  oldbrk=%x  newbrk+PGSIZE = %x\n", oldbrk, newbrk+PGSIZE);
+        if (find_vma_intersection(mm, oldbrk, newbrk + PGSIZE) != NULL)
+        {
+            //mm中已经有这个对应的vma了
+            goto out_unlock;
+        }
+        else
+        {
+            //如果没有，就要建立它
+            struct vma_struct *oldvma = find_vma(mm, oldbrk);
+            if (oldvma && (oldvma->vm_end - oldvma->vm_start) > (newbrk - oldbrk))
+            {
+                mm_map(mm, oldvma->vm_end, newbrk - oldvma->vm_end, oldvma->vm_flags, NULL);
+            }
+            else if (oldvma)
+            {
+                mm_map(mm, oldvma->vm_start, newbrk-oldbrk, oldvma->vm_flags, NULL);
+            }
+            else
+            {
+                mm_map(mm, oldbrk, newbrk - oldbrk, VM_READ | VM_WRITE, NULL);
+            }
+        }
+    }
+    //确定新的brk位置
+    mm->brk = newbrk;
+    
+out_unlock:
+    *brk_store = mm->brk;
+    unlock_mm(mm);
+    return 0;
+}
 
 // do_sleep - set current process state to sleep and add timer with "time"
 //          - then call scheduler. if process run again, delete timer first.
@@ -1603,21 +1623,21 @@ out_unlock:
      return ret;
 }
 
-//int process_dump()
-//{
-//    int intr_flag;
-//    struct proc_struct *proc = NULL;
-//    local_intr_save(intr_flag);
-//
-//    list_entry_t* elem = &proc_list;
-//    while( (elem=list_next(elem)) != &proc_list) {
-//         proc= le2proc(elem, list_link);
-//
-//         cprintf("%02d  %s \n",proc->pid,proc->name);
-//    }
-//
-//    local_intr_restore(intr_flag);
-//    return 0;
-//}
+int process_dump()
+{
+    int intr_flag;
+    struct proc_struct *proc = NULL;
+    local_intr_save(intr_flag);
+
+    list_entry_t *elem = &proc_list;
+    while ((elem = list_next(elem)) != &proc_list)
+    {
+        proc = le2proc(elem, list_link);
+        cprintf("%02d  %s \n", proc->pid, proc->name);
+    }
+
+    local_intr_restore(intr_flag);
+    return 0;
+}
 
 
