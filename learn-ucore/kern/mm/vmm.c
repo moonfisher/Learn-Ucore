@@ -83,10 +83,10 @@ static void vma_destroy(struct vma_struct *vma)
 {
     if (vma->vm_flags & VM_SHARE)
     {
-//        if (shmem_ref_dec(vma->shmem) == 0)
-//        {
-//            shmem_destroy(vma->shmem);
-//        }
+        if (shmem_ref_dec(vma->shmem) == 0)
+        {
+            shmem_destroy(vma->shmem);
+        }
     }
     kfree(vma);
 }
@@ -297,7 +297,7 @@ int mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags, 
         goto out;
     }
     ret = -E_NO_MEM;
-
+    vm_flags &= ~VM_SHARE;
     if ((vma = vma_create(start, end, vm_flags)) == NULL)
     {
         goto out;
@@ -404,7 +404,7 @@ int mm_unmap(struct mm_struct *mm, uintptr_t addr, size_t len)
  内容到新进程中（子进程），完成内存资源的复制。具体是通过 copy_range 函数
  
  如何实现 COW 快照（Copy-On-Write）
- 在创建子进程时，将父进程的PDE直接赋值给子进程的 PDE，但是需要将允许写入的标志位置 0；
+ 在创建子进程时，将父进程的 PDE 直接赋值给子进程的 PDE，但是需要将允许写入的标志位置 0；
  当子进程需要进行写操作时，再次出发中断调用 do_pgfault()，此时应给子进程新建 PTE，
  并取代原先 PDE 中的项，然后才能写入。
 */
@@ -785,24 +785,40 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr)
         // if the phy addr isn't exist, then alloc a page & map the phy addr with logical addr
         // PTE 所指向的物理页表地址若不存在则分配一物理页并将逻辑地址和物理地址作映射
         // 就是让 PTE 指向 物理页帧
-        if (pgdir_alloc_page(mm, addr, perm) == NULL)
+        if (!(vma->vm_flags & VM_SHARE))
         {
-            cprintf("pgdir_alloc_page in do_pgfault failed\n");
-            goto failed;
+            if (pgdir_alloc_page(mm, addr, perm) == NULL)
+            {
+                cprintf("pgdir_alloc_page in do_pgfault failed\n");
+                goto failed;
+            }
         }
     }
     else
     {
         // 表明已经将该虚拟地址对应的物理地址置换在 swap 分区了
         struct Page *page = NULL;
+        struct Page *newpage = NULL;
         cprintf("do pgfault: ptep %x, pte %x\n", ptep, *ptep);
         if (*ptep & PTE_P)
         {
-            //if process write to this existed readonly page (PTE_P means existed), then should be here now.
-            //we can implement the delayed memory space copy for fork child process (AKA copy on write, COW).
-            //we didn't implement now, we will do it in future.
-            panic("error write a non-writable pte");
-            //page = pte2page(*ptep);
+            // a present page, handle copy-on-write (cow)
+            // 物理页面存在，但不可写，说明进入 COW 流程，申请新的物理页面，并进行内存拷贝
+            page = pte2page(*ptep);
+            bool cow = ((vma->vm_flags & (VM_SHARE | VM_WRITE)) == VM_WRITE);
+            if (cow)
+            {
+                newpage = alloc_page();
+                if (page_ref(page) > 1)
+                {
+                    if (newpage == NULL)
+                    {
+                        goto failed;
+                    }
+                    memcpy(page2kva(newpage), page2kva(page), PGSIZE);
+                    page = newpage;
+                }
+            }
         }
         else
         {
@@ -821,7 +837,7 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr)
             }
             else
             {
-                cprintf("no swap_init_ok but ptep is %x, failed\n",*ptep);
+                cprintf("no swap_init_ok but ptep is %x, failed\n", *ptep);
                 goto failed;
             }
         }

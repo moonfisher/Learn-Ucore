@@ -1005,16 +1005,13 @@ void exit_range(pde_t *pgdir, uintptr_t start, uintptr_t end)
  *
  * CALL GRAPH: copy_mm-->dup_mmap-->copy_range
  * 实现步骤:
- *          1.为to分配一个Page对象 npage
- *          2.得到start所在from的pte,相应的 page
- *          3.得到npage的物理内存在kernel中的kva_det
- *          4.得到page的物理内存在kernel中的kva_src
- *          5.在ring0状态拷贝kva_src到kva_det
- *          6.设置to的npage的相应的pte
- *do_fork-->
- *         copy_mm-->
- *                  dup_mmap-->
- *                             copy_range
+ *          1.为 to 分配一个 Page 对象 npage
+ *          2.得到 start 所在 from 的 pte, 相应的 page
+ *          3.得到 npage 的物理内存在 kernel 中的 kva_det
+ *          4.得到 page 的物理内存在 kernel 中的 kva_src
+ *          5.在 ring0 状态拷贝 kva_src 到 kva_det
+ *          6.设置 to 的 npage 的相应的 pte
+ * do_fork --> copy_mm --> dup_mmap --> copy_range
  */
 // copy_range 函数就是调用一个 memcpy 将父进程的内存直接复制给子进程
 int copy_range(struct mm_struct *to, struct mm_struct *from, uintptr_t start, uintptr_t end, bool share)
@@ -1029,11 +1026,13 @@ int copy_range(struct mm_struct *to, struct mm_struct *from, uintptr_t start, ui
         if (ptep == NULL)
         {
             start = ROUNDDOWN(start + PTSIZE, PTSIZE);
-            continue ;
+            continue;
         }
         //call get_pte to find process B's pte according to the addr start. If pte is NULL, just alloc a PT
         if (*ptep & PTE_P)
         {
+            // 进入这里，说明 from 页表里某些虚拟地址已经分配好物理页面
+            // 这部分物理页面需要根据情况来区分处理
             if ((nptep = get_pte(to->pgdir, start, 1)) == NULL)
             {
                 return -E_NO_MEM;
@@ -1041,23 +1040,28 @@ int copy_range(struct mm_struct *to, struct mm_struct *from, uintptr_t start, ui
             uint32_t perm = (*ptep & PTE_USER);
             //get page from ptep
             struct Page *page = pte2page(*ptep);
-            // alloc a page for process B
-            struct Page *npage = alloc_page();
-            check_mm_struct = NULL;
             assert(page != NULL);
-            assert(npage != NULL);
             int ret = 0;
+            check_mm_struct = NULL;
+            if (share)
+            {
+                // 如果是共享内存，from 和 to 共享同一个物理页面
+                // 这里直接把 from 的共享物理页面插入 to 页表里
+                ret = page_insert(to->pgdir, page, start, perm);
+                assert(ret == 0);
+            }
+            else
+            {
+                // 如果不是共享内存，就走 COW 机制，先把 from 所在的可写物理页面全部标记为只读，
+                // 这样后续触发 page fault 之后，重新再申请内存进行内存拷贝
+                if (*ptep & PTE_W)
+                {
+                    perm &= (~PTE_W);
+                }
 
-            // 返回父进程的内核虚拟页地址
-            void *kva_src = page2kva(page);
-            // 返回子进程的内核虚拟页地址
-            void *kva_dst = page2kva(npage);
-        
-            // 复制父进程到子进程
-            memcpy(kva_dst, kva_src, PGSIZE);
-            // 建立子进程页地址起始位置与物理地址的映射关系(prem是权限)
-            ret = page_insert(to->pgdir, npage, start, perm);
-            assert(ret == 0);
+                ret = page_insert(to->pgdir, page, start, perm);
+                assert(ret == 0);
+            }
         }
         start += PGSIZE;
     } while (start != 0 && start < end);
@@ -1340,4 +1344,6 @@ void print_pgdir(void)
         }
     }
     cprintf("--------------------- END ---------------------\n");
+    if (current)
+        dump_vma(current->mm);
 }

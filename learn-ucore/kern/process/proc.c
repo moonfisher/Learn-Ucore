@@ -402,8 +402,8 @@ static int copy_mm(uint32_t clone_flags, struct proc_struct *proc)
         return 0;
     }
     
-    // 如果是 CLONE_VM 说明是多 task 共享地址空间，这就类似于多线程的模型
-    // 如果是独立的进程，就没必要 copy 父进程的 vm
+    // 如果是 CLONE_VM 说明是多 task 共享地址空间，这就类似于多线程的模型，地址空间完全一样
+    // 如果是独立的进程，就没必要 copy 父进程的 vm，直接创建新的页表，采用 Copy On Write
     if (clone_flags & CLONE_VM)
     {
         mm = oldmm;
