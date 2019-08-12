@@ -95,16 +95,11 @@ static void vma_resize(struct vma_struct *vma, uintptr_t start, uintptr_t end)
 {
     assert(start % PGSIZE == 0 && end % PGSIZE == 0);
     assert(vma->vm_start <= start && start < end && end <= vma->vm_end);
+    
     if (vma->vm_flags & VM_SHARE)
     {
         vma->shmem_off += start - vma->vm_start;
     }
-#ifdef UCONFIG_BIONIC_LIBC
-    if (vma->mfile.file != NULL)
-    {
-        vma->mfile.offset += start - vma->vm_start;
-    }
-#endif //UCONFIG_BIONIC_LIBC
     
     vma->vm_start = start, vma->vm_end = end;
 }
@@ -224,7 +219,11 @@ void dump_vma(struct mm_struct *mm)
     struct vma_struct *vma = NULL;
     if (mm != NULL)
     {
-        cprintf("dump_vma start ================================\n");
+        cprintf("\n-------------------- dump_vma BEGIN --------------------\n");
+        if (current)
+        {
+            cprintf("dump_vma: pid = %d, name = \"%s\", runs = %d.\n", current->pid, current->name, current->runs);
+        }
         list_entry_t *list = &(mm->mmap_list), *le = list;
         while ((le = list_next(le)) != list)
         {
@@ -259,7 +258,7 @@ void dump_vma(struct mm_struct *mm)
             cprintf("vm_start:0x%x, vm_end:0x%x, vm_length:0x%x, vm_flags:%s\n", vma->vm_start, vma->vm_end, vma->vm_end - vma->vm_start, flagstr);
         }
         cprintf("brk_start:0x%x, brk:0x%x\n", mm->brk_start, mm->brk);
-        cprintf("dump_vma end ================================\n");
+        cprintf("-------------------- dump_vma END --------------------\n");
     }
 }
 
@@ -338,9 +337,7 @@ int mm_unmap(struct mm_struct *mm, uintptr_t addr, size_t len)
         {
             return -E_NO_MEM;
         }
-#ifdef UCONFIG_BIONIC_LIBC
-        vma_copymapfile(nvma, vma);
-#endif //UCONFIG_BIONIC_LIBC
+
         vma_resize(vma, end, vma->vm_end);
         insert_vma_struct(mm, nvma);
         unmap_range(mm->pgdir, start, end);
@@ -388,9 +385,6 @@ int mm_unmap(struct mm_struct *mm, uintptr_t addr, size_t len)
             }
             else
             {
-#ifdef UCONFIG_BIONIC_LIBC
-                vma_unmapfile(vma);
-#endif //UCONFIG_BIONIC_LIBC
                 vma_destroy(vma);
             }
         }
@@ -429,14 +423,12 @@ int dup_mmap(struct mm_struct *to, struct mm_struct *from)
                 nvma->shmem_off = vma->shmem_off;
                 shmem_ref_inc(vma->shmem);
             }
-#ifdef UCONFIG_BIONIC_LIBC
-            nvma->mfile = vma->mfile;
-#endif //UCONFIG_BIONIC_LIBC
         }
+        
         insert_vma_struct(to, nvma);
 
         bool share = (vma->vm_flags & VM_SHARE);
-        if (copy_range(to, from, vma->vm_start, vma->vm_end, share) != 0)
+        if (copy_range(to, from, vma->vm_start, vma->vm_end, share, 0) != 0)
         {
             return -E_NO_MEM;
         }
@@ -718,6 +710,13 @@ volatile unsigned int pgfault_num = 0;
 int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr)
 {
     int ret = -E_INVAL;
+    
+    if (current)
+    {
+        cprintf("do_pgfault: pid = %d, name = \"%s\", runs = %d, addr = 0x%x, error_code = %d.\n", current->pid, current->name, current->runs, addr, error_code & 3);
+        print_pgdir();
+    }
+    
     //try to find a vma which include addr
     struct vma_struct *vma = find_vma(mm, addr);
 
@@ -726,9 +725,19 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr)
     // 缺页中断都是由当前进程代码引起的，先判断下是否访问了非法地址
     if (vma == NULL || vma->vm_start > addr)
     {
-        cprintf("not valid addr %x, and  can not find it in vma\n", addr);
+        cprintf("not valid addr 0x%x, and can not find it in vma\n", addr);
         goto failed;
     }
+    
+    if (vma->vm_flags & VM_STACK)
+    {
+        if (addr < vma->vm_start + PGSIZE)
+        {
+            cprintf("not valid addr 0x%x in vm stack\n", addr);
+            goto failed;
+        }
+    }
+    
     //check the error_code
     switch (error_code & 3)
     {
@@ -783,8 +792,7 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr)
     if (*ptep == 0)
     {
         // if the phy addr isn't exist, then alloc a page & map the phy addr with logical addr
-        // PTE 所指向的物理页表地址若不存在则分配一物理页并将逻辑地址和物理地址作映射
-        // 就是让 PTE 指向 物理页帧
+        // 非共享内存页面，直接申请物理内存并更新到页表里
         if (!(vma->vm_flags & VM_SHARE))
         {
             if (pgdir_alloc_page(mm, addr, perm) == NULL)
@@ -793,12 +801,32 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr)
                 goto failed;
             }
         }
+        else
+        {
+            //shared mem
+            lock_shmem(vma->shmem);
+            uintptr_t shmem_addr = addr - vma->vm_start + vma->shmem_off;
+            pte_t *sh_ptep = shmem_get_entry(vma->shmem, shmem_addr, 1);
+            if (sh_ptep == NULL || (*sh_ptep == 0))
+            {
+                unlock_shmem(vma->shmem);
+                goto failed;
+            }
+            
+            unlock_shmem(vma->shmem);
+            if (*sh_ptep & PTE_P)
+            {
+                page_insert(mm->pgdir, pa2page(*sh_ptep), addr, perm);
+            }
+            else
+            {
+                panic("do pgfault, NO SWAP\n");
+            }
+        }
     }
     else
     {
-        // 表明已经将该虚拟地址对应的物理地址置换在 swap 分区了
         struct Page *page = NULL;
-        struct Page *newpage = NULL;
         cprintf("do pgfault: ptep %x, pte %x\n", ptep, *ptep);
         if (*ptep & PTE_P)
         {
@@ -808,22 +836,22 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr)
             bool cow = ((vma->vm_flags & (VM_SHARE | VM_WRITE)) == VM_WRITE);
             if (cow)
             {
-                newpage = alloc_page();
-                if (page_ref(page) > 1)
-                {
-                    if (newpage == NULL)
-                    {
-                        goto failed;
-                    }
-                    memcpy(page2kva(newpage), page2kva(page), PGSIZE);
-                    page = newpage;
-                }
+                struct Page *npage = alloc_page();
+                assert(npage != NULL);
+                
+                void *kva_src = page2kva(page);
+                void *kva_dst = page2kva(npage);
+                
+                // 复制 from 的物理页面内容给 to
+                memcpy(kva_dst, kva_src, PGSIZE);
+                page = npage;
             }
         }
         else
         {
             // if this pte is a swap entry, then load data from disk to a page with phy addr
             // and call page_insert to map the phy addr with logical addr
+            // 表明已经将该虚拟地址对应的物理地址置换在 swap 分区了
             // 如果 PTE 存在 说明此时 P 位为 0 该页被换出到外存中 需要将其换入内存
             // 该页面存放在外存什么地方呢，地址就存储在 pte 中
             if (swap_init_ok)
@@ -850,6 +878,8 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr)
         page->pra_vaddr = addr;
     }
     ret = 0;
+    if (current)
+        print_pgdir();
 failed:
     return ret;
 }

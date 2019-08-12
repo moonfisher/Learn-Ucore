@@ -243,7 +243,7 @@ static const char *trapname(int trapno)
     
     if (trapno == T_SYSCALL)
     {
-        return "Trap Gate";
+        return "System Call";
     }
     
     if (trapno == T_CALLGATE)

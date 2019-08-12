@@ -57,7 +57,8 @@ static bool morecore_brk_locked(size_t nu)
     {
         return 0;
     }
-    header_t *p = (void *)brk;
+    
+    header_t *p = (header_t *)brk;
     p->s.size = (newbrk - brk) / sizeof(header_t);
     p->s.type = 0;
     free_locked((void *)(p + 1));
@@ -73,7 +74,8 @@ static bool morecore_shmem_locked(size_t nu)
     {
         return 0;
     }
-    header_t *p = (void *)mem;
+    
+    header_t *p = (header_t *)mem;
     p->s.size = size / sizeof(header_t);
     p->s.type = 1;
     free_locked((void *)(p + 1));

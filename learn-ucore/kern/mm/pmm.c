@@ -1014,11 +1014,11 @@ void exit_range(pde_t *pgdir, uintptr_t start, uintptr_t end)
  * do_fork --> copy_mm --> dup_mmap --> copy_range
  */
 // copy_range 函数就是调用一个 memcpy 将父进程的内存直接复制给子进程
-int copy_range(struct mm_struct *to, struct mm_struct *from, uintptr_t start, uintptr_t end, bool share)
+int copy_range(struct mm_struct *to, struct mm_struct *from, uintptr_t start, uintptr_t end, bool share, bool useCOW)
 {
     assert(start % PGSIZE == 0 && end % PGSIZE == 0);
     assert(USER_ACCESS(start, end));
-    // copy content by page unit.
+
     do
     {
         //call get_pte to find process A's pte according to the addr start
@@ -1052,15 +1052,37 @@ int copy_range(struct mm_struct *to, struct mm_struct *from, uintptr_t start, ui
             }
             else
             {
-                // 如果不是共享内存，就走 COW 机制，先把 from 所在的可写物理页面全部标记为只读，
-                // 这样后续触发 page fault 之后，重新再申请内存进行内存拷贝
-                if (*ptep & PTE_W)
+                if (useCOW)
                 {
-                    perm &= (~PTE_W);
+                    // 如果使用 COW 机制，先把 from 所在的可写物理页面全部标记为只读
+                    // 后续需要写内存的时候触发 page fault，再申请新内存页面进行内存修改
+                    // 这样不用一开始申请内存，用到了再申请，节省资源
+                    if (*ptep & PTE_W)
+                    {
+                        perm &= (~PTE_W);
+                    }
+                    
+                    // 建立子进程页地址起始位置与物理地址的映射关系(prem是权限)
+                    ret = page_insert(to->pgdir, page, start, perm);
+                    assert(ret == 0);
                 }
-
-                ret = page_insert(to->pgdir, page, start, perm);
-                assert(ret == 0);
+                else
+                {
+                    // 如果不使用 COW 机制，就直接申请物理内存页面，从 from 那里拷贝数据
+                    // 但这会浪费内存，因为子进程大部分会读取父进程的数据，需要改动的页面很少
+                    struct Page *npage = alloc_page();
+                    assert(npage != NULL);
+                    
+                    void *kva_src = page2kva(page);
+                    void *kva_dst = page2kva(npage);
+                    
+                    // 复制 from 的物理页面内容给 to
+                    memcpy(kva_dst, kva_src, PGSIZE);
+                    
+                    // 建立子进程页地址起始位置与物理地址的映射关系(prem是权限)
+                    ret = page_insert(to->pgdir, npage, start, perm);
+                    assert(ret == 0);
+                }
             }
         }
         start += PGSIZE;
@@ -1332,7 +1354,11 @@ static int get_pgtable_items(size_t left, size_t right, size_t start, uintptr_t 
  */
 void print_pgdir(void)
 {
-    cprintf("-------------------- BEGIN --------------------\n");
+    cprintf("\n-------------------- print_pgdir BEGIN --------------------\n");
+    if (current)
+    {
+        cprintf("print_pgdir: pid = %d, name = \"%s\", runs = %d.\n", current->pid, current->name, current->runs);
+    }
     size_t left, right = 0, perm;
     while ((perm = get_pgtable_items(0, NPDEENTRY, right, vpd, &left, &right)) != 0)
     {
@@ -1343,7 +1369,7 @@ void print_pgdir(void)
             cprintf("  |-- PTE(%05x) %08x-%08x %08x %s\n", r - l, l * PGSIZE, r * PGSIZE, (r - l) * PGSIZE, perm2str(perm));
         }
     }
-    cprintf("--------------------- END ---------------------\n");
+    cprintf("--------------------- print_pgdir END ---------------------\n");
     if (current)
         dump_vma(current->mm);
 }

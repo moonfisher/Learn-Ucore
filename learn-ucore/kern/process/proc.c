@@ -928,19 +928,13 @@ static int load_icode(int fd, int argc, char **kargv)
     // 地址取整 4k 对齐
     mm->brk_start = mm->brk = ROUNDUP(mm->brk_start, PGSIZE);
     
-    // 映射用户进程堆栈地址空间
+    // 映射用户进程堆栈地址空间，这里不需要为堆栈分配实际内存，等到发生缺页中断的时候再分配
     vm_flags = VM_READ | VM_WRITE | VM_STACK;
     if ((ret = mm_map(mm, USTACKTOP - USTACKSIZE, USTACKSIZE, vm_flags, NULL)) != 0)
     {
         goto bad_cleanup_mmap;
     }
-    
-    // 创建页表，这里先只创建 4 个页面的页表，这里要权限是 PTE_USER 用户权限，否则用户态无法访问堆栈
-    assert(pgdir_alloc_page(mm, USTACKTOP - PGSIZE , PTE_USER) != NULL);
-    assert(pgdir_alloc_page(mm, USTACKTOP - 2 * PGSIZE , PTE_USER) != NULL);
-    assert(pgdir_alloc_page(mm, USTACKTOP - 3 * PGSIZE , PTE_USER) != NULL);
-    assert(pgdir_alloc_page(mm, USTACKTOP - 4 * PGSIZE , PTE_USER) != NULL);
-    
+
     mm_count_inc(mm);
     current->mm = mm;
     current->cr3 = PADDR(mm->pgdir);

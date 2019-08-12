@@ -18,8 +18,7 @@ typedef struct shmn_s
 
 #define SHMN_NENTRY (PGSIZE / sizeof(pte_t))
 
-#define le2shmn(le, member) \
-    to_struct((le), shmn_t, member)
+#define le2shmn(le, member) to_struct((le), shmn_t, member)
 
 struct shmem_struct
 {

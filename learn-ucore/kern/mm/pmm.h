@@ -50,7 +50,7 @@ void *mmio_map_region(physaddr_t pa, size_t size);
 struct Page *pgdir_alloc_page(struct mm_struct *mm, uintptr_t la, uint32_t perm);
 void unmap_range(pde_t *pgdir, uintptr_t start, uintptr_t end);
 void exit_range(pde_t *pgdir, uintptr_t start, uintptr_t end);
-int copy_range(struct mm_struct *to, struct mm_struct *from, uintptr_t start, uintptr_t end, bool share);
+int copy_range(struct mm_struct *to, struct mm_struct *from, uintptr_t start, uintptr_t end, bool share, bool useCOW);
 
 void print_pgdir(void);
 

@@ -2,6 +2,7 @@
 #include "unistd.h"
 #include "file.h"
 #include "stat.h"
+#include "stdio.h"
 
 int main(int argc, char **argv);
 
@@ -29,6 +30,9 @@ void umain(int argc, char **argv)
 {
     int fd;
     
+    cprintf("\n-------------------- umain start --------------------\n");
+    print_pgdir();
+    
     // 用户程序运行一开始就把 stdin 和 stdout 打开，并映射到 0 和 1 两个文件描述符上
     if ((fd = initfd(0, "stdin:", O_RDONLY)) < 0)
     {
@@ -47,5 +51,6 @@ void umain(int argc, char **argv)
     
     int ret = main(argc, argv);
     exit(ret);
+    cprintf("\n-------------------- umain end --------------------\n");
 }
 
