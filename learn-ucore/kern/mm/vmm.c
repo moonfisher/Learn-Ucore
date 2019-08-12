@@ -428,7 +428,7 @@ int dup_mmap(struct mm_struct *to, struct mm_struct *from)
         insert_vma_struct(to, nvma);
 
         bool share = (vma->vm_flags & VM_SHARE);
-        if (copy_range(to, from, vma->vm_start, vma->vm_end, share, 0) != 0)
+        if (copy_range(to, from, vma->vm_start, vma->vm_end, share, 1) != 0)
         {
             return -E_NO_MEM;
         }
@@ -714,7 +714,7 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr)
     if (current)
     {
         cprintf("do_pgfault: pid = %d, name = \"%s\", runs = %d, addr = 0x%x, error_code = %d.\n", current->pid, current->name, current->runs, addr, error_code & 3);
-        print_pgdir();
+//        print_pgdir();
     }
     
     //try to find a vma which include addr
@@ -878,8 +878,8 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr)
         page->pra_vaddr = addr;
     }
     ret = 0;
-    if (current)
-        print_pgdir();
+//    if (current)
+//        print_pgdir();
 failed:
     return ret;
 }

@@ -4,21 +4,21 @@
 #include "malloc.h"
 #include "string.h"
 
-#define malloc_size         4096
+#define malloc_size         2048
 
 int main(void)
 {
-    char *buf1;
-    char *buf2;
+    uint8_t *buf1;
+    uint8_t *buf2;
     
-	assert((buf1 = shmem_malloc(malloc_size)) != NULL);
+    assert((buf1 = shmem_malloc(malloc_size)) != NULL);
 	assert((buf2 = malloc(malloc_size)) != NULL);
 	
 	int i = 0;
 	for (i = 0; i < malloc_size; ++i)
     {
-		*(char *)(buf1 + i) = 0x33;
-        *(char *)(buf2 + i) = 0x44;
+        *(uint8_t *)(buf1 + i) = 0x33;
+        *(uint8_t *)(buf2 + i) = 0x44;
 	}
 
     int pid = 0;
@@ -36,7 +36,8 @@ int main(void)
         // fork 出来的子进程是共享父进程页表的，变量虚拟地址都是一样的，可以正常读取父进程变量
     	for (i = 0; i < malloc_size; i++)
         {
-            assert(*(char *)(buf1 + i) == 0x33);
+            assert(*(uint8_t *)(buf1 + i) == 0x33);
+            assert(*(uint8_t *)(buf2 + i) == 0x44);
         }
         
         // buf1 是共享内存，子进程可以修改
@@ -52,13 +53,13 @@ int main(void)
         
         for (i = 0; i < malloc_size; i++)
         {
-            assert(*(char *)(buf1 + i) == 0x88);
+            assert(*(uint8_t *)(buf1 + i) == 0x88);
         }
 	    free(buf1);
         
         for (i = 0; i < malloc_size; i++)
         {
-            assert(*(char *)(buf2 + i) == 0x44);
+            assert(*(uint8_t *)(buf2 + i) == 0x44);
         }
 	    free(buf2);
         
