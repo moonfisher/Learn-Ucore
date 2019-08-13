@@ -428,7 +428,7 @@ int dup_mmap(struct mm_struct *to, struct mm_struct *from)
         insert_vma_struct(to, nvma);
 
         bool share = (vma->vm_flags & VM_SHARE);
-        if (copy_range(to, from, vma->vm_start, vma->vm_end, share, 1) != 0)
+        if (copy_range(to, from, vma->vm_start, vma->vm_end, share, 0) != 0)
         {
             return -E_NO_MEM;
         }

@@ -1649,34 +1649,6 @@ int sfs_mkdir(struct inode *node, const char *name)
     return ret;
 }
 
-/* *
- * null_vop_* - null vop functions
- * */
-int null_vop_pass(void)
-{
-    return 0;
-}
-
-int null_vop_inval(void)
-{
-    return -E_INVAL;
-}
-
-int null_vop_unimp(void)
-{
-    return -E_UNIMP;
-}
-
-int null_vop_isdir(void)
-{
-    return -E_ISDIR;
-}
-
-int null_vop_notdir(void)
-{
-    return -E_NOTDIR;
-}
-
 // The sfs specific DIR operations correspond to the abstract operations on a inode.
 static const struct inode_ops sfs_node_dirops = {
     .vop_magic          = VOP_MAGIC,

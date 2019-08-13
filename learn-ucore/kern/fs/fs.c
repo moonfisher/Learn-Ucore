@@ -7,6 +7,7 @@
 #include "sfs.h"
 #include "inode.h"
 #include "assert.h"
+#include "pipe.h"
 
 //called when init_main proc start
 /*
@@ -26,10 +27,12 @@ void fs_init(void)
     // 操作系统要支持更多的文件系统，需要通过 rootfs 上的 init 程序去挂载
     // 只要文件系统能满足虚拟文件系统接口，就能注册并被操作系统挂载
     sfs_init();
+    pipe_init();
 }
 
 void fs_cleanup(void)
 {
+    vfs_unmount_all();
     vfs_cleanup();
 }
 

@@ -299,6 +299,10 @@
 		C480E97922A0FCD60093D61D /* shmemtest.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96322A0F8F40093D61D /* shmemtest.c */; };
 		C480E97C22A0FD3B0093D61D /* malloc.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E97B22A0FD3B0093D61D /* malloc.c */; };
 		C4A234AC22FBC2F60098074B /* longjmp.S in Sources */ = {isa = PBXBuildFile; fileRef = C4A234AB22FBC2F60098074B /* longjmp.S */; };
+		C4A2486E23025BEF0098074B /* pipe_inode.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486823025BEE0098074B /* pipe_inode.c */; };
+		C4A2486F23025BEF0098074B /* pipe.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486923025BEE0098074B /* pipe.c */; };
+		C4A2487023025BEF0098074B /* pipe_root.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486B23025BEE0098074B /* pipe_root.c */; };
+		C4A2487123025BEF0098074B /* pipe_state.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486D23025BEE0098074B /* pipe_state.c */; };
 		C4CB326C2248F5830014426C /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31BD2248F5820014426C /* init.c */; };
 		C4CB326E2248F5830014426C /* default_sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C02248F5820014426C /* default_sched.c */; };
 		C4CB326F2248F5830014426C /* sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C22248F5820014426C /* sched.c */; };
@@ -677,6 +681,12 @@
 		C480E97B22A0FD3B0093D61D /* malloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = malloc.c; sourceTree = "<group>"; };
 		C4A234AA22FBC2F50098074B /* setjmp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = setjmp.h; sourceTree = "<group>"; };
 		C4A234AB22FBC2F60098074B /* longjmp.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = longjmp.S; sourceTree = "<group>"; };
+		C4A2486823025BEE0098074B /* pipe_inode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pipe_inode.c; sourceTree = "<group>"; };
+		C4A2486923025BEE0098074B /* pipe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pipe.c; sourceTree = "<group>"; };
+		C4A2486A23025BEE0098074B /* pipe_state.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pipe_state.h; sourceTree = "<group>"; };
+		C4A2486B23025BEE0098074B /* pipe_root.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pipe_root.c; sourceTree = "<group>"; };
+		C4A2486C23025BEE0098074B /* pipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pipe.h; sourceTree = "<group>"; };
+		C4A2486D23025BEE0098074B /* pipe_state.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pipe_state.c; sourceTree = "<group>"; };
 		C4CB31B12248F53F0014426C /* UCore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = UCore; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4CB31BD2248F5820014426C /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = init.c; sourceTree = "<group>"; };
 		C4CB31BE2248F5820014426C /* entry.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = entry.S; sourceTree = "<group>"; };
@@ -1316,6 +1326,19 @@
 			path = socket;
 			sourceTree = "<group>";
 		};
+		C4A2486723025BEE0098074B /* pipe */ = {
+			isa = PBXGroup;
+			children = (
+				C4A2486823025BEE0098074B /* pipe_inode.c */,
+				C4A2486923025BEE0098074B /* pipe.c */,
+				C4A2486A23025BEE0098074B /* pipe_state.h */,
+				C4A2486B23025BEE0098074B /* pipe_root.c */,
+				C4A2486C23025BEE0098074B /* pipe.h */,
+				C4A2486D23025BEE0098074B /* pipe_state.c */,
+			);
+			path = pipe;
+			sourceTree = "<group>";
+		};
 		C4CB31A82248F53F0014426C = {
 			isa = PBXGroup;
 			children = (
@@ -1492,6 +1515,7 @@
 		C4CB31F52248F5820014426C /* fs */ = {
 			isa = PBXGroup;
 			children = (
+				C4A2486723025BEE0098074B /* pipe */,
 				C4CB31F62248F5820014426C /* vfs */,
 				C4CB31FF2248F5820014426C /* devs */,
 				C4CB32052248F5820014426C /* iobuf.h */,
@@ -1957,6 +1981,7 @@
 				C480E29722A0D9170093D61D /* e1000_output_proc.c in Sources */,
 				C480E96122A0F1610093D61D /* ctype_.c in Sources */,
 				C4CB32742248F5830014426C /* intr.c in Sources */,
+				C4A2486E23025BEF0098074B /* pipe_inode.c in Sources */,
 				C480E34122A0D9180093D61D /* arpinit.c in Sources */,
 				C4CB327A2248F5830014426C /* readline.c in Sources */,
 				C480E2B922A0D9170093D61D /* tcpstat.c in Sources */,
@@ -2000,6 +2025,7 @@
 				C480E33F22A0D9180093D61D /* arpdq.c in Sources */,
 				C480E29E22A0D9170093D61D /* ripok.c in Sources */,
 				C480E2AB22A0D9170093D61D /* tcpputc.c in Sources */,
+				C4A2487023025BEF0098074B /* pipe_root.c in Sources */,
 				C4CB329A2248F5830014426C /* file.c in Sources */,
 				C480E36822A0DA530093D61D /* slab.c in Sources */,
 				C480E2CF22A0D9170093D61D /* udpnxtp.c in Sources */,
@@ -2036,6 +2062,7 @@
 				C480E32B22A0D9170093D61D /* ports.c in Sources */,
 				C480E2A722A0D9170093D61D /* netstatus.c in Sources */,
 				C480E35922A0D9180093D61D /* ipreass.c in Sources */,
+				C4A2486F23025BEF0098074B /* pipe.c in Sources */,
 				C480E34F22A0D9180093D61D /* ipfhcopy.c in Sources */,
 				C4CB32C22248F5830014426C /* string.c in Sources */,
 				C480E2FB22A0D9170093D61D /* tcpswitch.c in Sources */,
@@ -2104,6 +2131,7 @@
 				C4CB32852248F5830014426C /* syscall.c in Sources */,
 				C480E33D22A0D9180093D61D /* rarp_in.c in Sources */,
 				C480E2EA22A0D9170093D61D /* tcpidle.c in Sources */,
+				C4A2487123025BEF0098074B /* pipe_state.c in Sources */,
 				C480E33122A0D9170093D61D /* hgleave.c in Sources */,
 				C480E33C22A0D9180093D61D /* arpfind.c in Sources */,
 				C480E29F22A0D9170093D61D /* ripin.c in Sources */,

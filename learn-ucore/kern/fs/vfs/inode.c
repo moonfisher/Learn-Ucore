@@ -147,3 +147,46 @@ struct sfs_inode *sfs_vop_info(struct inode *node)
     assert(__node != NULL && (__node->in_type == inode_type_sfs_inode_info));
     return &(__node->in_info.__sfs_inode_info);
 }
+
+struct pipe_inode *pipe_inode_vop_info(struct inode *node)
+{
+    struct inode *__node = node;
+    assert(__node != NULL && (__node->in_type == inode_type_pipe_inode_info));
+    return &(__node->in_info.__pipe_inode_info);
+}
+
+struct pipe_root *pipe_root_vop_info(struct inode *node)
+{
+    struct inode *__node = node;
+    assert(__node != NULL && (__node->in_type == inode_type_pipe_root_info));
+    return &(__node->in_info.__pipe_root_info);
+}
+
+/* *
+ * null_vop_* - null vop functions
+ * */
+int null_vop_pass(void)
+{
+    return 0;
+}
+
+int null_vop_inval(void)
+{
+    return -E_INVAL;
+}
+
+int null_vop_unimp(void)
+{
+    return -E_UNIMP;
+}
+
+int null_vop_isdir(void)
+{
+    return -E_ISDIR;
+}
+
+int null_vop_notdir(void)
+{
+    return -E_NOTDIR;
+}
+
