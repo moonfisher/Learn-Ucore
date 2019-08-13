@@ -12,6 +12,7 @@
 #include "bitmap.h"
 #include "error.h"
 #include "assert.h"
+#include "stdio.h"
 
 static const struct inode_ops sfs_node_dirops;  // dir operations
 static const struct inode_ops sfs_node_fileops; // file operations
@@ -544,6 +545,8 @@ int sfs_dirent_search_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const ch
         {
             goto out;
         }
+        
+//        cprintf("sfs_dirent_search_nolock, ino:0x%x, name:%s\n", entry->ino, entry->name);
         
         // ino 为 0 时，表示一个无效的 entry。因为 block 0 用来保存 super block，
         // 它不可能被其他任何文件或目录使用
