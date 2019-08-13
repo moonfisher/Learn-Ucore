@@ -355,10 +355,6 @@ int sfs_bmap_get_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_t inde
 		panic ("sfs_bmap_get_nolock - index out of range");
 	}
 out:
-    if (!((ino == 0 || sfs_block_inuse(sfs, ino))))
-    {
-        return 0;
-    }
     assert(ino == 0 || sfs_block_inuse(sfs, ino));
     *ino_store = ino;
     return 0;
