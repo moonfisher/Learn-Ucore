@@ -55,7 +55,7 @@ struct fs
     // 文件系统类型
     enum
     {
-        fs_type_pipe_info = 0x5678,
+        fs_type_pipe_info,
         fs_type_sfs_info,
     } fs_type;                                      // filesystem type
     

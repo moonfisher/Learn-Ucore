@@ -1386,7 +1386,7 @@ static int init_main(void *arg)
     set_proc_name(userproc, "user_main");
     
     // 启动网络
-    start_net_mechanics();
+//    start_net_mechanics();
     
     extern void check_sync(void);
 //    check_sync();                // check philosopher sync problem

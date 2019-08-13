@@ -18,30 +18,30 @@ void unlock_pipe(struct pipe_fs *pipe)
 	up(&(pipe->pipe_sem));
 }
 
-static int pipe_sync(struct fs *fs)
+int pipe_sync(struct fs *fs)
 {
 	return 0;
 }
 
-static struct inode *pipe_get_root(struct fs *fs)
+struct inode *pipe_get_root(struct fs *fs)
 {
     struct pipe_fs *pipe = &(fs->fs_info.__pipe_info);
 	inode_ref_inc(pipe->root);
 	return pipe->root;
 }
 
-static int pipe_unmount(struct fs *fs)
+int pipe_unmount(struct fs *fs)
 {
 	return -E_INVAL;
 }
 
-static void pipe_cleanup(struct fs *fs)
+void pipe_cleanup(struct fs *fs)
 {
 	/* do nothing */
     return;
 }
 
-static void pipe_fs_init(struct fs *fs)
+void pipe_fs_init(struct fs *fs)
 {
 	struct pipe_fs *pipe = &(fs->fs_info.__pipe_info);
 	if ((pipe->root = pipe_create_root(fs)) == NULL)

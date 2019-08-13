@@ -7,7 +7,7 @@
 #include "error.h"
 #include "assert.h"
 
-static void lookup_pipe_nolock(struct pipe_fs *pipe, const char *name, struct inode **rnode_store, struct inode **wnode_store)
+void lookup_pipe_nolock(struct pipe_fs *pipe, const char *name, struct inode **rnode_store, struct inode **wnode_store)
 {
 	list_entry_t *list = &(pipe->pipe_list), *le = list;
 	*rnode_store = *wnode_store = NULL;
@@ -38,7 +38,7 @@ static void lookup_pipe_nolock(struct pipe_fs *pipe, const char *name, struct in
 	}
 }
 
-static int pipe_root_create(struct inode *__node, const char *name, bool excl, struct inode **node_store)
+int pipe_root_create(struct inode *__node, const char *name, bool excl, struct inode **node_store)
 {
 	assert((name[0] == 'r' || name[0] == 'w') && name[1] == '_');
 	int ret = 0;
@@ -106,7 +106,7 @@ out:
 	return ret;
 }
 
-static int pipe_root_lookup(struct inode *__node, char *path, struct inode **node_store)
+int pipe_root_lookup(struct inode *__node, char *path, struct inode **node_store)
 {
 	assert((path[0] == 'r' || path[0] == 'w') && path[1] == '_');
 	struct inode *node[2];
@@ -138,7 +138,7 @@ static int pipe_root_lookup(struct inode *__node, char *path, struct inode **nod
 	return 0;
 }
 
-static int pipe_root_lookup_parent(struct inode *node, char *path, struct inode **node_store, char **endp)
+int pipe_root_lookup_parent(struct inode *node, char *path, struct inode **node_store, char **endp)
 {
 	assert((path[0] == 'r' || path[0] == 'w') && path[1] == '_');
     *node_store = node;
@@ -147,7 +147,7 @@ static int pipe_root_lookup_parent(struct inode *node, char *path, struct inode 
 	return 0;
 }
 
-static const struct inode_ops pipe_root_ops = {
+const struct inode_ops pipe_root_ops = {
 	.vop_magic          = VOP_MAGIC,
 	.vop_open           = (void *)null_vop_inval,
 	.vop_close          = (void *)null_vop_inval,

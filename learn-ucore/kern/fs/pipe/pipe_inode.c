@@ -11,7 +11,7 @@
 #include "error.h"
 #include "assert.h"
 
-static int pipe_inode_open(struct inode *node, uint32_t open_flags)
+int pipe_inode_open(struct inode *node, uint32_t open_flags)
 {
 	if (open_flags & (O_TRUNC | O_APPEND))
     {
@@ -30,14 +30,14 @@ static int pipe_inode_open(struct inode *node, uint32_t open_flags)
 	}
 }
 
-static int pipe_inode_close(struct inode *node)
+int pipe_inode_close(struct inode *node)
 {
 	struct pipe_inode *pin = pipe_inode_vop_info(node);
 	pipe_state_close(pin->state);
 	return 0;
 }
 
-static int pipe_inode_read(struct inode *node, struct iobuf *iob)
+int pipe_inode_read(struct inode *node, struct iobuf *iob)
 {
 	struct pipe_inode *pin = pipe_inode_vop_info(node);
 	if (pin->pin_type != PIN_RDONLY)
@@ -53,7 +53,7 @@ static int pipe_inode_read(struct inode *node, struct iobuf *iob)
 	return 0;
 }
 
-static int pipe_inode_write(struct inode *node, struct iobuf *iob)
+int pipe_inode_write(struct inode *node, struct iobuf *iob)
 {
 	struct pipe_inode *pin = pipe_inode_vop_info(node);
 	if (pin->pin_type != PIN_WRONLY)
@@ -69,7 +69,7 @@ static int pipe_inode_write(struct inode *node, struct iobuf *iob)
 	return 0;
 }
 
-static int pipe_inode_fstat(struct inode *node, struct stat *stat)
+int pipe_inode_fstat(struct inode *node, struct stat *stat)
 {
 	int ret;
 	memset(stat, 0, sizeof(struct stat));
@@ -84,7 +84,7 @@ static int pipe_inode_fstat(struct inode *node, struct stat *stat)
 	return 0;
 }
 
-static int pipe_inode_namefile(struct inode *node, struct iobuf *iob)
+int pipe_inode_namefile(struct inode *node, struct iobuf *iob)
 {
 	struct pipe_inode *pin = pipe_inode_vop_info(node);
 	size_t len = (pin->name != NULL) ? strlen(pin->name) : 0;
@@ -101,7 +101,7 @@ static int pipe_inode_namefile(struct inode *node, struct iobuf *iob)
 	return 0;
 }
 
-static int pipe_inode_reclaim(struct inode *node)
+int pipe_inode_reclaim(struct inode *node)
 {
 	struct pipe_inode *pin = pipe_inode_vop_info(node);
 	if (pin->name != NULL)
@@ -124,13 +124,13 @@ static int pipe_inode_reclaim(struct inode *node)
 	return 0;
 }
 
-static int pipe_inode_gettype(struct inode *node, uint32_t * type_store)
+int pipe_inode_gettype(struct inode *node, uint32_t * type_store)
 {
 	*type_store = S_IFCHR;
 	return 0;
 }
 
-static const struct inode_ops pipe_node_ops =
+const struct inode_ops pipe_node_ops =
 {
 	.vop_magic          = VOP_MAGIC,
 	.vop_open           = pipe_inode_open,
@@ -157,7 +157,7 @@ static const struct inode_ops pipe_node_ops =
 	.vop_lookup_parent  = (void *)null_vop_notdir,
 };
 
-static void pipe_inode_init(struct pipe_inode *pin, char *name, struct pipe_state *state, bool readonly)
+void pipe_inode_init(struct pipe_inode *pin, char *name, struct pipe_state *state, bool readonly)
 {
 	assert(state != NULL);
 	pin->pin_type = readonly ? PIN_RDONLY : PIN_WRONLY;

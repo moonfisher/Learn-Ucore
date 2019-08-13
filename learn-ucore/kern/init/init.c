@@ -22,6 +22,8 @@
 #include "acpi.h"
 #include "pci.h"
 
+#define SMP         0
+
 int kern_init(void) __attribute__((noreturn));
 int mon_backtrace(int argc, char **argv, struct trapframe *tf);
 void boot_aps(void);
@@ -139,8 +141,10 @@ int kern_init(void)
     
     pci_init();                 // init pci
     
-    lock_kernel();              // smp acquire the big kernel lock before waking up APs
+    lock_kernel();              // smp acquire big kernel lock before waking up APs
+#if SMP
     boot_aps();                 // smp starting non-boot CPUs
+#endif
     intr_enable();              // enable irq interrupt
     unlock_kernel();
     

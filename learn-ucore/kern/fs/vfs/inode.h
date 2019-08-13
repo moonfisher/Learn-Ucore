@@ -56,7 +56,7 @@ struct inode
     // 节点类型
     enum
     {
-        inode_type_device_info = 0x1234,
+        inode_type_device_info,
         inode_type_sfs_inode_info,
         inode_type_pipe_root_info,
         inode_type_pipe_inode_info,

@@ -185,8 +185,8 @@ void ide_init(void)
     irq_setmask_8259A(irq_mask_8259A & ~(1 << IRQ_IDE1));
     irq_setmask_8259A(irq_mask_8259A & ~(1 << IRQ_IDE2));
     
-    ioapic_enable(IRQ_IDE1, ncpu - 1);
-    ioapic_enable(IRQ_IDE2, ncpu - 1);
+    ioapic_enable(IRQ_IDE1, 0);
+    ioapic_enable(IRQ_IDE2, 0);
 }
 
 bool ide_device_valid(unsigned short ideno)

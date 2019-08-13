@@ -7,6 +7,7 @@
 #include "assert.h"
 
 int sfs_create(struct inode *node, const char *name, bool excl, struct inode **node_store);
+int pipe_root_create(struct inode *__node, const char *name, bool excl, struct inode **node_store);
 
 // open file in vfs, get/create inode for file with filename path.
 int vfs_open(char *path, uint32_t open_flags, struct inode **node_store)
@@ -32,37 +33,39 @@ int vfs_open(char *path, uint32_t open_flags, struct inode **node_store)
         }
     }
 
-    int ret; 
-    struct inode *node;
-    bool excl = (open_flags & O_EXCL) != 0;
-    bool create = (open_flags & O_CREAT) != 0;
-    
-    ret = vfs_lookup(path, &node);
-    if (ret != 0)
+    int ret;
+    struct inode *dir = NULL, *node = NULL;
+    if (open_flags & O_CREAT)
     {
-        // 文件路径不存在，看是否需要创建文件
-        if (ret == -E_NOENT && (create))
+        char *name;
+        bool excl = (open_flags & O_EXCL) != 0;
+        if ((ret = vfs_lookup_parent(path, &dir, &name)) != 0)
         {
-            char *name;
-            struct inode *dir;
-            if ((ret = vfs_lookup_parent(path, &dir, &name)) != 0)
-            {
-                return ret;
-            }
-            
-            assert(dir != NULL && dir->in_ops != NULL && dir->in_ops->vop_create != NULL);
-            inode_check(dir, "create");
-//            ret = dir->in_ops->vop_create(dir, name, excl, &node);
+            return ret;
+        }
+        
+        assert(dir != NULL && dir->in_ops != NULL && dir->in_ops->vop_create != NULL);
+        inode_check(dir, "create");
+        //            ret = dir->in_ops->vop_create(dir, name, excl, &node);
+        if (dir->in_fs->fs_type == fs_type_pipe_info)
+        {
+            ret = pipe_root_create(dir, name, excl, &node);
+        }
+        else if (dir->in_fs->fs_type == fs_type_sfs_info)
+        {
             ret = sfs_create(dir, name, excl, &node);
         }
-        else
-            return ret;
+        inode_ref_dec(dir);
     }
-    else if (excl && create)
+    else
     {
-        return -E_EXISTS;
+        ret = vfs_lookup(path, &node);
     }
-    assert(node != NULL);
+    
+    if (ret != 0)
+    {
+        return ret;
+    }
     
     assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_open != NULL);
     inode_check(node, "open");
@@ -73,7 +76,7 @@ int vfs_open(char *path, uint32_t open_flags, struct inode **node_store)
     }
 
     inode_open_inc(node);
-    if (open_flags & O_TRUNC || create)
+    if (open_flags & O_TRUNC)
     {
         assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_truncate != NULL);
         inode_check(node, "truncate");

@@ -46,6 +46,16 @@ int dup2(int fd1, int fd2)
     return sys_dup(fd1, fd2);
 }
 
+int pipe(int *fd_store)
+{
+    return sys_pipe(fd_store);
+}
+
+int mkfifo(const char *name, uint32_t open_flags)
+{
+    return sys_mkfifo(name, open_flags);
+}
+
 static char transmode(struct stat *stat)
 {
     uint32_t mode = stat->st_mode;

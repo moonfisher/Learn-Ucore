@@ -131,7 +131,7 @@ static void serial_init(void)
         irq_setmask_8259A(irq_mask_8259A & ~(1 << IRQ_COM1));
     }
     
-    ioapic_enable(IRQ_COM1, ncpu - 1);
+    ioapic_enable(IRQ_COM1, 0);
 }
 
 static void lpt_putc_sub(int c)

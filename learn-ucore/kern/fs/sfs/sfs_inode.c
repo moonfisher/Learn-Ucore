@@ -231,6 +231,12 @@ failed_unlock:
     return ret;
 }
 
+int sfs_load_parent(struct sfs_fs *sfs, struct sfs_inode *sin, struct inode **parent_store)
+{
+//    return sfs_load_inode(sfs, parent_store, sin->din->dirinfo.parent);
+    return 0;
+}
+
 /*
  * sfs_bmap_get_sub_nolock - according entry pointer entp and index, find the index of indrect disk block
  *                           return the index of indrect disk block to ino_store. no lock protect
@@ -349,6 +355,10 @@ int sfs_bmap_get_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, uint32_t inde
 		panic ("sfs_bmap_get_nolock - index out of range");
 	}
 out:
+    if (!((ino == 0 || sfs_block_inuse(sfs, ino))))
+    {
+        return 0;
+    }
     assert(ino == 0 || sfs_block_inuse(sfs, ino));
     *ino_store = ino;
     return 0;
@@ -1467,6 +1477,22 @@ out_unlock:
     return ret;
 }
 
+char *sfs_lookup_subpath(char *path)
+{
+    if ((path = strchr(path, '/')) != NULL)
+    {
+        while (*path == '/')
+        {
+            *path++ = '\0';
+        }
+        if (*path == '\0')
+        {
+            return NULL;
+        }
+    }
+    return path;
+}
+
 /*
  * sfs_lookup - Parse path relative to the passed directory
  *              DIR, and hand back the inode for the file it
@@ -1497,6 +1523,62 @@ int sfs_lookup(struct inode *node, char *path, struct inode **node_store)
     }
     *node_store = subnode;
     return 0;
+}
+
+int sfs_lookup_parent(struct inode *node, char *path, struct inode **node_store, char **endp)
+{
+    assert(node->in_fs != NULL && node->in_fs->fs_type == fs_type_sfs_info);
+    struct sfs_fs *sfs = &(node->in_fs->fs_info.__sfs_info);
+    assert(*path != '\0' && *path != '/');
+    inode_ref_inc(node);
+    
+    while (1)
+    {
+        struct sfs_inode *sin = sfs_vop_info(node);
+        if (sin->din->type != SFS_TYPE_DIR)
+        {
+            inode_ref_dec(node);
+            return -E_NOTDIR;
+        }
+        
+        char *subpath;
+    next:
+        if ((subpath = sfs_lookup_subpath(path)) == NULL)
+        {
+            *node_store = node;
+            *endp = path;
+            return 0;
+        }
+        if (strcmp(path, ".") == 0)
+        {
+            path = subpath;
+            goto next;
+        }
+        
+        int ret;
+        struct inode *subnode;
+        if (strcmp(path, "..") == 0)
+        {
+            ret = sfs_load_parent(sfs, sin, &subnode);
+        }
+        else
+        {
+            if (strlen(path) > SFS_MAX_FNAME_LEN)
+            {
+                inode_ref_dec(node);
+                return -E_TOO_BIG;
+            }
+            ret = sfs_lookup_once(sfs, sin, path, &subnode, NULL);
+        }
+        
+        inode_ref_dec(node);
+        if (ret != 0)
+        {
+            return ret;
+        }
+        node = subnode;
+        path = subpath;
+    }
 }
 
 int sfs_create_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const char *name, bool excl, struct inode **node_store)
@@ -1673,6 +1755,7 @@ static const struct inode_ops sfs_node_dirops = {
     .vop_create         = sfs_create,
     .vop_unlink         = sfs_unlink,
     .vop_lookup         = sfs_lookup,
+    .vop_lookup_parent  = sfs_lookup_parent,
 };
 
 /// The sfs specific FILE operations correspond to the abstract operations on a inode.
@@ -1699,5 +1782,6 @@ static const struct inode_ops sfs_node_fileops = {
     .vop_create         = (void *)null_vop_notdir,
     .vop_unlink         = (void *)null_vop_notdir,
     .vop_lookup         = (void *)null_vop_notdir,
+    .vop_lookup_parent  = (void *)null_vop_notdir,
 };
 

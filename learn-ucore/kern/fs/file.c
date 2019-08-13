@@ -464,10 +464,10 @@ int file_pipe(int fd[])
         goto failed_cleanup;
     }
     
-//    if ((ret = pipe_open(&(file[0]->node), &(file[1]->node))) != 0)
-//    {
-//        goto failed_cleanup;
-//    }
+    if ((ret = pipe_open(&(file[0]->node), &(file[1]->node))) != 0)
+    {
+        goto failed_cleanup;
+    }
     file[0]->pos = 0;
     file[0]->readable = 1;
     file[0]->writable = 0;

@@ -12,6 +12,7 @@
 #include "assert.h"
 
 struct inode *sfs_get_root(struct fs *fs);
+struct inode *pipe_get_root(struct fs *fs);
 
 // device info entry in vdev_list
 // 挂载在 vdev_list 下的虚拟设备节点
@@ -96,8 +97,14 @@ int vfs_get_root(const char *devname, struct inode **node_store)
                     struct inode *found = NULL;
                     if (vdev->fs != NULL)
                     {
-//                        found = vdev->fs->fs_get_root(vdev->fs);
-                        found = sfs_get_root(vdev->fs);
+                        if (vdev->fs->fs_type == fs_type_pipe_info)
+                        {
+                            found = pipe_get_root(vdev->fs);
+                        }
+                        else if (vdev->fs->fs_type == fs_type_sfs_info)
+                        {
+                            found = sfs_get_root(vdev->fs);
+                        }
                     }
                     else if (!vdev->mountable)
                     {
