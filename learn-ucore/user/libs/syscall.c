@@ -235,7 +235,7 @@ int sys_sigaction(int sign, struct sigaction *act, struct sigaction *old)
     return syscall(SYS_sigaction, sign, act, old);
 }
 
-int sys_tkill(int pid, int sign)
+int sys_sigtkill(int pid, int sign)
 {
     return syscall(SYS_tkill, pid, sign);
 }

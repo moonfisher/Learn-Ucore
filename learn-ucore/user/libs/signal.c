@@ -9,7 +9,7 @@ int signal(int sign, sighandler_t handler)
 
 int tkill(int pid, int sign)
 {
-	return sys_tkill(pid, sign);
+	return sys_sigtkill(pid, sign);
 }
 
 int sigprocmask(int how, const sigset_t * set, sigset_t * old)

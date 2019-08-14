@@ -575,7 +575,7 @@ void trap(struct trapframe *tf)
                 schedule();
             }
             
-            // 在中断返回的时机处理下信号
+            // 用户态进入内核态，再从内核态返回用户态之前，处理下信号
             do_signal(tf, NULL);
         }
     }

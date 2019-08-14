@@ -44,7 +44,7 @@ int sys_link(const char *path1, const char *path2);
 int sys_unlink(const char *path);
 
 int sys_sigaction(int sign, struct sigaction *act, struct sigaction *old);
-int sys_tkill(int pid, int sign);
+int sys_sigtkill(int pid, int sign);
 int sys_sigprocmask(int how, const sigset_t *set, sigset_t *old);
 int sys_sigsuspend(uint32_t mask);
 

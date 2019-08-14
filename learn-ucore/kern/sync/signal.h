@@ -36,8 +36,6 @@ struct sigframe
     int sign;
     struct trapframe tf;
     sigset_t old_blocked;
-    //there's fpstate in linux, but nothing here
-    unsigned int retcode[2];
 };
 
 #define le2sigqueue(le)	    to_struct((le), struct sigqueue, list)
@@ -55,7 +53,7 @@ struct signal_struct
 struct sighand_struct
 {
 	atomic_t count;
-	struct sigaction action[64];
+	struct sigaction action[__SIGRTMAX];
 	semaphore_t sig_sem;
 };
 

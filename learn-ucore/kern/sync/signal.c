@@ -7,13 +7,51 @@
 #include "vmm.h"
 #include "sched.h"
 #include "stdio.h"
+#include "trap.h"
 
 #define get_si(x)   (&((x)->signal_info))
 
 int __sig_setup_frame(int sign, struct sigaction *act, sigset_t oldset, struct trapframe *tf)
 {
-    warn("%s not implemented yet.", __func__);
-    return -1;
+    cprintf("================= __sig_setup_frame() start =================\n");
+    print_trapframe(tf);
+    struct mm_struct *mm = current->mm;
+    uintptr_t stack = current->signal_info.sas_ss_sp;
+    if (stack == 0)
+    {
+        stack = tf->tf_esp;
+    }
+    
+    struct sigframe *kframe = kmalloc(sizeof(struct sigframe));
+    if (!kframe)
+        return -E_NO_MEM;
+    
+    memset(kframe, 0, sizeof(struct sigframe));
+    
+    kframe->sign = sign;
+    kframe->tf = *tf;
+    kframe->old_blocked = oldset;
+
+    /* 4byte align */
+    struct sigframe *frame = (struct sigframe *)((stack - sizeof(struct sigframe)) & 0xfffffff8);
+    lock_mm(mm);
+    {
+        if (!copy_to_user(mm, frame, kframe, sizeof(struct sigframe)))
+        {
+            unlock_mm(mm);
+            kfree(kframe);
+            return -E_INVAL;
+        }
+    }
+    unlock_mm(mm);
+    kfree(kframe);
+
+    tf->tf_eip = (uintptr_t)(act->sa_handler);
+    tf->tf_esp = (uintptr_t)frame;
+
+    print_trapframe(tf);
+    cprintf("================= __sig_setup_frame() end =================\n");
+    return 0;
 }
 
 void lock_sig(struct sighand_struct *sh)
@@ -163,7 +201,7 @@ static inline bool ignore_sig(int sign, struct proc_struct *proc)
 int do_sigaction(int sign, const struct sigaction *act, struct sigaction *old)
 {
 	assert(get_si(current)->sighand);
-	cprintf("do_sigaction(): sign = %d, pid = %d\n", sign, current->pid);
+	cprintf("do_sigaction(): sign = %d, pid = %d, name = %s.\n", sign, current->pid, current->name);
 
     struct sigaction *k = &(get_si(current)->sighand->action[sign - 1]);
 	if (k == NULL)
@@ -472,6 +510,7 @@ out:
 // prepare block for signal handler
 int handle_signal(int sign, struct sigaction *act, sigset_t oldset, struct trapframe *tf)
 {
+    cprintf("handle_signal(): sign = %d, pid = %d, name = %s.\n", sign, current->pid, current->name);
 	int ret = __sig_setup_frame(sign, act, oldset, tf);
 	if (ret != 0)
     {
@@ -514,6 +553,7 @@ void do_signal_stop(struct proc_struct *proc)
 // do the signals in current
 int do_signal(struct trapframe *tf, sigset_t *old)
 {
+    // 这里 tf 必须是用户态的
 	assert(!trap_in_kernel(tf));
 	if (!get_si(current)->signal || !get_si(current)->sighand)
 		return 0;
@@ -529,7 +569,7 @@ int do_signal(struct trapframe *tf, sigset_t *old)
 
 	while ((sign = dequeue_signal(current)) != 0)
     {
-		cprintf("do_signal(): sign = %d, pid = %d\n", sign, current->pid);
+		cprintf("do_signal(): sign = %d, pid = %d, name = %s.\n", sign, current->pid, current->name);
 		struct sigaction *act = &(get_si(current)->sighand->action[sign - 1]);
 		if (sign == SIGKILL)
         {
@@ -562,7 +602,7 @@ int do_signal(struct trapframe *tf, sigset_t *old)
 			}
             else
             {
-				cprintf("do_signal() exit pid = %d\n", current->pid);
+				cprintf("do_signal() exit pid = %d, name = %s.\n", current->pid, current->name);
 				do_exit(-E_KILLED);
 				break;
 			}
@@ -570,7 +610,6 @@ int do_signal(struct trapframe *tf, sigset_t *old)
 		}
         else
         {
-			cprintf("do_signal() call user %d\n", sign);
 			handle_signal(sign, act, *old, tf);
 			if ((act->sa_flags & SA_ONESHOT) != 0)
             {
@@ -615,7 +654,7 @@ int do_sigkill(int pid, int sign)
     {
 		return -E_INVAL;
 	}
-	cprintf("do_sigkill: pid=%d sig=%d\n", pid, sign);
+	cprintf("do_sigkill: pid = %d, name = %s, sig = %d\n", pid, proc->name, sign);
 	return raise_signal(proc, sign, 1);
 }
 
@@ -707,7 +746,7 @@ int do_sigwaitinfo(const sigset_t *setp, struct siginfo_t *info)
 	sigset_add(set, SIGSTOP);
 	sigset_t old_blocked = get_si(current)->blocked;
 	get_si(current)->blocked = ~set;
-	cprintf("do_sigwaitinfo(): set = %016llx, pid = %d\n", set, current->pid);
+	cprintf("do_sigwaitinfo(): set = %016llx, pid = %d, name = %s.\n", set, current->pid, current->name);
 
 	while (1)
     {
@@ -717,7 +756,7 @@ int do_sigwaitinfo(const sigset_t *setp, struct siginfo_t *info)
 		int sign = do_signal(current->tf, &old_blocked);
 		if (sign != 0)
         {
-			cprintf("do_sigwaitinfo(): set = %016llx, sign = %d, pid = %d\n", set, sign, current->pid);
+			cprintf("do_sigwaitinfo(): set = %016llx, sign = %d, pid = %d, name = %s.\n", set, sign, current->pid, current->name);
 			return sign;
 		}
 	}

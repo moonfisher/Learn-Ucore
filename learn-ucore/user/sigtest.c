@@ -2,6 +2,8 @@
 #include "stdio.h"
 #include "signal.h"
 
+#define child_num       1
+
 void handler(int sign)
 {
 	cprintf("signal: %d received by %d\n", sign, getpid());
@@ -34,20 +36,24 @@ int child()
 
 int main()
 {
-	int children[3];
+    int children[child_num] = {0};
 	int i;
-	for (i = 0; i < 3; ++i)
+	for (i = 0; i < child_num; ++i)
     {
 		sleep(20);
 		int pid = fork("child");
 		if (pid == 0)
+        {
 			child();
+        }
 		else
+        {
 			children[i] = pid;
+        }
 	}
     
 	sleep(100);
-	for (i = 0; i < 3; ++i)
+	for (i = 0; i < child_num; ++i)
     {
 		sleep(20);
 		cprintf("send SIGUSR1 to %d\n", children[i]);
@@ -56,7 +62,8 @@ int main()
 	}
     
 	sleep(200);
-	for (i = 0; i < 3; ++i) {
+	for (i = 0; i < child_num; ++i)
+    {
 		sleep(20);
 		cprintf("send SIGUSR2 to %d\n", children[i]);
 		tkill(children[i], SIGUSR2);
@@ -64,7 +71,7 @@ int main()
 	}
     
 	sleep(400);
-	for (i = 0; i < 3; ++i)
+	for (i = 0; i < child_num; ++i)
     {
 		sleep(20);
 		cprintf("send SIGKILL to %d\n", children[i]);
