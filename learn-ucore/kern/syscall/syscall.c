@@ -251,6 +251,56 @@ static int sys_unlink(uint32_t arg[])
     return sysfile_unlink(name);
 }
 
+static int sys_sigaction(uint32_t arg[])
+{
+    return do_sigaction((int)arg[0], (const struct sigaction *)arg[1], (struct sigaction *)arg[2]);
+}
+
+static int sys_sigprocmask(uint32_t arg[])
+{
+    return do_sigprocmask((int)arg[0], (const sigset_t *)arg[1], (sigset_t *) arg[2]);
+}
+
+//static int sys_sigpending(uint32_t arg[])
+//{
+//    return do_sigpending((sigset_t *) arg[0]);
+//}
+
+static int sys_sigtkill(uint32_t arg[])
+{
+    return do_sigtkill((int)arg[0], (int)arg[1]);
+}
+
+static int sys_sigsuspend(uint32_t arg[])
+{
+    return do_sigsuspend((sigset_t *) arg[0]);
+}
+
+//static int sys_sigkill(uint32_t arg[])
+//{
+//    return do_sigkill((int)arg[0], (int)arg[1]);
+//}
+
+//static int sys_sigaltstack(uint32_t arg[])
+//{
+//    const stack_t *stack = (const stack_t *)arg[0];
+//    stack_t *old = (stack_t *) arg[1];
+//    return do_sigaltstack(stack, old);
+//}
+
+//static int sys_sigwaitinfo(uint32_t arg[])
+//{
+//    const sigset_t *set = (const sigset_t *)arg[0];
+//    struct siginfo_t *info = (struct siginfo_t *)arg[1];
+//    return do_sigwaitinfo(set, info);
+//}
+
+//this never used by user program
+static int sys_sigreturn(uint32_t arg[])
+{
+    return do_sigreturn();
+}
+
 static int sys_event_send(uint32_t arg[])
 {
     int pid = (int)arg[0];
@@ -483,6 +533,13 @@ static int (*syscalls[])(uint32_t arg[]) = {
     [SYS_unlink]           = sys_unlink,
     [SYS_pipe]             = sys_pipe,
     [SYS_mkfifo]           = sys_mkfifo,
+    
+//    [SYS_ioctl]            = sys_ioctl,
+    [SYS_tkill]            = sys_sigtkill,
+    [SYS_sigaction]        = sys_sigaction,
+    [SYS_sigprocmask]      = sys_sigprocmask,
+    [SYS_sigsuspend]       = sys_sigsuspend,
+    [SYS_sigreturn]        = sys_sigreturn,
     
     [SYS_transmit_packet]  = sys_transmit_packet,
     [SYS_receive_packet]   = sys_receive_packet,

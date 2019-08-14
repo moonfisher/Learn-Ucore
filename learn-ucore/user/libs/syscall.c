@@ -230,6 +230,26 @@ int sys_unlink(const char *path)
     return syscall(SYS_unlink, path);
 }
 
+int sys_sigaction(int sign, struct sigaction *act, struct sigaction *old)
+{
+    return syscall(SYS_sigaction, sign, act, old);
+}
+
+int sys_tkill(int pid, int sign)
+{
+    return syscall(SYS_tkill, pid, sign);
+}
+
+int sys_sigprocmask(int how, const sigset_t *set, sigset_t *old)
+{
+    return syscall(SYS_sigprocmask, how, set, old);
+}
+
+int sys_sigsuspend(uint32_t mask)
+{
+    return syscall(SYS_sigsuspend, mask);
+}
+
 int sys_receive_packet(uint8_t *buf, size_t len, size_t* len_store)
 {
     return syscall(SYS_receive_packet, (int)buf, len, (int)len_store, 0, 0 );

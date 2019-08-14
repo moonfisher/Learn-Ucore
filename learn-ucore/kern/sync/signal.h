@@ -30,6 +30,16 @@ struct sigqueue
 	struct siginfo_t info;
 };
 
+struct sigframe
+{
+    uintptr_t pretcode;
+    int sign;
+    struct trapframe tf;
+    sigset_t old_blocked;
+    //there's fpstate in linux, but nothing here
+    unsigned int retcode[2];
+};
+
 #define le2sigqueue(le)	    to_struct((le), struct sigqueue, list)
 
 struct proc_struct;

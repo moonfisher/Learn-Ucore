@@ -561,6 +561,35 @@ static void put_fs(struct proc_struct *proc)
     }
 }
 
+static int copy_sighand(uint32_t clone_flags, struct proc_struct *proc)
+{
+    struct sighand_struct *sighand, *oldsh = current->signal_info.sighand;
+    if (oldsh == NULL)
+    {
+        return 0;
+    }
+    
+    if (clone_flags & (CLONE_SIGHAND | CLONE_THREAD))
+    {
+        sighand = oldsh;
+        goto good_sighand;
+    }
+    
+    int ret = -E_NO_MEM;
+    if ((sighand = sighand_create()) == NULL)
+    {
+        goto bad_sighand;
+    }
+    
+good_sighand:
+    sighand_count_inc(sighand);
+    proc->signal_info.sighand = sighand;
+    return 0;
+    
+bad_sighand:
+    return ret;
+}
+
 static void put_sighand(struct proc_struct *proc)
 {
     struct sighand_struct *sh = proc->signal_info.sighand;
@@ -572,6 +601,35 @@ static void put_sighand(struct proc_struct *proc)
         }
     }
     proc->signal_info.sighand = NULL;
+}
+
+static int copy_signal(uint32_t clone_flags, struct proc_struct *proc)
+{
+    struct signal_struct *signal, *oldsig = current->signal_info.signal;
+    if (oldsig == NULL)
+    {
+        return 0;
+    }
+
+    if (clone_flags & CLONE_THREAD)
+    {
+        signal = oldsig;
+        goto good_signal;
+    }
+    
+    int ret = -E_NO_MEM;
+    if ((signal = signal_create()) == NULL)
+    {
+        goto bad_signal;
+    }
+    
+good_signal:
+    signal_count_inc(signal);
+    proc->signal_info.signal = signal;
+    return 0;
+    
+bad_signal:
+    return ret;
 }
 
 static void put_signal(struct proc_struct *proc)
@@ -641,10 +699,20 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const c
         goto bad_fork_cleanup_kstack;
     }
     
+    if (copy_signal(clone_flags, proc) != 0)
+    {
+        goto bad_fork_cleanup_fs;
+    }
+    
+    if (copy_sighand(clone_flags, proc) != 0)
+    {
+        goto bad_fork_cleanup_signal;
+    }
+    
     // 调用 copy_mm() 函数复制父进程的内存信息到子进程
     if (copy_mm(clone_flags, proc) != 0)
     {
-        goto bad_fork_cleanup_fs;
+        goto bad_fork_cleanup_sighand;
     }
     
     char local_name[PROC_NAME_LEN + 1];
@@ -680,9 +748,14 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const c
     ret = proc->pid;
 fork_out:
     return ret;
-
+bad_fork_cleanup_sighand:
+    put_sighand(proc);
+bad_fork_cleanup_signal:
+    put_signal(proc);
 bad_fork_cleanup_fs:
     put_fs(proc);
+//bad_fork_cleanup_sem:
+//    put_sem_queue(proc);
 bad_fork_cleanup_kstack:
     put_kstack(proc);
 bad_fork_cleanup_proc:
@@ -1240,7 +1313,23 @@ int do_execve(const char *name, int argc, const char **argv)
         }
         current->mm = NULL;
     }
+
     ret = -E_NO_MEM;
+    /* init signal */
+    put_sighand(current);
+    if ((current->signal_info.sighand = sighand_create()) == NULL)
+    {
+        goto execve_exit;
+    }
+    sighand_count_inc(current->signal_info.sighand);
+    
+    put_signal(current);
+    if ((current->signal_info.signal = signal_create()) == NULL)
+    {
+        goto execve_exit;
+    }
+    signal_count_inc(current->signal_info.signal);
+    
     if ((ret = load_icode(fd, argc, kargv)) != 0)
     {
         goto execve_exit;

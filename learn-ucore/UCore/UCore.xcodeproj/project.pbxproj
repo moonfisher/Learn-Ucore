@@ -305,6 +305,8 @@
 		C4A2487123025BEF0098074B /* pipe_state.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486D23025BEE0098074B /* pipe_state.c */; };
 		C4A248752302796D0098074B /* pipetest.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2487223026E4B0098074B /* pipetest.c */; };
 		C4A2487F2303A3960098074B /* signal.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2487D2303A3950098074B /* signal.c */; };
+		C4A248822303CD290098074B /* sigtest.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A248812303CD290098074B /* sigtest.c */; };
+		C4A248862303CDB80098074B /* signal.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A248842303CDB80098074B /* signal.c */; };
 		C4CB326C2248F5830014426C /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31BD2248F5820014426C /* init.c */; };
 		C4CB326E2248F5830014426C /* default_sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C02248F5820014426C /* default_sched.c */; };
 		C4CB326F2248F5830014426C /* sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C22248F5820014426C /* sched.c */; };
@@ -693,6 +695,10 @@
 		C4A2487D2303A3950098074B /* signal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = signal.c; sourceTree = "<group>"; };
 		C4A2487E2303A3950098074B /* signal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = signal.h; sourceTree = "<group>"; };
 		C4A248802303A3ED0098074B /* signum.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = signum.h; sourceTree = "<group>"; };
+		C4A248812303CD290098074B /* sigtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sigtest.c; sourceTree = "<group>"; };
+		C4A248832303CDB80098074B /* signum.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = signum.h; sourceTree = "<group>"; };
+		C4A248842303CDB80098074B /* signal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = signal.c; sourceTree = "<group>"; };
+		C4A248852303CDB80098074B /* signal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = signal.h; sourceTree = "<group>"; };
 		C4CB31B12248F53F0014426C /* UCore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = UCore; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4CB31BD2248F5820014426C /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = init.c; sourceTree = "<group>"; };
 		C4CB31BE2248F5820014426C /* entry.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = entry.S; sourceTree = "<group>"; };
@@ -1621,6 +1627,7 @@
 		C4CB32262248F5830014426C /* user */ = {
 			isa = PBXGroup;
 			children = (
+				C4A248812303CD290098074B /* sigtest.c */,
 				C4A2487223026E4B0098074B /* pipetest.c */,
 				C480E96422A0F8F40093D61D /* eventtest.c */,
 				C480E96622A0F8F40093D61D /* mboxmap.c */,
@@ -1673,6 +1680,9 @@
 		C4CB32302248F5830014426C /* libs */ = {
 			isa = PBXGroup;
 			children = (
+				C4A248832303CDB80098074B /* signum.h */,
+				C4A248852303CDB80098074B /* signal.h */,
+				C4A248842303CDB80098074B /* signal.c */,
 				C480E97A22A0FD3A0093D61D /* malloc.h */,
 				C480E97B22A0FD3B0093D61D /* malloc.c */,
 				C4CB32312248F5830014426C /* ulib.h */,
@@ -1850,8 +1860,10 @@
 				73DD7D4E226F6A8500998EEC /* softint.c in Sources */,
 				C480E97622A0FCCD0093D61D /* ping.c in Sources */,
 				73DD7D4F226F6A8500998EEC /* exit.c in Sources */,
+				C4A248822303CD290098074B /* sigtest.c in Sources */,
 				C41ED99422854301006D8303 /* echo.c in Sources */,
 				73DD7D50226F6A8500998EEC /* ulib.h in Sources */,
+				C4A248862303CDB80098074B /* signal.c in Sources */,
 				73DD7D51226F6A8500998EEC /* lock.h in Sources */,
 				73DD7D52226F6A8500998EEC /* file.h in Sources */,
 				C41EC5AD22842D7C006D8303 /* halt.c in Sources */,
