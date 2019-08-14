@@ -6,7 +6,13 @@
 
 void handler(int sign)
 {
-	cprintf("signal: %d received by %d\n", sign, getpid());
+	cprintf("signal handler: %d received by %d\n", sign, getpid());
+}
+
+void restorer(int sign)
+{
+    cprintf("signal restorer: %d received by %d\n", sign, getpid());
+    sigreturn();
 }
 
 int child()
@@ -14,8 +20,14 @@ int child()
 	int pid = getpid();
 	cprintf("IM child %d\n", pid);
 
-	signal(SIGUSR1, handler);
-	signal(SIGUSR2, handler);
+//    signal(SIGUSR1, handler);
+//    signal(SIGUSR2, handler);
+    
+    struct sigaction act1 = { handler, NULL, 1 << (SIGUSR1 - 1), 0, restorer };
+    sigaction(SIGUSR1, &act1);
+    
+    struct sigaction act2 = { handler, NULL, 1 << (SIGUSR2 - 1), 0, restorer };
+    sigaction(SIGUSR2, &act2);
 
 	sigset_t set = 1ull << (SIGUSR1 - 1);
 	cprintf("%d block SIGUSER1\n", pid);

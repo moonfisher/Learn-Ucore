@@ -28,6 +28,7 @@ int __sig_setup_frame(int sign, struct sigaction *act, sigset_t oldset, struct t
     
     memset(kframe, 0, sizeof(struct sigframe));
     
+    kframe->pretcode = (uintptr_t)(act->sa_restorer);
     kframe->sign = sign;
     kframe->tf = *tf;
     kframe->old_blocked = oldset;

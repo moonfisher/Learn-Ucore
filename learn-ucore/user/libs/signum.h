@@ -114,7 +114,7 @@ struct sigaction
 	void (*sa_sigaction) (int, struct siginfo_t *, void *);
 	sigset_t sa_mask;
 	int sa_flags;
-	void (*sa_restorer) (void);
+	void (*sa_restorer) (int);
 };
 
 typedef struct

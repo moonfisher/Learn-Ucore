@@ -250,6 +250,11 @@ int sys_sigsuspend(uint32_t mask)
     return syscall(SYS_sigsuspend, mask);
 }
 
+int sys_sigreturn(uint32_t mask)
+{
+    return syscall(SYS_sigreturn, mask);
+}
+
 int sys_receive_packet(uint8_t *buf, size_t len, size_t* len_store)
 {
     return syscall(SYS_receive_packet, (int)buf, len, (int)len_store, 0, 0 );
