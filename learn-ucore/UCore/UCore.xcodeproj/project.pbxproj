@@ -304,6 +304,7 @@
 		C4A2487023025BEF0098074B /* pipe_root.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486B23025BEE0098074B /* pipe_root.c */; };
 		C4A2487123025BEF0098074B /* pipe_state.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486D23025BEE0098074B /* pipe_state.c */; };
 		C4A248752302796D0098074B /* pipetest.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2487223026E4B0098074B /* pipetest.c */; };
+		C4A2487F2303A3960098074B /* signal.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2487D2303A3950098074B /* signal.c */; };
 		C4CB326C2248F5830014426C /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31BD2248F5820014426C /* init.c */; };
 		C4CB326E2248F5830014426C /* default_sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C02248F5820014426C /* default_sched.c */; };
 		C4CB326F2248F5830014426C /* sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C22248F5820014426C /* sched.c */; };
@@ -689,6 +690,9 @@
 		C4A2486C23025BEE0098074B /* pipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pipe.h; sourceTree = "<group>"; };
 		C4A2486D23025BEE0098074B /* pipe_state.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pipe_state.c; sourceTree = "<group>"; };
 		C4A2487223026E4B0098074B /* pipetest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pipetest.c; sourceTree = "<group>"; };
+		C4A2487D2303A3950098074B /* signal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = signal.c; sourceTree = "<group>"; };
+		C4A2487E2303A3950098074B /* signal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = signal.h; sourceTree = "<group>"; };
+		C4A248802303A3ED0098074B /* signum.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = signum.h; sourceTree = "<group>"; };
 		C4CB31B12248F53F0014426C /* UCore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = UCore; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4CB31BD2248F5820014426C /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = init.c; sourceTree = "<group>"; };
 		C4CB31BE2248F5820014426C /* entry.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = entry.S; sourceTree = "<group>"; };
@@ -1482,6 +1486,9 @@
 		C4CB31E92248F5820014426C /* sync */ = {
 			isa = PBXGroup;
 			children = (
+				C4A248802303A3ED0098074B /* signum.h */,
+				C4A2487E2303A3950098074B /* signal.h */,
+				C4A2487D2303A3950098074B /* signal.c */,
 				C40545E222C9DD1E0046536A /* spinlock.h */,
 				C40545E322C9DD1E0046536A /* spinlock.c */,
 				C480E36E22A0DA990093D61D /* event.h */,
@@ -2040,6 +2047,7 @@
 				C480E30822A0D9170093D61D /* tcpclosed.c in Sources */,
 				C480E31E22A0D9170093D61D /* dgdump.c in Sources */,
 				C4CB32952248F5830014426C /* bitmap.c in Sources */,
+				C4A2487F2303A3960098074B /* signal.c in Sources */,
 				C480E2F422A0D9170093D61D /* tcprmss.c in Sources */,
 				C480E2F322A0D9170093D61D /* tcpreset.c in Sources */,
 				C480E31B22A0D9170093D61D /* icsetsrc.c in Sources */,

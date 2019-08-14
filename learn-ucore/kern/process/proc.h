@@ -7,6 +7,7 @@
 #include "memlayout.h"
 #include "skew_heap.h"
 #include "event.h"
+#include "signal.h"
 
 // process's state in his life cycle
 enum proc_state
@@ -77,7 +78,12 @@ struct proc_struct
 {
     char name[PROC_NAME_LEN + 1];               // Process name
     enum proc_state state;                      // Process state
+    // 进程 ID
     int pid;                                    // Process ID
+    // 线程 ID，如果是进程，等于 getpid
+    int tid;
+    // 取得 group id，就是 user 的 group id
+    int gid;
     int runs;                                   // the running times of Proces 进程运行过的次数
 /*
     kstack: 每个进程都有一个内核桟，并且位于内核地址空间的不同位置。
@@ -146,7 +152,10 @@ struct proc_struct
     // cptr-->指向最新创建的子进程
     // yptr-->指向同一个父进程下比自己后创建的子进程
     // optr-->指向同一个父进程下比自己先创建的子进程
-    struct proc_struct *cptr, *yptr, *optr;     // relations between processes
+    struct proc_struct *cptr;
+    struct proc_struct *yptr;
+    struct proc_struct *optr;     // relations between processes
+    list_entry_t thread_group;    // the threads list including this proc which share resource (mem/file/sem...)
     struct run_queue *rq;                       // running queue contains Process
     // 该进程的调度链表结构，该结构内部的连接组成了 运行队列 列表
     list_entry_t run_link;                      // the entry linked in run queue
@@ -161,6 +170,7 @@ struct proc_struct
     event_box_t event_box;
     // 进程访问文件系统的接口
     struct files_struct *filesp;                // the file related info(pwd, files_count, files_array, fs_semaphore) of process
+    struct proc_signal signal_info;
 };
 
 #define PF_EXITING                  0x00000001      // getting shutdown
@@ -178,7 +188,10 @@ struct proc_struct
 #define WT_MBOX_RECV                (0x00000121 | WT_INTERRUPTED)  // wait the recving mbox
 #define WT_PIPE                     (0x00000200 | WT_INTERRUPTED)  // wait the pipe
 #define WT_SEM_ALL                  (0x00001000 | WT_INTERRUPTED)  // wake up all process blocked on the sem
-#define WT_INTERRUPTED               0x80000000                    // the wait state could be interrupted
+#define WT_SIGNAL                   (0x00000400 | WT_INTERRUPTED)    // wait the signal
+#define WT_INTERRUPTED              0x80000000                    // the wait state could be interrupted
+
+#define TIF_SIGPENDING              0x00010000
 
 #define le2proc(le, member)         \
     to_struct((le), struct proc_struct, member)
@@ -198,12 +211,14 @@ bool set_pid_name(int32_t pid, const char *name);
 void cpu_idle(void) __attribute__((noreturn));
 
 struct proc_struct *find_proc(int pid);
+struct proc_struct *next_thread(struct proc_struct *proc);
+
 int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const char *name);
 int do_exit(int error_code);
 int do_yield(void);
 int do_execve(const char *name, int argc, const char **argv);
 int do_wait(int pid, int *code_store);
-int do_kill(int pid);
+int do_kill(int pid, int error_code);
 int do_mmap(uintptr_t * addr_store, size_t len, uint32_t mmap_flags);
 int do_munmap(uintptr_t addr, size_t len);
 // set the process's priority (bigger value will get more CPU time)

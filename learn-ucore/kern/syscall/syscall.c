@@ -67,7 +67,7 @@ static int sys_yield(uint32_t arg[])
 static int sys_kill(uint32_t arg[])
 {
     int pid = (int)arg[0];
-    return do_kill(pid);
+    return do_kill(pid, -E_KILLED);
 }
 
 static int sys_getpid(uint32_t arg[])

@@ -102,6 +102,18 @@ static int nr_process = 0;
     void switch_to(struct context *from, struct context *to) {}
 #endif
 
+static void proc_signal_init(struct proc_signal *ps)
+{
+    sigset_initwith(ps->pending.signal, 0);
+    ps->signal = NULL;
+    ps->sighand = NULL;
+    sigset_initwith(ps->blocked, 0);
+    sigset_initwith(ps->rt_blocked, 0);
+    list_init(&(ps->pending.list));
+    ps->sas_ss_sp = 0;
+    ps->sas_ss_size = 0;
+}
+
 // alloc_proc - alloc a proc_struct and init all fields of proc_struct
 static struct proc_struct *alloc_proc(void)
 {
@@ -110,6 +122,8 @@ static struct proc_struct *alloc_proc(void)
     {
         proc->state = PROC_UNINIT;
         proc->pid = -1;
+        proc->tid = -1;
+        proc->gid = -1;
         proc->runs = 0;
         proc->kstack = 0;
         proc->need_resched = 0;
@@ -123,6 +137,7 @@ static struct proc_struct *alloc_proc(void)
         memset(proc->name, 0, PROC_NAME_LEN);
         proc->wait_state = 0;
         proc->cptr = proc->optr = proc->yptr = NULL;
+        list_init(&(proc->thread_group));
         proc->rq = NULL;
         list_init(&(proc->run_link));
         proc->time_slice = 0;
@@ -131,6 +146,7 @@ static struct proc_struct *alloc_proc(void)
         proc->priority = 0;
         event_box_init(proc);
         proc->filesp = NULL;
+        proc_signal_init(&proc->signal_info);
     }
     return proc;
 }
@@ -479,6 +495,26 @@ static void copy_thread(struct proc_struct *proc, uintptr_t esp, struct trapfram
     proc->context.esp = (uintptr_t)(proc->tf);
 }
 
+// de_thread - delete this thread "proc" from thread_group list
+static void de_thread(struct proc_struct *proc)
+{
+    if (!list_empty(&(proc->thread_group)))
+    {
+        bool intr_flag;
+        local_intr_save(intr_flag);
+        {
+            list_del_init(&(proc->thread_group));
+        }
+        local_intr_restore(intr_flag);
+    }
+}
+
+// next_thread - get the next thread "proc" from thread_group list
+struct proc_struct *next_thread(struct proc_struct *proc)
+{
+    return le2proc(list_next(&(proc->thread_group)), thread_group);
+}
+
 //copy_fs & put_fs function used by do_fork
 static int copy_fs(uint32_t clone_flags, struct proc_struct *proc)
 {
@@ -525,6 +561,32 @@ static void put_fs(struct proc_struct *proc)
     }
 }
 
+static void put_sighand(struct proc_struct *proc)
+{
+    struct sighand_struct *sh = proc->signal_info.sighand;
+    if (sh != NULL)
+    {
+        if (sighand_count_dec(sh) == 0)
+        {
+            sighand_destroy(sh);
+        }
+    }
+    proc->signal_info.sighand = NULL;
+}
+
+static void put_signal(struct proc_struct *proc)
+{
+    struct signal_struct *sig = proc->signal_info.signal;
+    if (sig != NULL)
+    {
+        if (signal_count_dec(sig) == 0)
+        {
+            signal_destroy(sig);
+        }
+    }
+    proc->signal_info.signal = NULL;
+}
+
 /* do_fork -     parent process for a new child process
  * @clone_flags: used to guide how to clone the child process
  * @stack:       the parent's user stack pointer. if stack==0, It means to fork a kernel thread.
@@ -564,7 +626,8 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const c
     proc->parent = current;
     // 当前进程不可能处于阻塞等待的状态下，还在执行 fork
     assert(current->wait_state == 0);
-
+    list_init(&(proc->thread_group));
+    
     // 分配内核栈空间，2个页面，8k大小，供进程切换到内核态之后使用
     if (setup_kstack(proc) != 0)
     {
@@ -596,8 +659,18 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const c
     local_intr_save(intr_flag);
     {
         proc->pid = get_pid();
+        proc->tid = proc->pid;
         hash_proc(proc);
         set_links(proc);
+        if (clone_flags & CLONE_THREAD)
+        {
+            list_add_before(&(current->thread_group), &(proc->thread_group));
+            proc->gid = current->gid;
+        }
+        else
+        {
+            proc->gid = proc->pid;
+        }
     }
     local_intr_restore(intr_flag);
 
@@ -617,11 +690,40 @@ bad_fork_cleanup_proc:
     goto fork_out;
 }
 
+// do_kill - kill process with pid by set this process's flags with PF_EXITING
+int __do_kill(struct proc_struct *proc, int error_code)
+{
+    if (!(proc->flags & PF_EXITING))
+    {
+        // 标记当前进程处于被 kill 的状态，这里只是标记状态，并非直接干掉进程，等进程自己结束自己
+        proc->flags |= PF_EXITING;
+        proc->exit_code = error_code;
+        // 如果进程处于可中断的等待状态中，则进行唤醒，如果是处于 sem 信号量等待，则不唤醒
+        if (proc->wait_state & WT_INTERRUPTED)
+        {
+            wakeup_proc(proc);
+        }
+        return 0;
+    }
+    return -E_KILLED;
+}
+
+// do_kill - kill process with pid
+int do_kill(int pid, int error_code)
+{
+    struct proc_struct *proc;
+    if ((proc = find_proc(pid)) != NULL)
+    {
+        return __do_kill(proc, error_code);
+    }
+    return -E_INVAL;
+}
+
 // do_exit - called by sys_exit
 //   1. call exit_mmap & put_pgdir & mm_destroy to free the almost all memory space of process
 //   2. set process' state as PROC_ZOMBIE, then call wakeup_proc(parent) to ask parent reclaim itself.
 //   3. call scheduler to switch to other process
-int do_exit(int error_code)
+int __do_exit(void)
 {
     // idleproc 和 initproc 进程是不能退出的
     if (current == idleproc)
@@ -647,20 +749,31 @@ int do_exit(int error_code)
         }
         current->mm = NULL;
     }
+    
+    put_sighand(current);
+    put_signal(current);
     put_fs(current);
     current->state = PROC_ZOMBIE;
-    current->exit_code = error_code;
-    
+
     bool intr_flag;
-    struct proc_struct *proc;
+    struct proc_struct *proc, *parent;
     local_intr_save(intr_flag);
     {
-        proc = current->parent;
-        // 如果父进程在等待子进程退出，就唤醒父进程
-        if (proc->wait_state == WT_CHILD)
+        proc = parent = current->parent;
+        do {
+            // 如果父进程在等待子进程退出，就唤醒父进程
+            if (proc->wait_state == WT_CHILD)
+            {
+                wakeup_proc(proc);
+            }
+            proc = next_thread(proc);
+        } while (proc != parent);
+        
+        if ((parent = next_thread(current)) == current)
         {
-            wakeup_proc(proc);
+            parent = initproc;
         }
+        de_thread(current);
         
         // 如果退出的进程还包含子进程，后续 init 进程将直接接管这些子进程
         // 这些子进程将和 user_main (shell) 平级
@@ -676,24 +789,49 @@ int do_exit(int error_code)
                 initproc->cptr->yptr = proc;
             }
             // 进程退出之后，会被 init 进程接管，随后 init 进程被唤醒来释放进程相关资源
-            proc->parent = initproc;
+            proc->parent = parent;
             initproc->cptr = proc;
             if (proc->state == PROC_ZOMBIE)
             {
                 // 如果父进程在等待子进程退出，就唤醒父进程
-                if (initproc->wait_state == WT_CHILD)
+                if (parent->wait_state == WT_CHILD)
                 {
                     wakeup_proc(initproc);
                 }
             }
         }
     }
+//    wakeup_queue(&(current->event_box.wait_queue), WT_INTERRUPTED, 1);
     local_intr_restore(intr_flag);
     
-    cprintf("proc exit: pid = %d, name = \"%s\", error = %d - %e.\n", current->pid, current->name, error_code, error_code);
+    cprintf("proc exit: pid = %d, name = \"%s\", error = %d - %e.\n", current->pid, current->name, current->exit_code, current->exit_code);
     schedule();
     // 这下面的代码不会走到，是因为重新调度到 init 进程之后，当前进程资源已经被 init 释放，相关代码在内存已经不存在
     panic("do_exit will not return!! %d.\n", current->pid);
+}
+
+// do_exit_thread - kill a single thread
+int do_exit_thread(int error_code)
+{
+    current->exit_code = error_code;
+    return __do_exit();
+}
+
+// do_exit - kill a thread group, called by syscall or trap handler
+int do_exit(int error_code)
+{
+    bool intr_flag;
+    local_intr_save(intr_flag);
+    {
+        list_entry_t *list = &(current->thread_group), *le = list;
+        while ((le = list_next(le)) != list)
+        {
+            struct proc_struct *proc = le2proc(le, thread_group);
+            __do_kill(proc, error_code);
+        }
+    }
+    local_intr_restore(intr_flag);
+    return do_exit_thread(error_code);
 }
 
 //load_icode_read is used by load_icode
@@ -1207,28 +1345,6 @@ found:
     put_kstack(proc);
     kfree(proc);
     return 0;
-}
-
-// do_kill - kill process with pid by set this process's flags with PF_EXITING
-int do_kill(int pid)
-{
-    struct proc_struct *proc;
-    if ((proc = find_proc(pid)) != NULL)
-    {
-        if (!(proc->flags & PF_EXITING))
-        {
-            // 标记当前进程处于被 kill 的状态，这里只是标记状态，并非直接干掉进程，等进程自己结束自己
-            proc->flags |= PF_EXITING;
-            // 如果进程处于可中断的等待状态中，则进行唤醒，如果是处于 sem 信号量等待，则不唤醒
-            if (proc->wait_state & WT_INTERRUPTED)
-            {
-                wakeup_proc(proc);
-            }
-            return 0;
-        }
-        return -E_KILLED;
-    }
-    return -E_INVAL;
 }
 
 // kernel_execve - do SYS_exec syscall to exec a user program called by user_main kernel_thread

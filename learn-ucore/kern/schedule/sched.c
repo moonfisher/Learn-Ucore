@@ -84,6 +84,58 @@ void wakeup_proc(struct proc_struct *proc)
     local_intr_restore(intr_flag);
 }
 
+int try_to_wakeup(struct proc_struct *proc)
+{
+    assert(proc->state != PROC_ZOMBIE);
+    int ret;
+    bool intr_flag;
+    local_intr_save(intr_flag);
+    {
+        if (proc->state != PROC_RUNNABLE)
+        {
+            proc->state = PROC_RUNNABLE;
+            proc->wait_state = 0;
+            if (proc != current)
+            {
+                sched_class_enqueue(proc);
+            }
+            ret = 1;
+        }
+        else
+        {
+            ret = 0;
+        }
+        struct proc_struct *next = proc;
+        while ((next = next_thread(next)) != proc)
+        {
+            if (next->state == PROC_SLEEPING && next->wait_state == WT_SIGNAL)
+            {
+                next->state = PROC_RUNNABLE;
+                next->wait_state = 0;
+                if (next != current)
+                {
+                    sched_class_enqueue(next);
+                }
+            }
+        }
+    }
+    local_intr_restore(intr_flag);
+    return ret;
+}
+
+void stop_proc(struct proc_struct *proc, uint32_t wait)
+{
+    bool intr_flag;
+    local_intr_save(intr_flag);
+    proc->state = PROC_SLEEPING;
+    proc->wait_state = wait;
+    if (!list_empty(&(proc->run_link)))
+    {
+        sched_class_dequeue(proc);
+    }
+    local_intr_restore(intr_flag);
+}
+
 /*
  触发进程重新调度的几个关键点：
  1）idle 进程空转，不停触发调度

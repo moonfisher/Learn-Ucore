@@ -19,9 +19,10 @@
 #include "string.h"
 #include "cpu.h"
 #include "spinlock.h"
+#include "signal.h"
 
-#define TICK_NUM        5000
-#define T_TASKGATE      0x90
+#define TICK_NUM            5000
+#define T_TASKGATE          0x90
 
 static void print_ticks()
 {
@@ -573,6 +574,9 @@ void trap(struct trapframe *tf)
             {
                 schedule();
             }
+            
+            // 在中断返回的时机处理下信号
+            do_signal(tf, NULL);
         }
     }
 }
