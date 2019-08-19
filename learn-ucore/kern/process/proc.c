@@ -357,6 +357,7 @@ int kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags, const char
     tf.tf_eip = (uint32_t)kernel_thread_entry;  // 0xC010b37b
     
     // 这里 stack 参数传的 0，是因为内核线程只会用内核栈空间，不会使用用户栈
+    // 内核线程在调度过程中没有发生特权转换，都是共用同一个内核栈
     return do_fork(clone_flags | CLONE_VM, 0, &tf, name);
 }
 

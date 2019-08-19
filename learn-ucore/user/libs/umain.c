@@ -50,7 +50,7 @@ void umain(int argc, char **argv)
     }
     
     int ret = main(argc, argv);
-    exit(ret);
     cprintf("\n-------------------- umain end --------------------\n");
+    exit(ret);    
 }
 
