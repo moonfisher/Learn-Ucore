@@ -33,6 +33,17 @@ int fork(char *name)
     return sys_fork(name);
 }
 
+int __clone(uint32_t clone_flags, uintptr_t stack, int (*fn)(void *), void *arg);
+
+int clone(uint32_t clone_flags, uintptr_t stack, int (*fn)(void *), void *arg)
+{
+    int ret;
+    lock_fork();
+    ret = __clone(clone_flags, stack, fn, arg);
+    unlock_fork();
+    return ret;
+}
+
 int wait(void)
 {
     return sys_wait(0, NULL);

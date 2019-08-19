@@ -9,6 +9,15 @@
 #include "sync.h"
 #include "cpu.h"
 
+/* 为什么显卡在内存中的映射是 0xB8000 ?
+ https://www.zhihu.com/question/269649445/answer/351632444?hb_wx_block=0&utm_source=wechat_session&utm_medium=social&utm_oi=638074379922313216
+ A0000~AFFFF: VGA 图形模式显存空间
+ B0000~B7FFF: MDA 单色字符模式显存空间
+ B8000~BFFFF: CGA 彩色字符模式显存空间
+ C0000~C7FFF: 显卡 ROM 空间（后来被改造成多种用途，也可以映射显存）
+ C8000~FFFFE: 留给 BIOS 以及其它硬件使用（比如硬盘 ROM 之类的）。
+*/
+
 /* stupid I/O delay routine necessitated by historical PC design flaws */
 static void delay(void)
 {
@@ -43,6 +52,15 @@ static void delay(void)
 #define COM_LSR_TSRE    0x40    // Transmitter off
 
 // 端口地址参考 cat /proc/ioports
+// 显示器初始化，CGA 是 Color Graphics Adapter 的缩写
+// CGA 显存按照下面的方式映射：
+// -- 0xB0000 - 0xB7FFF 单色字符模式
+// -- 0xB8000 - 0xBFFFF 彩色字符模式及 CGA 兼容图形模式
+// 6845 芯片是 IBM PC 中的视频控制器
+// CPU 通过 IO 地址 0x3B4-0x3B5 来驱动 6845 控制单色显示，通过 IO 地址
+// 0x3D4-0x3D5 来控制彩色显示。
+// -- 数据寄存器 映射 到 端口 0x3D5 或 0x3B5
+// -- 索引寄存器 0x3D4 或 0x3B4, 决定在数据寄存器中的数据表示什么。
 #define MONO_BASE       0x3B4
 #define MONO_BUF        0xB0000
 #define CGA_BASE        0x3D4
@@ -53,7 +71,9 @@ static void delay(void)
 
 #define LPTPORT         0x378
 
+// crt_buf 是 CGA 显存起始地址
 static uint16_t *crt_buf;
+// crt_pos 是 CGA 当前光标位置
 static uint16_t crt_pos;
 static uint16_t addr_6845;
 
@@ -75,28 +95,42 @@ static uint16_t addr_6845;
 */
 static void cga_init(void)
 {
+    // CGA_BUF: 0xB8000 (彩色显示的显存物理基址)
     volatile uint16_t *cp = (uint16_t *)(CGA_BUF + KERNBASE);
+    // 保存当前显存 0xB8000 处的值
     uint16_t was = *cp;
+    // 给这个地址随便写个值，看看能否再读出同样的值
     *cp = (uint16_t) 0xA55A;
     if (*cp != 0xA55A)
     {
+        // 如果读不出来，说明没有这块显存，即是单显配置
+        // 设置为单显的显存基址 MONO_BUF： 0xB0000
         cp = (uint16_t*)(MONO_BUF + KERNBASE);
         addr_6845 = MONO_BASE;
     }
     else
     {
+        // 如果读出来了，有这块显存，即是彩显配置, 还原原来显存位置的值
         *cp = was;
+        // 设置为彩显控制的 IO 地址，CGA_BASE: 0x3D4
         addr_6845 = CGA_BASE;
     }
 
     // Extract cursor location
+    // 6845 索引寄存器的 index 0x0E（及十进制的14）== 光标位置(高位)
+    // 6845 索引寄存器的 index 0x0F（及十进制的15）== 光标位置(低位)
+    // 6845 reg 15 : Cursor Address (Low Byte)
     uint32_t pos;
     outb(addr_6845, 14);
+    // 读出了光标位置(高位)
     pos = inb(addr_6845 + 1) << 8;
     outb(addr_6845, 15);
+    // 读出了光标位置(低位)
     pos |= inb(addr_6845 + 1);
 
+    // crt_buf 是 CGA 显存起始地址
     crt_buf = (uint16_t*) cp;
+    // crt_pos 是 CGA 当前光标位置
     crt_pos = pos;
 }
 
@@ -191,6 +225,7 @@ static void cga_putc(int c)
     }
 
     // What is the purpose of this?
+    // 如果输出字符已经将整个屏幕占满，则往上滚动
     if (crt_pos >= CRT_SIZE)
     {
         int i;

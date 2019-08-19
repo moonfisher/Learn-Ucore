@@ -28,6 +28,7 @@ int fprintf(int fd, const char *fmt, ...);
 
 void __noreturn exit(int error_code);
 int fork(char *name);
+int clone(uint32_t clone_flags, uintptr_t stack, int (*fn)(void *), void *arg);
 int wait(void);
 int waitpid(int pid, int *store);
 void yield(void);
@@ -47,7 +48,6 @@ int send_event(int pid, int event_type, int event);
 int recv_event(int *pid_store, int event_type, int *event_store);
 int recv_event_timeout(int *pid_store, int event_type, int *event_store, unsigned int timeout);
 
-int clone(uint32_t clone_flags, uintptr_t stack, int (*fn)(void *), void *arg);
 struct mboxbuf;
 struct mboxinfo;
 

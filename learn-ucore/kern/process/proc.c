@@ -356,6 +356,7 @@ int kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags, const char
     // 下次进程运行的位置
     tf.tf_eip = (uint32_t)kernel_thread_entry;  // 0xC010b37b
     
+    // 这里 stack 参数传的 0，是因为内核线程只会用内核栈空间，不会使用用户栈
     return do_fork(clone_flags | CLONE_VM, 0, &tf, name);
 }
 
@@ -664,6 +665,9 @@ static void put_signal(struct proc_struct *proc)
  比如在父进程 open 一个文件，那么就会有一个文件描述符并且该文件描述符会有一个条目，并且在文件系统中也有相应的条目，
  当创建一个子进程时，文件描述符会自增一个条目，当在父/子进程调用了 close 函数时，文件描述符就会自减 1，
  但是另一个的进程还可对该文件描述符进行操作，直到文件描述符的条目自减到 0 时，才关闭了文件描述符的作用。
+ 
+ do_fork 出来的新 task，入口代码地址还是保留之前进 fork 系统调用时压栈的 cs 和 ip，也就是保存在
+ tf 里，这就是为什么父进程在应用层调用用户函数 fork 之后，子进程也会从父进程 fork 的地方开始往下执行
 */
 int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const char *name)
 {
@@ -720,7 +724,8 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const c
     snprintf(local_name, sizeof(local_name), "%s", name);
     set_proc_name(proc, local_name);
     
-    // 调用copy_thread()函数复制父进程的中断帧和上下文信息
+    // 调用 copy_thread() 函数复制父进程的中断帧和上下文信息
+    // stack 栈空间地址，可以从用户层传递进来，由用户层分配虚拟地址空间，比如多线程的应用
     copy_thread(proc, stack, tf);
 
     bool intr_flag;
@@ -879,7 +884,8 @@ int __do_exit(void)
     
     cprintf("proc exit: pid = %d, name = \"%s\", error = %d - %e.\n", current->pid, current->name, current->exit_code, current->exit_code);
     schedule();
-    // 这下面的代码不会走到，是因为重新调度到 init 进程之后，当前进程资源已经被 init 释放，相关代码在内存已经不存在
+    // 这下面的代码不会走到，是因为重新调度到 init 进程之后，当前进程资源已经被
+    // init 释放，相关代码在内存已经不存在
     panic("do_exit will not return!! %d.\n", current->pid);
 }
 

@@ -307,6 +307,15 @@
 		C4A2487F2303A3960098074B /* signal.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2487D2303A3950098074B /* signal.c */; };
 		C4A248822303CD290098074B /* sigtest.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A248812303CD290098074B /* sigtest.c */; };
 		C4A248862303CDB80098074B /* signal.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A248842303CDB80098074B /* signal.c */; };
+		C4A24889230A7E9B0098074B /* thread.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A24888230A7E9B0098074B /* thread.c */; };
+		C4A24893230A857B0098074B /* time.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2488B230A857A0098074B /* time.c */; };
+		C4A24894230A857B0098074B /* threadtest.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2488C230A857A0098074B /* threadtest.c */; };
+		C4A24895230A857B0098074B /* arpprint.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2488D230A857A0098074B /* arpprint.c */; };
+		C4A24896230A857B0098074B /* threadbench1.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2488E230A857A0098074B /* threadbench1.c */; };
+		C4A24897230A857B0098074B /* threadfork.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2488F230A857A0098074B /* threadfork.c */; };
+		C4A24898230A857B0098074B /* threadwork.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A24890230A857A0098074B /* threadwork.c */; };
+		C4A24899230A857B0098074B /* threadgroup2.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A24891230A857A0098074B /* threadgroup2.c */; };
+		C4A2489A230A857B0098074B /* threadgroup1.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A24892230A857B0098074B /* threadgroup1.c */; };
 		C4CB326C2248F5830014426C /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31BD2248F5820014426C /* init.c */; };
 		C4CB326E2248F5830014426C /* default_sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C02248F5820014426C /* default_sched.c */; };
 		C4CB326F2248F5830014426C /* sched.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB31C22248F5820014426C /* sched.c */; };
@@ -699,6 +708,17 @@
 		C4A248832303CDB80098074B /* signum.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = signum.h; sourceTree = "<group>"; };
 		C4A248842303CDB80098074B /* signal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = signal.c; sourceTree = "<group>"; };
 		C4A248852303CDB80098074B /* signal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = signal.h; sourceTree = "<group>"; };
+		C4A24887230A7E9B0098074B /* thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = thread.h; sourceTree = "<group>"; };
+		C4A24888230A7E9B0098074B /* thread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = thread.c; sourceTree = "<group>"; };
+		C4A2488A230A7FE50098074B /* clone.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = clone.S; sourceTree = "<group>"; };
+		C4A2488B230A857A0098074B /* time.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = time.c; sourceTree = "<group>"; };
+		C4A2488C230A857A0098074B /* threadtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = threadtest.c; sourceTree = "<group>"; };
+		C4A2488D230A857A0098074B /* arpprint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = arpprint.c; sourceTree = "<group>"; };
+		C4A2488E230A857A0098074B /* threadbench1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = threadbench1.c; sourceTree = "<group>"; };
+		C4A2488F230A857A0098074B /* threadfork.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = threadfork.c; sourceTree = "<group>"; };
+		C4A24890230A857A0098074B /* threadwork.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = threadwork.c; sourceTree = "<group>"; };
+		C4A24891230A857A0098074B /* threadgroup2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = threadgroup2.c; sourceTree = "<group>"; };
+		C4A24892230A857B0098074B /* threadgroup1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = threadgroup1.c; sourceTree = "<group>"; };
 		C4CB31B12248F53F0014426C /* UCore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = UCore; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4CB31BD2248F5820014426C /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = init.c; sourceTree = "<group>"; };
 		C4CB31BE2248F5820014426C /* entry.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = entry.S; sourceTree = "<group>"; };
@@ -1627,6 +1647,14 @@
 		C4CB32262248F5830014426C /* user */ = {
 			isa = PBXGroup;
 			children = (
+				C4A2488D230A857A0098074B /* arpprint.c */,
+				C4A2488E230A857A0098074B /* threadbench1.c */,
+				C4A2488F230A857A0098074B /* threadfork.c */,
+				C4A24892230A857B0098074B /* threadgroup1.c */,
+				C4A24891230A857A0098074B /* threadgroup2.c */,
+				C4A2488C230A857A0098074B /* threadtest.c */,
+				C4A24890230A857A0098074B /* threadwork.c */,
+				C4A2488B230A857A0098074B /* time.c */,
 				C4A248812303CD290098074B /* sigtest.c */,
 				C4A2487223026E4B0098074B /* pipetest.c */,
 				C480E96422A0F8F40093D61D /* eventtest.c */,
@@ -1680,6 +1708,9 @@
 		C4CB32302248F5830014426C /* libs */ = {
 			isa = PBXGroup;
 			children = (
+				C4A2488A230A7FE50098074B /* clone.S */,
+				C4A24887230A7E9B0098074B /* thread.h */,
+				C4A24888230A7E9B0098074B /* thread.c */,
 				C4A248832303CDB80098074B /* signum.h */,
 				C4A248852303CDB80098074B /* signal.h */,
 				C4A248842303CDB80098074B /* signal.c */,
@@ -1831,27 +1862,33 @@
 				73DD7D6D226F6B0400998EEC /* error.h in Sources */,
 				C4A248752302796D0098074B /* pipetest.c in Sources */,
 				73DD7D6E226F6B0400998EEC /* stdlib.h in Sources */,
+				C4A24895230A857B0098074B /* arpprint.c in Sources */,
 				73DD7D6F226F6B0400998EEC /* defs.h in Sources */,
 				73DD7D70226F6B0400998EEC /* rand.c in Sources */,
 				73DD7D71226F6B0400998EEC /* unistd.h in Sources */,
 				C480E97222A0FCC40093D61D /* eventtest.c in Sources */,
 				C41EC5B6228442BD006D8303 /* cd.c in Sources */,
 				C41ED9C4228979EA006D8303 /* unlink.c in Sources */,
+				C4A24899230A857B0098074B /* threadgroup2.c in Sources */,
 				73DD7D72226F6B0400998EEC /* stat.h in Sources */,
 				73DD7D73226F6B0400998EEC /* dirent.h in Sources */,
+				C4A2489A230A857B0098074B /* threadgroup1.c in Sources */,
 				C41ED9BB22894803006D8303 /* cp.c in Sources */,
 				73DD7D74226F6B0400998EEC /* hash.c in Sources */,
 				73DD7D75226F6B0400998EEC /* x86.h in Sources */,
 				73DD7D76226F6B0400998EEC /* elf.h in Sources */,
+				C4A24894230A857B0098074B /* threadtest.c in Sources */,
 				73DD7D77226F6B0400998EEC /* list.h in Sources */,
 				73DD7D78226F6B0400998EEC /* printfmt.c in Sources */,
 				73DD7D79226F6B0400998EEC /* skew_heap.h in Sources */,
+				C4A24893230A857B0098074B /* time.c in Sources */,
 				73DD7D7A226F6B0400998EEC /* stdarg.h in Sources */,
 				73DD7D7B226F6B0400998EEC /* atomic.h in Sources */,
 				73DD7D47226F6A8500998EEC /* priority.c in Sources */,
 				C41ED9C3228979EA006D8303 /* link.c in Sources */,
 				73DD7D48226F6A8500998EEC /* forktree.c in Sources */,
 				73DD7D49226F6A8500998EEC /* sleepkill.c in Sources */,
+				C4A24889230A7E9B0098074B /* thread.c in Sources */,
 				C41EC5A9228426C2006D8303 /* pwd.c in Sources */,
 				73DD7D4A226F6A8500998EEC /* forktest.c in Sources */,
 				73DD7D4B226F6A8500998EEC /* hello.c in Sources */,
@@ -1865,6 +1902,7 @@
 				73DD7D50226F6A8500998EEC /* ulib.h in Sources */,
 				C4A248862303CDB80098074B /* signal.c in Sources */,
 				73DD7D51226F6A8500998EEC /* lock.h in Sources */,
+				C4A24897230A857B0098074B /* threadfork.c in Sources */,
 				73DD7D52226F6A8500998EEC /* file.h in Sources */,
 				C41EC5AD22842D7C006D8303 /* halt.c in Sources */,
 				73DD7D53226F6A8500998EEC /* panic.c in Sources */,
@@ -1885,6 +1923,7 @@
 				73DD7D5F226F6A8500998EEC /* waitkill.c in Sources */,
 				C41ED9C6228982BF006D8303 /* rm.c in Sources */,
 				73DD7D60226F6A8500998EEC /* sh.c in Sources */,
+				C4A24896230A857B0098074B /* threadbench1.c in Sources */,
 				73DD7D61226F6A8500998EEC /* divzero.c in Sources */,
 				73DD7D62226F6A8500998EEC /* faultread.c in Sources */,
 				73DD7D63226F6A8500998EEC /* pgdir.c in Sources */,
@@ -1894,6 +1933,7 @@
 				73DD7D67226F6A8500998EEC /* yield.c in Sources */,
 				73DD7D68226F6A8500998EEC /* matrix.c in Sources */,
 				73DD7D69226F6A8500998EEC /* faultreadkernel.c in Sources */,
+				C4A24898230A857B0098074B /* threadwork.c in Sources */,
 				C41EC5A722842437006D8303 /* mkdir.c in Sources */,
 				C480E97522A0FCCB0093D61D /* netstatus.c in Sources */,
 			);

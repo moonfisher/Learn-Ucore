@@ -91,39 +91,39 @@ int32_t netstart(void *args)
       }
 
       lock(&Net.sema);
-      pid = kernel_thread(slowtimer_proc, NULL, 0, "");
+      pid = kernel_thread(slowtimer_proc, NULL, 0, "slowtimer");
       set_pid_name(pid, "slowtimer");
 
       lock(&Net.sema);
-      pid = kernel_thread(ipproc, NULL, 0, "");
+      pid = kernel_thread(ipproc, NULL, 0, "ipproc");
       set_pid_name(pid, "ipproc");
 
       lock(&Net.sema);
-      pid = kernel_thread(tcptimer, NULL, 0, "");
+      pid = kernel_thread(tcptimer, NULL, 0, "tcptimer");
       set_pid_name(pid, "tcptimer");
 
       lock(&Net.sema);
-      pid = kernel_thread(tcpinp, NULL, 0, "");
+      pid = kernel_thread(tcpinp, NULL, 0, "tcpinp");
       set_pid_name(pid, "tcpinp");
 
       lock(&Net.sema);
-      pid = kernel_thread(tcpout, NULL, 0, "");
+      pid = kernel_thread(tcpout, NULL, 0, "tcpout");
       set_pid_name(pid, "tcpout");
 
       lock(&Net.sema);
-      pid = kernel_thread(tcpinp, NULL, 0, "");
+      pid = kernel_thread(tcpinp, NULL, 0, "tcpinp");
       set_pid_name(pid, "tcpinp");
 
       lock(&Net.sema);
-      pid = kernel_thread(rip, NULL, 0, "");
+      pid = kernel_thread(rip, NULL, 0, "ripin");
       set_pid_name(pid, "ripin");
 
       lock(&Net.sema);
-      pid = kernel_thread(udpechod, NULL, 0, "");
+      pid = kernel_thread(udpechod, NULL, 0, "udpechod");
       set_pid_name(pid, "udpechod");
 
       lock(&Net.sema);
-      pid = kernel_thread(tcpechod, NULL, 0, "");
+      pid = kernel_thread(tcpechod, NULL, 0, "tcpechod");
       set_pid_name(pid, "tcpechod");
 
       unlock(&network_mtx);

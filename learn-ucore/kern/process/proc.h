@@ -155,6 +155,7 @@ struct proc_struct
     struct proc_struct *cptr;
     struct proc_struct *yptr;
     struct proc_struct *optr;     // relations between processes
+    // 同一个进程的多个线程 task 都添加到 thread_group 里
     list_entry_t thread_group;    // the threads list including this proc which share resource (mem/file/sem...)
     struct run_queue *rq;                       // running queue contains Process
     // 该进程的调度链表结构，该结构内部的连接组成了 运行队列 列表
@@ -215,6 +216,7 @@ struct proc_struct *next_thread(struct proc_struct *proc);
 
 int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf, const char *name);
 int do_exit(int error_code);
+int do_exit_thread(int error_code);
 int do_yield(void);
 int do_execve(const char *name, int argc, const char **argv);
 int do_wait(int pid, int *code_store);

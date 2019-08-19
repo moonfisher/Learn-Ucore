@@ -9,6 +9,7 @@
 #define SYS_wait            3
 #define SYS_exec            4
 #define SYS_clone           5
+#define SYS_exit_thread     9
 #define SYS_yield           10
 #define SYS_sleep           11
 #define SYS_kill            12

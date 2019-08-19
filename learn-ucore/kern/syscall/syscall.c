@@ -52,11 +52,19 @@ static int sys_clone(uint32_t arg[])
     struct trapframe *tf = current->tf;
     uint32_t clone_flags = (uint32_t) arg[0];
     uintptr_t stack = (uintptr_t) arg[1];
+    char *name = (char *)arg[3];
     if (stack == 0)
     {
+        // 如果没有为子进程或者线程分配新的用户栈空间，则使用父进程的栈空间
         stack = tf->tf_esp;
     }
-    return do_fork(clone_flags, stack, tf, "");
+    return do_fork(clone_flags, stack, tf, name);
+}
+
+static int sys_exit_thread(uint32_t arg[])
+{
+    int error_code = (int)arg[0];
+    return do_exit_thread(error_code);
 }
 
 static int sys_yield(uint32_t arg[])
@@ -506,6 +514,7 @@ static int (*syscalls[])(uint32_t arg[]) = {
     [SYS_pgdir]            = sys_pgdir,
     [SYS_gettime]          = sys_gettime,
     [SYS_clone]            = sys_clone,
+    [SYS_exit_thread]      = sys_exit_thread,
 
     [SYS_event_send]       = sys_event_send,
     [SYS_event_recv]       = sys_event_recv,

@@ -577,6 +577,9 @@ size_t nr_free_pages(void)
 
 /* pmm_init - initialize the physical memory management */
 /*
+ 内存是怎么映射到物理地址空间的？内存是连续分布的吗？
+ https://zhuanlan.zhihu.com/p/66288943
+ 
  DRAM:          0x00000 - 0x9FFFF, 640K;
  Peripherals:   0xA0000 - 0xEFFFF, 320K (Graphic memory mapping: 0xB8000 - 0xBFFFF).
  BIOS ROM:      0xF0000 - 0xFFFFF, 64K;

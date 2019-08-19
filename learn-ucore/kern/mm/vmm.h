@@ -45,7 +45,7 @@ struct vma_struct
 */
 struct mm_struct
 {
-    list_entry_t mmap_list;        // linear list link which sorted by start addr of vma
+    list_entry_t mmap_list;     // linear list link which sorted by start addr of vma
     // mmap_cache 是指向当前正在使用的虚拟内存空间，由于操作系统执行的“局部性”原理，
     // 当前正在用到的虚拟内存空间在接下来的操作中可能还会用到，这时就不需要查链表，
     // 而是直接使用此指针就可找到下一次要用到的虚拟内存空间。
@@ -53,16 +53,16 @@ struct mm_struct
     struct vma_struct *mmap_cache; // current accessed vma, used for speed purpose
     // pgdir 所指向的就是 mm_struct 数据结构所维护的页表。
     // 通过访问 pgdir 可以查找某虚拟地址对应的页表项是否存在以及页表项的属性等。
-    pde_t *pgdir;                  // the PDT of these vma
+    pde_t *pgdir;               // the PDT of these vma
     // map_count 记录 mmap_list 里面链接的 vma_struct 的个数。
-    int map_count;                 // the count of these vma
+    int map_count;              // the count of these vma
     // sm_priv 指向用来链接记录页访问情况的链表头，这建立了 mm_struct 和 swap_manager 之间的联系。
-    void *sm_priv;                 // the private data for swap manager
-    int mm_count;                  // the number ofprocess which shared the mm
-    semaphore_t mm_sem;            // mutex for using dup_mmap fun to duplicat the mm 
-    int locked_by;                 // the lock owner process's pid
-    uintptr_t brk_start;           // 进程内部 malloc 申请内存占用的虚拟地址起始，位于代码段数据段之后
-    uintptr_t brk;                 // 进程内部 malloc 申请内存当前可用虚拟地址起始
+    void *sm_priv;              // the private data for swap manager
+    int mm_count;               // the number ofprocess which shared the mm
+    semaphore_t mm_sem;         // mutex for using dup_mmap fun to duplicat the mm
+    int locked_by;              // the lock owner process's pid
+    uintptr_t brk_start;        // 进程内部 malloc 申请内存占用的虚拟地址起始，位于代码段数据段之后
+    uintptr_t brk;              // 进程内部 malloc 申请内存当前可用虚拟地址起始
     list_entry_t proc_mm_link;
 };
 

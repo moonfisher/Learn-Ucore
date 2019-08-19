@@ -24,7 +24,7 @@ rip(void *args)
 	mutex_init(&riplock);
 	if (gateway)
 	{
-		pid = kernel_thread(ripout, NULL, 0, "");
+		pid = kernel_thread(ripout, NULL, 0, "ripout");
 		set_pid_name(pid, "ripout");
 	}
 
