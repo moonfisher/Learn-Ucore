@@ -270,7 +270,12 @@ void proc_run(struct proc_struct *proc)
     {
 //        int cid = thiscpu->cpu_id;
 //        char *name = get_proc_name(proc);
-//        cprintf("proc_run: cpuid = %d, pid = %d, name = \"%s\", runs = %d.\n", cid, proc->pid, name, proc->runs);
+//        uintptr_t tf_esp = 0;
+//        if (proc->tf)
+//        {
+//            tf_esp = proc->tf->tf_esp;
+//        }
+//        cprintf("proc_run: cpuid = %d, pid = %d, name = \"%s\", runs = %d, esp = 0x%x, kstack = 0x%x.\n", cid, proc->pid, name, proc->runs, tf_esp, proc->kstack);
         
         bool intr_flag;
         struct proc_struct *prev = current, *next = proc;
@@ -294,9 +299,10 @@ void proc_run(struct proc_struct *proc)
 // NOTE: the addr of forkret is setted in copy_thread function
 //       after switch_to, the current proc will execute here.
 /*
- 在发生进程切换 switch_to 之后， 切换后的进程函数入口就是 forkret，这并非是进程上次执行的现场
- 这里会根据进程之前构造的 trapframe 中断桢的内容，来修改各个寄存器的值(包括段寄存器 cs)，
- 最终实现切换。无论是切换到用户进程，还是内核进程，流程是一样的，只是各个进程自己的 trapframe 结构不同
+ 在发生进程切换 switch_to 之后， 如果 task 是首次运行，切换后的进程函数入口就是 forkret
+ task 刚开始运行，都是运行在内核态，使用的堆栈也是内核栈，然后根据 task 里构造的 trapframe
+ 中断桢的内容，根据需要（如内核态切换到用户态），来修改各个寄存器的值(包括段寄存器 cs，堆栈寄存器 ss)
+ 无论是切换到用户进程，还是内核进程，流程是一样的，都是 task，只是各个进程自己的 trapframe 结构不同
 */
 static void forkret(void)
 {
@@ -479,21 +485,30 @@ bad_mm:
 
 // copy_thread - setup the trapframe on the  process's kernel stack top and
 //             - setup the kernel entry point and stack of process
+/*
+ * proc->kstack + KSTACKSIZE -> +---------------------------------+
+ *                              |          struct trapframe       |
+ * proc->tf ------------------> +---------------------------------+
+ *                              |         ~~~~~~~~~~~~~~~~        |
+ *                              |              kstack             |
+ * proc->kstack --------------> +---------------------------------+
+*/
 static void copy_thread(struct proc_struct *proc, uintptr_t esp, struct trapframe *tf)
 {
-    // 在内核堆栈的顶部设置中断帧大小的一块栈空间，用于存放中断桢的数据
+    // 在内核堆栈的栈底设置中断帧大小的一块栈空间，用于存放中断桢的数据
     proc->tf = (struct trapframe *)(proc->kstack + KSTACKSIZE) - 1;
     // 拷贝在 kernel_thread 函数建立的临时中断帧的初始值
     *(proc->tf) = *tf;
     // 设置子进程/线程执行完 do_fork 后的返回值
     proc->tf->tf_regs.reg_eax = 0;
     // 设置中断帧中的栈指针 esp
+    // 内核线程一直运行在内核态，不会发生特权级转换，tf 里的 esp 用不上，都是 0
     proc->tf->tf_esp = esp;
     // 使能中断
     proc->tf->tf_eflags |= FL_IF;
-    // 设置好新进程的入口地址
+    // 设置好新进程的入口地址，新建的 task 首次运行入口是 forkret
     proc->context.eip = (uintptr_t)forkret;
-    // 更新上下文sp指针位置
+    // 更新上下文 esp 指针位置，这里实际指向当前 task 内核栈
     proc->context.esp = (uintptr_t)(proc->tf);
 }
 
@@ -1378,35 +1393,46 @@ int do_wait(int pid, int *code_store)
         }
     }
 
-    struct proc_struct *proc;
+    struct proc_struct *proc, *cproc;
     bool intr_flag, haskid;
 repeat:
+    cproc = current;
     haskid = 0;
     if (pid != 0)
     {
         proc = find_proc(pid);
-        if (proc != NULL && proc->parent == current)
+        if (proc != NULL)
         {
-            haskid = 1;
-            if (proc->state == PROC_ZOMBIE)
-            {
-                goto found;
-            }
+            do {
+                if (proc->parent == cproc)
+                {
+                    haskid = 1;
+                    if (proc->state == PROC_ZOMBIE)
+                    {
+                        goto found;
+                    }
+                    break;
+                }
+                cproc = next_thread(cproc);
+            } while (cproc != current);
         }
     }
     else
     {
         // pid = 0 一般只有 init 进程会这样使用
         // 这表示去遍历自己所管理的所有子进程，看有没有退出的
-        proc = current->cptr;
-        for (; proc != NULL; proc = proc->optr)
-        {
-            haskid = 1;
-            if (proc->state == PROC_ZOMBIE)
+        do {
+            proc = cproc->cptr;
+            for (; proc != NULL; proc = proc->optr)
             {
-                goto found;
+                haskid = 1;
+                if (proc->state == PROC_ZOMBIE)
+                {
+                    goto found;
+                }
             }
-        }
+            cproc = next_thread(cproc);
+        } while (cproc != current);
     }
     if (haskid)
     {
@@ -1417,7 +1443,7 @@ repeat:
         // 检测当前进程是否被 kill 过
         if (current->flags & PF_EXITING)
         {
-            do_exit(-E_KILLED);
+            __do_exit();
         }
         goto repeat;
     }
@@ -1428,10 +1454,8 @@ found:
     {
         panic("wait idleproc or initproc.\n");
     }
-    if (code_store != NULL)
-    {
-        *code_store = proc->exit_code;
-    }
+    
+    int exit_code = proc->exit_code;
     local_intr_save(intr_flag);
     {
         unhash_proc(proc);
@@ -1440,7 +1464,20 @@ found:
     local_intr_restore(intr_flag);
     put_kstack(proc);
     kfree(proc);
-    return 0;
+    
+    int ret = 0;
+    if (code_store != NULL)
+    {
+        lock_mm(mm);
+        {
+            if (!copy_to_user(mm, code_store, &exit_code, sizeof(int)))
+            {
+                ret = -E_INVAL;
+            }
+        }
+        unlock_mm(mm);
+    }
+    return ret;
 }
 
 // kernel_execve - do SYS_exec syscall to exec a user program called by user_main kernel_thread
@@ -1598,7 +1635,7 @@ static int init_main(void *arg)
     set_proc_name(userproc, "user_main");
     
     // 启动网络
-//    start_net_mechanics();
+    start_net_mechanics();
     
     extern void check_sync(void);
 //    check_sync();                // check philosopher sync problem

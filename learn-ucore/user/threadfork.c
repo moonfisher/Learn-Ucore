@@ -3,31 +3,29 @@
 #include "thread.h"
 #include "string.h"
 
-const int forknum = 125;
-
-void do_yield(void)
-{
-	int i;
-	for (i = 0; i < 30; i++)
-    {
-		sleep(10);
-		yield();
-	}
-}
+#define     forknum         8
+#define     threadnum       6
 
 void process_main(void)
 {
-	do_yield();
+	sleep(10);
 }
 
 int thread_main(void *arg)
 {
 	int i, pid;
+    char *thread_name = (char *)arg;
+    char local_name[30];
+    char tmp_name[20];
 	for (i = 0; i < forknum; i++)
     {
-        char local_name[20];
         memset(local_name, 0, sizeof(local_name));
-        snprintf(local_name, sizeof(local_name), "pid-%d", i);
+        strncpy(local_name, thread_name, strlen(thread_name));
+        
+        memset(tmp_name, 0, sizeof(tmp_name));
+        snprintf(tmp_name, sizeof(tmp_name), "-fork-%d", i);
+        
+        strcat(local_name, tmp_name);
         
 		if ((pid = fork(local_name)) == 0)
         {
@@ -35,18 +33,21 @@ int thread_main(void *arg)
 			exit(0);
 		}
 	}
-	do_yield();
+	sleep(200);
 	return 0;
 }
 
 int main(void)
 {
-	thread_t tids[10];
+	thread_t tids[threadnum];
 
-	int i, n = sizeof(tids) / sizeof(tids[0]);
-	for (i = 0; i < n; i++)
+    int i = 0;
+    char local_name[20];
+	for (i = 0; i < threadnum; i++)
     {
-		if (thread(thread_main, NULL, tids + i) != 0)
+        memset(local_name, 0, sizeof(local_name));
+        snprintf(local_name, sizeof(local_name), "thread-%d", i);
+		if (thread(thread_main, local_name, tids + i) != 0)
         {
 			goto failed;
 		}
@@ -58,12 +59,12 @@ int main(void)
 		count++;
 	}
 
-	assert(count == (forknum + 1) * n);
-	cprintf("threadfork pass.\n");
+    assert(count == (forknum + 1) * threadnum);
+	cprintf("threadfork pass, count = %d.\n", count);
 	return 0;
 
 failed:
-	for (i = 0; i < n; i++)
+	for (i = 0; i < threadnum; i++)
     {
 		if (tids[i].pid > 0)
         {

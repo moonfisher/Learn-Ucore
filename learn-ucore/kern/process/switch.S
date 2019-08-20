@@ -9,6 +9,7 @@ switch_to:                      # switch_to(from, to)
 
     # 然后接下来的七条汇编指令完成了保存前一个进程的其他 7 个寄存器到 context 中的相应成员变量中。
     # 至此前一个进程的执行现场保存完毕。
+    # 保存堆栈当前位置
     movl %esp, 4(%eax)
     movl %ebx, 8(%eax)
     movl %ecx, 12(%eax)
@@ -28,6 +29,7 @@ switch_to:                      # switch_to(from, to)
     movl 16(%eax), %edx
     movl 12(%eax), %ecx
     movl 8(%eax), %ebx
+    # 堆栈恢复到上一次执行的地方
     movl 4(%eax), %esp
 
     # pushl 0(%eax)其实把 context 中保存的下一个进程要执行的指令地址 context.eip 放到了堆栈顶，
@@ -35,6 +37,7 @@ switch_to:                      # switch_to(from, to)
     # 即当前进程已经是下一个进程了，从而完成了进程的切换。
     pushl 0(%eax)               # push eip
 
-    # 这里 ret 之后，会返回到切换后的进程执行入口 forkret，并不是直接返回到上次这个进程的执行现场
+    # 如果是 task 首次加载运行，这里 ret 之后，会返回到切换后的进程执行入口 forkret
+    # 如果是 task 调度运行，这里 ret 之后，返回到上次这个进程的执行现场
     ret
 

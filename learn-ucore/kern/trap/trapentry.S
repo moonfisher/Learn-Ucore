@@ -55,7 +55,7 @@ __trapret:
     # 如果只是内核线程之间切换，特权级并没发生改变，则 iret 返回不会修改 ESP，SS
     iret
 
-.globl forkrets # 创建进程或者切换进程之后的入口
+.globl forkrets # 创建新的 task，新的 task 首次运行时的入口
 forkrets:
     # set stack to this new process's trapframe
     # 调整 esp 的位置，使得 esp 指向函数 forkrets 的 trapframe 实际参数
