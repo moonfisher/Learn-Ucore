@@ -47,6 +47,8 @@
 #define SYS_unlink          127
 #define SYS_getdirentry     128
 #define SYS_dup             130
+#define SYS_mount           131
+#define SYS_umount          132
 #define SYS_pipe            140
 #define SYS_mkfifo          141
 

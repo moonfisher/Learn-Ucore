@@ -75,6 +75,9 @@
 		C41ED9C3228979EA006D8303 /* link.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9C1228979E9006D8303 /* link.c */; };
 		C41ED9C4228979EA006D8303 /* unlink.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9C2228979E9006D8303 /* unlink.c */; };
 		C41ED9C6228982BF006D8303 /* rm.c in Sources */ = {isa = PBXBuildFile; fileRef = C41ED9C5228982BE006D8303 /* rm.c */; };
+		C473B37F230D51F9002F6AA9 /* mount.c in Sources */ = {isa = PBXBuildFile; fileRef = C473B37D230D51F8002F6AA9 /* mount.c */; };
+		C473B382230D5649002F6AA9 /* mount.c in Sources */ = {isa = PBXBuildFile; fileRef = C473B380230D5648002F6AA9 /* mount.c */; };
+		C473B383230D5649002F6AA9 /* umount.c in Sources */ = {isa = PBXBuildFile; fileRef = C473B381230D5649002F6AA9 /* umount.c */; };
 		C480E29622A0D9170093D61D /* netcheck.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E19122A0D9170093D61D /* netcheck.c */; };
 		C480E29722A0D9170093D61D /* e1000_output_proc.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E19222A0D9170093D61D /* e1000_output_proc.c */; };
 		C480E29822A0D9170093D61D /* e1000.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E19422A0D9170093D61D /* e1000.c */; };
@@ -425,6 +428,10 @@
 		C41ED9C1228979E9006D8303 /* link.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = link.c; sourceTree = "<group>"; };
 		C41ED9C2228979E9006D8303 /* unlink.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = unlink.c; sourceTree = "<group>"; };
 		C41ED9C5228982BE006D8303 /* rm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rm.c; sourceTree = "<group>"; };
+		C473B37D230D51F8002F6AA9 /* mount.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mount.c; sourceTree = "<group>"; };
+		C473B37E230D51F9002F6AA9 /* mount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mount.h; sourceTree = "<group>"; };
+		C473B380230D5648002F6AA9 /* mount.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mount.c; sourceTree = "<group>"; };
+		C473B381230D5649002F6AA9 /* umount.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = umount.c; sourceTree = "<group>"; };
 		C480E19122A0D9170093D61D /* netcheck.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netcheck.c; sourceTree = "<group>"; };
 		C480E19222A0D9170093D61D /* e1000_output_proc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = e1000_output_proc.c; sourceTree = "<group>"; };
 		C480E19422A0D9170093D61D /* e1000.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = e1000.c; sourceTree = "<group>"; };
@@ -1647,6 +1654,8 @@
 		C4CB32262248F5830014426C /* user */ = {
 			isa = PBXGroup;
 			children = (
+				C473B380230D5648002F6AA9 /* mount.c */,
+				C473B381230D5649002F6AA9 /* umount.c */,
 				C4A2488D230A857A0098074B /* arpprint.c */,
 				C4A2488E230A857A0098074B /* threadbench1.c */,
 				C4A2488F230A857A0098074B /* threadfork.c */,
@@ -1708,6 +1717,8 @@
 		C4CB32302248F5830014426C /* libs */ = {
 			isa = PBXGroup;
 			children = (
+				C473B37E230D51F9002F6AA9 /* mount.h */,
+				C473B37D230D51F8002F6AA9 /* mount.c */,
 				C4A2488A230A7FE50098074B /* clone.S */,
 				C4A24887230A7E9B0098074B /* thread.h */,
 				C4A24888230A7E9B0098074B /* thread.c */,
@@ -1892,8 +1903,10 @@
 				C41EC5A9228426C2006D8303 /* pwd.c in Sources */,
 				73DD7D4A226F6A8500998EEC /* forktest.c in Sources */,
 				73DD7D4B226F6A8500998EEC /* hello.c in Sources */,
+				C473B383230D5649002F6AA9 /* umount.c in Sources */,
 				73DD7D4C226F6A8500998EEC /* ls.c in Sources */,
 				73DD7D4D226F6A8500998EEC /* badarg.c in Sources */,
+				C473B37F230D51F9002F6AA9 /* mount.c in Sources */,
 				73DD7D4E226F6A8500998EEC /* softint.c in Sources */,
 				C480E97622A0FCCD0093D61D /* ping.c in Sources */,
 				73DD7D4F226F6A8500998EEC /* exit.c in Sources */,
@@ -1919,6 +1932,7 @@
 				73DD7D5C226F6A8500998EEC /* dir.h in Sources */,
 				73DD7D5D226F6A8500998EEC /* sleep.c in Sources */,
 				C480E97722A0FCD00093D61D /* ps.c in Sources */,
+				C473B382230D5649002F6AA9 /* mount.c in Sources */,
 				73DD7D5E226F6A8500998EEC /* badsegment.c in Sources */,
 				73DD7D5F226F6A8500998EEC /* waitkill.c in Sources */,
 				C41ED9C6228982BF006D8303 /* rm.c in Sources */,

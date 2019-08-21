@@ -42,6 +42,8 @@ int sys_pipe(int *fd_store);
 int sys_mkfifo(const char *name, uint32_t open_flags);
 int sys_link(const char *path1, const char *path2);
 int sys_unlink(const char *path);
+int sys_mount(const char *source, const char *target, const char *filesystemtype, const void *data);
+int sys_umount(const char *target);
 
 int sys_sigaction(int sign, struct sigaction *act, struct sigaction *old);
 int sys_sigtkill(int pid, int sign);

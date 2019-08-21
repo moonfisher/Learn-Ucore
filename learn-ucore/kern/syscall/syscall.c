@@ -15,6 +15,7 @@
 #include "e1000/e1000.h"
 #include "tcpip/h/network.h"
 #include "event.h"
+#include "vfs.h"
 
 extern void netstatus();
 
@@ -257,6 +258,21 @@ static int sys_unlink(uint32_t arg[])
 {
     const char *name = (const char *)arg[0];
     return sysfile_unlink(name);
+}
+
+static int sys_mount(uint32_t arg[])
+{
+    const char *source = (const char *)arg[0];
+//    const char *target = (const char *)arg[1];
+    const char *filesystemtype = (const char *)arg[2];
+//    const void *data = (const void *)arg[3];
+    return do_mount(source, filesystemtype);
+}
+
+static int sys_umount(uint32_t arg[])
+{
+    const char *target = (const char *)arg[0];
+    return do_umount(target);
 }
 
 static int sys_sigaction(uint32_t arg[])
@@ -542,6 +558,8 @@ static int (*syscalls[])(uint32_t arg[]) = {
     [SYS_unlink]           = sys_unlink,
     [SYS_pipe]             = sys_pipe,
     [SYS_mkfifo]           = sys_mkfifo,
+    [SYS_mount]            = sys_mount,
+    [SYS_umount]           = sys_umount,
     
 //    [SYS_ioctl]            = sys_ioctl,
     [SYS_tkill]            = sys_sigtkill,

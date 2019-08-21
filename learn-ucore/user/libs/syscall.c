@@ -230,6 +230,16 @@ int sys_unlink(const char *path)
     return syscall(SYS_unlink, path);
 }
 
+int sys_mount(const char *source, const char *target, const char *filesystemtype, const void *data)
+{
+    return syscall(SYS_mount, source, target, filesystemtype, data);
+}
+
+int sys_umount(const char *target)
+{
+    return syscall(SYS_umount, target);
+}
+
 int sys_sigaction(int sign, struct sigaction *act, struct sigaction *old)
 {
     return syscall(SYS_sigaction, sign, act, old);
