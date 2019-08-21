@@ -161,14 +161,16 @@ static struct proc_struct *stride_pick_next(struct run_queue *rq)
 // 通过周期性的时钟中断，计算当前正在运行中的进程时间片，时间片达到最大之后，重新调度
 static void stride_proc_tick(struct run_queue *rq, struct proc_struct *proc)
 {
-     if (proc->time_slice > 0)
-     {
-          proc->time_slice--;
-     }
-     if (proc->time_slice == 0)
-     {
-          proc->need_resched = 1;
-     }
+    if (proc->time_slice > 0)
+    {
+        proc->time_slice--;
+    }
+    
+    if (proc->time_slice == 0)
+    {
+        // 这里只是标记当前 task 需要重新调度，并不是马上去调度
+        proc->need_resched = 1;
+    }
 }
 
 struct sched_class default_sched_class = {

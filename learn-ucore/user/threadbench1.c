@@ -1,10 +1,12 @@
 #include "ulib.h"
 #include "stdio.h"
 #include "thread.h"
+#include "string.h"
 
 #define printf(...)                     fprintf(1, __VA_ARGS__)
 
-#define NR_LOOPS  10000
+#define NR_LOOPS    10000
+#define NR_THREADS  10
 
 int test(void *arg)
 {
@@ -18,8 +20,6 @@ int test(void *arg)
 	return 0xbee;
 }
 
-#define NR_THREADS 10
-
 int main(void)
 {
 	int pid = getpid();
@@ -28,9 +28,12 @@ int main(void)
 	thread_t tid[NR_THREADS];
 	int i;
 
+    char local_name[NR_THREADS][20];
 	for (i = 0; i < NR_THREADS; i++)
     {
-		if (thread(test, NULL, tid + i) != 0)
+        memset(local_name[i], 0, 20);
+        snprintf(local_name[i], 20, "thread-%d", i);
+		if (thread(test, local_name[i], tid + i) != 0)
 			printf("Thread %d is not created.\n", i);
 	}
 

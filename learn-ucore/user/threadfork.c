@@ -42,12 +42,12 @@ int main(void)
 	thread_t tids[threadnum];
 
     int i = 0;
-    char local_name[20];
+    char local_name[threadnum][20];
 	for (i = 0; i < threadnum; i++)
     {
-        memset(local_name, 0, sizeof(local_name));
-        snprintf(local_name, sizeof(local_name), "thread-%d", i);
-		if (thread(thread_main, local_name, tids + i) != 0)
+        memset(local_name[i], 0, 20);
+        snprintf(local_name[i], 20, "thread-%d", i);
+		if (thread(thread_main, local_name[i], tids + i) != 0)
         {
 			goto failed;
 		}

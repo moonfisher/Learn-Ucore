@@ -49,9 +49,9 @@ PROC_UNINIT -- proc_init/wakeup_proc --> PROC_RUNNABLE -- try_free_pages/do_wait
 -----------------------------
 process relations
 parent:           proc->parent  (proc is children)
-children:         proc->cptr    (proc is parent)
-older sibling:    proc->optr    (proc is younger sibling)
-younger sibling:  proc->yptr    (proc is older sibling)
+children:         proc->children_ptr    (proc is parent)
+older sibling:    proc->older_ptr    (proc is younger sibling)
+younger sibling:  proc->younger_ptr    (proc is older sibling)
 -----------------------------
 related syscall for process:
 SYS_exit        : process exit,                           -->do_exit
@@ -136,7 +136,7 @@ static struct proc_struct *alloc_proc(void)
         proc->flags = 0;
         memset(proc->name, 0, PROC_NAME_LEN);
         proc->wait_state = 0;
-        proc->cptr = proc->optr = proc->yptr = NULL;
+        proc->children_ptr = proc->older_ptr = proc->younger_ptr = NULL;
         list_init(&(proc->thread_group));
         proc->rq = NULL;
         list_init(&(proc->run_link));
@@ -181,13 +181,13 @@ bool set_pid_name(int32_t pid, const char *name)
 static void set_links(struct proc_struct *proc)
 {
     list_add(&proc_list, &(proc->list_link));
-    proc->yptr = NULL;
-    proc->optr = proc->parent->cptr;
-    if (proc->optr != NULL)
+    proc->younger_ptr = NULL;
+    proc->older_ptr = proc->parent->children_ptr;
+    if (proc->older_ptr != NULL)
     {
-        proc->optr->yptr = proc;
+        proc->older_ptr->younger_ptr = proc;
     }
-    proc->parent->cptr = proc;
+    proc->parent->children_ptr = proc;
     nr_process++;
 }
 
@@ -195,18 +195,20 @@ static void set_links(struct proc_struct *proc)
 static void remove_links(struct proc_struct *proc)
 {
     list_del(&(proc->list_link));
-    if (proc->optr != NULL)
+    if (proc->older_ptr != NULL)
     {
-        proc->optr->yptr = proc->yptr;
+        proc->older_ptr->younger_ptr = proc->younger_ptr;
     }
-    if (proc->yptr != NULL)
+    
+    if (proc->younger_ptr != NULL)
     {
-        proc->yptr->optr = proc->optr;
+        proc->younger_ptr->older_ptr = proc->older_ptr;
     }
     else
     {
-       proc->parent->cptr = proc->optr;
+        proc->parent->children_ptr = proc->older_ptr;
     }
+    
     nr_process--;
 }
 
@@ -865,32 +867,32 @@ int __do_exit(void)
         
         if ((parent = next_thread(current)) == current)
         {
+            // 走进来说明当前退出的进程不包含子线程，后续 init 进程将直接接管这些子进程
             parent = initproc;
         }
+        
         de_thread(current);
         
-        // 如果退出的进程还包含子进程，后续 init 进程将直接接管这些子进程
-        // 这些子进程将和 user_main (shell) 平级
-        while (current->cptr != NULL)
+        // 如果退出的进程还包含子进程（或者子线程），重新调整 task 树结构
+        while (current->children_ptr != NULL)
         {
-            proc = current->cptr;
-            current->cptr = proc->optr;
+            proc = current->children_ptr;
+            current->children_ptr = proc->older_ptr;
     
-            proc->yptr = NULL;
-            proc->optr = initproc->cptr;
-            if (proc->optr != NULL)
+            proc->younger_ptr = NULL;
+            if ((proc->older_ptr = parent->children_ptr) != NULL)
             {
-                initproc->cptr->yptr = proc;
+                parent->children_ptr->younger_ptr = proc;
             }
-            // 进程退出之后，会被 init 进程接管，随后 init 进程被唤醒来释放进程相关资源
+            
             proc->parent = parent;
-            initproc->cptr = proc;
+            parent->children_ptr = proc;
             if (proc->state == PROC_ZOMBIE)
             {
                 // 如果父进程在等待子进程退出，就唤醒父进程
                 if (parent->wait_state == WT_CHILD)
                 {
-                    wakeup_proc(initproc);
+                    wakeup_proc(parent);
                 }
             }
         }
@@ -1422,8 +1424,8 @@ repeat:
         // pid = 0 一般只有 init 进程会这样使用
         // 这表示去遍历自己所管理的所有子进程，看有没有退出的
         do {
-            proc = cproc->cptr;
-            for (; proc != NULL; proc = proc->optr)
+            proc = cproc->children_ptr;
+            for (; proc != NULL; proc = proc->older_ptr)
             {
                 haskid = 1;
                 if (proc->state == PROC_ZOMBIE)
@@ -1652,7 +1654,7 @@ static int init_main(void *arg)
     fs_cleanup();
         
     cprintf("all user-mode processes have quit.\n");
-    assert(initproc->cptr == NULL && initproc->yptr == NULL && initproc->optr == NULL);
+    assert(initproc->children_ptr == NULL && initproc->younger_ptr == NULL && initproc->older_ptr == NULL);
     assert(nr_process == 2);
     assert(list_next(&proc_list) == &(initproc->list_link));
     assert(list_prev(&proc_list) == &(initproc->list_link));

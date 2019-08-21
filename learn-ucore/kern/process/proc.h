@@ -149,12 +149,12 @@ struct proc_struct
     int exit_code;                              // exit code (be sent to parent proc)
     // 记录当前进程是因为什么原因处于等待状态
     uint32_t wait_state;                        // waiting state
-    // cptr-->指向最新创建的子进程
-    // yptr-->指向同一个父进程下比自己后创建的子进程
-    // optr-->指向同一个父进程下比自己先创建的子进程
-    struct proc_struct *cptr;
-    struct proc_struct *yptr;
-    struct proc_struct *optr;     // relations between processes
+    // children_ptr-->指向最新创建的子进程
+    // younger_ptr-->指向同一个父进程下比自己后创建的子进程
+    // older_ptr-->指向同一个父进程下比自己先创建的子进程
+    struct proc_struct *children_ptr;
+    struct proc_struct *younger_ptr;
+    struct proc_struct *older_ptr;     // relations between processes
     // 同一个进程的多个线程 task 都添加到 thread_group 里
     list_entry_t thread_group;    // the threads list including this proc which share resource (mem/file/sem...)
     struct run_queue *rq;                       // running queue contains Process

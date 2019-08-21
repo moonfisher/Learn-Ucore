@@ -134,15 +134,17 @@ void wait_current_set(wait_queue_t *queue, wait_t *wait, uint32_t wait_state)
     wait_queue_add(queue, wait);
 }
 
-void loop_wait_queue(wait_queue_t *queue) {
+void loop_wait_queue(wait_queue_t *queue)
+{
     wait_t* wait = wait_queue_first(queue);
-    while(wait != NULL) {
+    while(wait != NULL)
+    {
         wait = wait_queue_next(queue, wait);
     }
 }
 
-
-int wait_count(wait_queue_t *queue) {
+int wait_count(wait_queue_t *queue)
+{
     list_entry_t *head=& queue->wait_head;
     return list_elem_count(head) ;
 }

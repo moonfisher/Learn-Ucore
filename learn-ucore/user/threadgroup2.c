@@ -1,14 +1,17 @@
 #include "ulib.h"
 #include "stdio.h"
 #include "thread.h"
+#include "string.h"
+
+#define     threadnum       3
 
 int thread_loop(void *arg)
 {
-	int quit = (int)arg;
-    
-    while (quit != 0)
+	char *name = (char *)arg;
+    int ret = strcmp(name, "0");
+    while (ret)
     {
-        ;
+        sleep(100);
     }
 
 	int i = 0;
@@ -23,12 +26,15 @@ int thread_loop(void *arg)
 
 int main(void)
 {
-	thread_t tids[10];
+	thread_t tids[threadnum];
+    char local_name[threadnum][20];
 
-	int i, n = sizeof(tids) / sizeof(tids[0]);
-	for (i = 0; i < n; i++)
+	int i = 0;
+	for (i = 0; i < threadnum; i++)
     {
-		if (thread(thread_loop, (void *)(long)i, tids + i) != 0)
+        memset(local_name[i], 0, 20);
+        snprintf(local_name[i], 20, "%d", i);
+		if (thread(thread_loop, local_name[i], tids + i) != 0)
         {
 			goto failed;
 		}
@@ -38,13 +44,13 @@ int main(void)
 
     while (1)
     {
-        ;
+        sleep(100);
     }
 
 	return 0;
 
 failed:
-	for (i = 0; i < 10; i++)
+	for (i = 0; i < threadnum; i++)
     {
 		if (tids[i].pid > 0)
         {

@@ -7,11 +7,13 @@
 
 char **buffer;
 thread_t *tids;
-const int size = 47, rounds = 103;
+
+#define     size        47
+#define     rounds      103
 
 int work(void *arg)
 {
-	long n = (long)arg;
+    int n = atoi((char *)arg);
 	uint32_t value = hash32(n * n, 8);
 	cprintf("i am %02d, %02d, i got %08x\n", n, getpid(), value);
 	yield();
@@ -40,6 +42,7 @@ int main(void)
 	buffer = (char **)malloc(sizeof(char *) * size);
 
 	int i, j, k, ret;
+    char local_name[size][20];
 	for (i = 0; i < size; i++)
     {
 		assert((buffer[i] = (char *)malloc(sizeof(char) * size * rounds)) != NULL);
@@ -48,13 +51,15 @@ int main(void)
 	// print current page table
 	print_pgdir();
 
-	assert((tids = (thread_t *) malloc(sizeof(thread_t) * size)) != NULL);
+	assert((tids = (thread_t *)malloc(sizeof(thread_t) * size)) != NULL);
 	memset(tids, 0, sizeof(thread_t) * size);
 
 	// create 'size' threads
 	for (i = 0; i < size; i++)
     {
-		if ((ret = thread(work, (void *)(long)i, tids + i)) != 0)
+        memset(local_name[i], 0, 20);
+        snprintf(local_name[i], 20, "%d", i);
+		if ((ret = thread(work, local_name[i], tids + i)) != 0)
         {
 			cprintf("thread %d failed, returns %d\n", i, ret);
 			goto failed;
@@ -105,7 +110,7 @@ int main(void)
 
 	// create a 'loop' thread, kill and wait
 	thread_t loop_tid;
-	assert(thread(loop, NULL, &loop_tid) == 0);
+	assert(thread(loop, "loop", &loop_tid) == 0);
 	cprintf("loop init ok.\n");
 
 	if (thread_kill(&loop_tid) != 0)
