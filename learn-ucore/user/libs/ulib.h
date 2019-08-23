@@ -35,6 +35,7 @@ void yield(void);
 int kill(int pid);
 int getpid(void);
 void print_pgdir(void);
+void print_vfs(void);
 int mmap(uintptr_t *addr_store, size_t len, uint32_t mmap_flags);
 int munmap(uintptr_t addr, size_t len);
 int sleep(unsigned int time);

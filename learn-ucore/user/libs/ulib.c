@@ -75,6 +75,11 @@ void print_pgdir(void)
     sys_pgdir();
 }
 
+void print_vfs(void)
+{
+    sys_pvfs();
+}
+
 int mmap(uintptr_t *addr_store, size_t len, uint32_t mmap_flags)
 {
     return sys_mmap(addr_store, len, mmap_flags);

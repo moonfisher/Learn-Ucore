@@ -20,6 +20,7 @@ int sys_munmap(uintptr_t addr, size_t len);
 int sys_shmem(uintptr_t *addr_store, size_t len, uint32_t mmap_flags);
 int sys_putc(int c);
 int sys_pgdir(void);
+int sys_pvfs(void);
 int sys_sleep(unsigned int time);
 size_t sys_gettime(void);
 

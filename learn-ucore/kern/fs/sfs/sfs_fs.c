@@ -362,6 +362,9 @@ int sfs_do_mount(struct device *dev, struct fs **fs_store)
     list_init(&(sfs->inode_list));
     cprintf("sfs: mount: '%s' (%d/%d/%d)\n", sfs->super.info, blocks - unused_blocks, unused_blocks, blocks);
 
+    memset(fs->fsname, 0, 256);
+    memcpy(fs->fsname, "sfs", strlen("sfs"));
+    
     /* link addr of sync/get_root/unmount/cleanup funciton  fs's function pointers*/
     fs->fs_sync = sfs_sync;
     fs->fs_get_root = sfs_get_root;

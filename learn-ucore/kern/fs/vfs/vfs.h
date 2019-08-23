@@ -59,6 +59,9 @@ struct fs
         fs_type_sfs_info,
     } fs_type;                                      // filesystem type
     
+    // 文件系统名，增加这个字段方便调试
+    char fsname[256];
+    
     // 访问文件系统的通用函数指针
     int (*fs_sync)(struct fs *fs);                  // Flush all dirty buffers to disk
     struct inode *(*fs_get_root)(struct fs *fs);    // Return root inode of filesystem.
@@ -103,7 +106,6 @@ int vfs_get_curdir(struct inode **dir_store);
 int vfs_get_root(const char *devname, struct inode **root_store);
 const char *vfs_get_devname(struct fs *fs);
 
-
 /*
  * VFS layer high-level operations on pathnames
  * Because namei may destroy pathnames, these all may too.
@@ -131,7 +133,6 @@ int vfs_unlink(char *path);
 int vfs_rename(char *old_path, char *new_path);
 int vfs_chdir(char *path);
 int vfs_getcwd(struct iobuf *iob);
-
 
 /*
  * VFS layer mid-level operations.
@@ -200,6 +201,7 @@ int vfs_add_dev(const char *devname, struct inode *devnode, bool mountable);
 int vfs_mount(const char *devname, int (*mountfunc)(struct device *dev, struct fs **fs_store));
 int vfs_unmount(const char *devname);
 int vfs_unmount_all(void);
+void vfs_print(void);
 
 void file_system_type_list_init(void);
 int register_filesystem(const char *name, int (*mount) (const char *devname));

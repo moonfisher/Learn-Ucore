@@ -126,6 +126,12 @@ static int sys_pgdir(uint32_t arg[])
     return 0;
 }
 
+static int sys_pvfs(uint32_t arg[])
+{
+    vfs_print();
+    return 0;
+}
+
 static int sys_gettime(uint32_t arg[])
 {
     return (int)ticks;
@@ -528,6 +534,7 @@ static int (*syscalls[])(uint32_t arg[]) = {
     [SYS_shmem]            = sys_shmem,
     [SYS_putc]             = sys_putc,
     [SYS_pgdir]            = sys_pgdir,
+    [SYS_pvfs]             = sys_pvfs,
     [SYS_gettime]          = sys_gettime,
     [SYS_clone]            = sys_clone,
     [SYS_exit_thread]      = sys_exit_thread,

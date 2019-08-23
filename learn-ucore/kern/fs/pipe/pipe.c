@@ -7,6 +7,7 @@
 #include "pipe.h"
 #include "error.h"
 #include "assert.h"
+#include "string.h"
 
 void lock_pipe(struct pipe_fs *pipe)
 {
@@ -51,6 +52,9 @@ void pipe_fs_init(struct fs *fs)
 	sem_init(&(pipe->pipe_sem), 1);
 	list_init(&(pipe->pipe_list));
 
+    memset(fs->fsname, 0, 256);
+    memcpy(fs->fsname, "pipe", strlen("pipe"));
+    
 	fs->fs_sync = pipe_sync;
 	fs->fs_get_root = pipe_get_root;
 	fs->fs_unmount = pipe_unmount;
@@ -66,6 +70,7 @@ void pipe_init(void)
 	}
 	pipe_fs_init(fs);
 
+    // 这里 pipe 是一个特殊的文件系统，但也当做一个 dev 设备添加到 vfs 里了
 	int ret;
 	if ((ret = vfs_add_fs("pipe", fs)) != 0)
     {

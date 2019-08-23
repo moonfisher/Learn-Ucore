@@ -95,6 +95,7 @@ int vfs_get_root(const char *devname, struct inode **node_store)
                 if (strcmp(devname, vdev->devname) == 0)
                 {
                     struct inode *found = NULL;
+                    // fs 存在，说明当前设备上挂载了文件系统
                     if (vdev->fs != NULL)
                     {
                         if (vdev->fs->fs_type == fs_type_pipe_info)
@@ -106,11 +107,13 @@ int vfs_get_root(const char *devname, struct inode **node_store)
                             found = sfs_get_root(vdev->fs);
                         }
                     }
+                    // fs 不存在，说明当前设备上没有文件系统，可能是输入，输出，网卡等设备
                     else if (!vdev->mountable)
                     {
                         inode_ref_inc(vdev->devnode);
                         found = vdev->devnode;
                     }
+                    
                     if (found != NULL)
                     {
                         ret = 0;
@@ -379,3 +382,37 @@ int vfs_unmount_all(void)
     return 0;
 }
 
+void vfs_print(void)
+{
+    if (!list_empty(&vdev_list))
+    {
+        cprintf("\n-------------------- vfs_print BEGIN --------------------\n");
+        lock_vdev_list();
+        {
+            list_entry_t *list = &vdev_list, *le = list;
+            while ((le = list_next(le)) != list)
+            {
+                vfs_dev_t *vdev = le2vdev(le, vdev_link);
+                if (vdev)
+                {
+                    char *nodename = "";
+                    if (vdev->devnode)
+                    {
+                        nodename = vdev->devnode->nodename;
+                    }
+                    
+                    char *fsname = "";
+                    if (vdev->fs)
+                    {
+                        fsname = vdev->fs->fsname;
+                    }
+                    
+                    cprintf("name = %s, mountable = %d, nodename = %s, fsname = %s\n", vdev->devname, vdev->mountable, nodename, fsname);
+                }
+            }
+        }
+        unlock_vdev_list();
+        cprintf("-------------------- vfs_print END --------------------\n");
+    }
+    return;
+}

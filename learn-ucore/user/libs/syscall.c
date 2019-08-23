@@ -105,6 +105,11 @@ int sys_pgdir(void)
     return syscall(SYS_pgdir);
 }
 
+int sys_pvfs(void)
+{
+    return syscall(SYS_pvfs);
+}
+
 void sys_set_priority(uint32_t priority)
 {
     syscall(SYS_set_priority, priority);
