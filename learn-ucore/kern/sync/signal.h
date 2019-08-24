@@ -121,7 +121,7 @@ int do_sigaction(int sign, const struct sigaction *act, struct sigaction *old);
 int do_sigpending(sigset_t *set);
 int do_sigprocmask(int how, const sigset_t *set, sigset_t *old);
 int do_sigsuspend(sigset_t *pmask);
-int do_sigreturn(void);
+int do_sigreturn(uint32_t sp);
 int do_sigaltstack(const stack_t *ss, stack_t *old);
 
 int do_sigtkill(int pid, int sign);

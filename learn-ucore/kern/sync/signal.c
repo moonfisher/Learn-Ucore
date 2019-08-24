@@ -28,11 +28,16 @@ int __sig_setup_frame(int sign, struct sigaction *act, sigset_t oldset, struct t
     
     memset(kframe, 0, sizeof(struct sigframe));
     
+    // 下面要通过修改 tf 来实现返回到不同的用户函数地址，这里先保存原有的 tf
+    // 处理完 signal 之后，还是需要回到之前的 tf
+    // 用户层的 signal handle 处理完返回之后，会继续走到 pretcode 指向的代码里
+    // sa_restorer 会重新进入内核，并返回到进程中断前的地址
     kframe->pretcode = (uintptr_t)(act->sa_restorer);
     kframe->sign = sign;
     kframe->tf = *tf;
     kframe->old_blocked = oldset;
 
+    // 在当前进程用户堆栈里，压入一个 sigframe 桢结构，保存原有的 tf 内容
     /* 4byte align */
     struct sigframe *frame = (struct sigframe *)((stack - sizeof(struct sigframe)) & 0xfffffff8);
     lock_mm(mm);
@@ -47,7 +52,9 @@ int __sig_setup_frame(int sign, struct sigaction *act, sigset_t oldset, struct t
     unlock_mm(mm);
     kfree(kframe);
 
+    // 修改 tf 中断桢，让进程能回到 signal 处理的函数上，不是回到中断前的代码
     tf->tf_eip = (uintptr_t)(act->sa_handler);
+    // 因为在用户层堆栈里压入了 sigframe，所以用户堆栈栈底改为 frame
     tf->tf_esp = (uintptr_t)frame;
 
     print_trapframe(tf);
@@ -512,6 +519,8 @@ out:
 int handle_signal(int sign, struct sigaction *act, sigset_t oldset, struct trapframe *tf)
 {
     cprintf("handle_signal(): sign = %d, pid = %d, name = %s.\n", sign, current->pid, current->name);
+    // 这里是内核态，如果正常返回，就回到进程进入内核态之前的代码上
+    // 这里需要修改 tf 中断桢，让进程能回到 signal 处理的函数上，不是回到中断前的代码
 	int ret = __sig_setup_frame(sign, act, oldset, tf);
 	if (ret != 0)
     {
@@ -660,7 +669,7 @@ int do_sigkill(int pid, int sign)
 }
 
 // do syscall sigreturn, reset the user stack and eip
-int do_sigreturn()
+int do_sigreturn(uint32_t sp)
 {
     struct mm_struct *mm = current->mm;
     if (!current)
@@ -674,7 +683,12 @@ int do_sigreturn()
     if (!kframe)
         return -E_NO_MEM;
     
-    struct sigframe *frame = (struct sigframe *)(current->tf->tf_esp);
+    uint32_t esp = sp;
+    if (sp == 0)
+    {
+        esp = current->tf->tf_esp;
+    }
+    struct sigframe *frame = (struct sigframe *)esp;
     lock_mm(mm);
     {
         if (!copy_from_user(mm, kframe, frame, sizeof(struct sigframe), 0))

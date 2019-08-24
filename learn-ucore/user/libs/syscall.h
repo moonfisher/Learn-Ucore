@@ -51,7 +51,7 @@ int sys_sigaction(int sign, struct sigaction *act, struct sigaction *old);
 int sys_sigtkill(int pid, int sign);
 int sys_sigprocmask(int how, const sigset_t *set, sigset_t *old);
 int sys_sigsuspend(uint32_t mask);
-int sys_sigreturn(uint32_t mask);
+int sys_sigreturn(uintptr_t sp);
 
 int sys_send_event(int pid, int event_type, int event);
 int sys_recv_event(int *pid_store, int event_type, int *event_store, unsigned int timeout);

@@ -335,7 +335,8 @@ static int sys_sigsuspend(uint32_t arg[])
 //this never used by user program
 static int sys_sigreturn(uint32_t arg[])
 {
-    return do_sigreturn();
+    uint32_t sp = (uint32_t)arg[0];
+    return do_sigreturn(sp);
 }
 
 static int sys_event_send(uint32_t arg[])
