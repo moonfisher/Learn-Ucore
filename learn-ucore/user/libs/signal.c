@@ -6,7 +6,8 @@
 
 // 用户层在 signal handle 处理完之后，会来到这里
 // 这里需要找到进入 hanlde 之前的堆栈地址，那里记录了处理 signal 之前的旧的 tf 中断桢结构
-// 通过旧的 tf 中断桢，用户进程可以返回到最开始进入内核态时的地址，这样 signal 是异步处理的
+// 通过旧的 tf 中断桢，重新进入内核态，再次返回时，用户进程可以返回到最开始进入内核态时的地址，
+// 这样 signal 是异步处理的，用户代码上没有连续性，也感觉不到 signal 的调用时机
 void sig_restorer(int sign)
 {
     uint32_t oldesp = read_ebp();

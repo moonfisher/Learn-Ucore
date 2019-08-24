@@ -32,10 +32,11 @@ struct sigqueue
 
 struct sigframe
 {
-    uintptr_t pretcode;
+    uint64_t pretcode;
     int sign;
     struct trapframe tf;
     sigset_t old_blocked;
+    uint32_t retcode[2];
 };
 
 #define le2sigqueue(le)	    to_struct((le), struct sigqueue, list)
