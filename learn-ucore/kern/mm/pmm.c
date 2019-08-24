@@ -1373,6 +1373,4 @@ void print_pgdir(void)
         }
     }
     cprintf("--------------------- print_pgdir END ---------------------\n");
-    if (current)
-        dump_vma(current->mm);
 }

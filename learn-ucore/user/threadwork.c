@@ -50,7 +50,8 @@ int main(void)
 
 	// print current page table
 	print_pgdir();
-
+    print_vm();
+    
 	assert((tids = (thread_t *)malloc(sizeof(thread_t) * size)) != NULL);
 	memset(tids, 0, sizeof(thread_t) * size);
 
@@ -76,7 +77,8 @@ int main(void)
 
 	// print current page table
 	print_pgdir();
-
+    print_vm();
+    
 	// wait and check exit codes
 	for (i = 0; i < size; i++)
     {
@@ -95,7 +97,8 @@ int main(void)
 	cprintf("thread wait ok.\n");
 
 	print_pgdir();
-
+    print_vm();
+    
 	for (k = 0; k < size; k++)
     {
 		int value = hash32(k * k, 8);

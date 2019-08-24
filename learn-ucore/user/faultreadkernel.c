@@ -45,6 +45,7 @@ int main(void)
      直接 kill 进程，
     */
     print_pgdir();
+    print_vm();
     
     // 可以访问
     cprintf("I read %08x from 0x00200000!\n", *(unsigned *)0x00200000);

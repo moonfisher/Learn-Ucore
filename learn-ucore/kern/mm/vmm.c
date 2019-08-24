@@ -262,6 +262,14 @@ void dump_vma(struct mm_struct *mm)
     }
 }
 
+void print_vma(void)
+{
+    if (current && current->mm)
+    {
+        dump_vma(current->mm);
+    }
+}
+
 // mm_destroy - free mm and mm internal fields
 void mm_destroy(struct mm_struct *mm)
 {

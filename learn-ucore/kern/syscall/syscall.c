@@ -16,6 +16,7 @@
 #include "tcpip/h/network.h"
 #include "event.h"
 #include "vfs.h"
+#include "vmm.h"
 
 extern void netstatus();
 
@@ -123,6 +124,12 @@ static int sys_putc(uint32_t arg[])
 static int sys_pgdir(uint32_t arg[])
 {
     print_pgdir();
+    return 0;
+}
+
+static int sys_pvm(uint32_t arg[])
+{
+    print_vma();
     return 0;
 }
 
@@ -535,6 +542,7 @@ static int (*syscalls[])(uint32_t arg[]) = {
     [SYS_putc]             = sys_putc,
     [SYS_pgdir]            = sys_pgdir,
     [SYS_pvfs]             = sys_pvfs,
+    [SYS_pvm]              = sys_pvm,
     [SYS_gettime]          = sys_gettime,
     [SYS_clone]            = sys_clone,
     [SYS_exit_thread]      = sys_exit_thread,

@@ -20,8 +20,10 @@ int thread(int (*fn)(void *), void *arg, thread_t *tidp)
 		return ret;
 	}
 	assert(stack != 0);
+    
     print_pgdir();
-
+    print_vm();
+    
 	if ((ret = clone(CLONE_VM | CLONE_THREAD | CLONE_FS, stack + THREAD_STACKSIZE, fn, arg)) < 0)
     {
 		munmap(stack, THREAD_STACKSIZE);

@@ -75,6 +75,11 @@ void print_pgdir(void)
     sys_pgdir();
 }
 
+void print_vm(void)
+{
+    sys_pvm();
+}
+
 void print_vfs(void)
 {
     sys_pvfs();

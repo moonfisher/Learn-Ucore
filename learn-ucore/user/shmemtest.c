@@ -28,6 +28,7 @@ int main(void)
     if ((pid = fork("child")) == 0)
     {
         print_pgdir();
+        print_vm();
         
     	cprintf("child pid = %x, a = 0x%x.\n", getpid(), a);
         a = 0x99;

@@ -22,6 +22,7 @@
 #define SYS_putc            30
 #define SYS_pgdir           31
 #define SYS_pvfs            32
+#define SYS_pvm             33
 
 #define SYS_event_send      48
 #define SYS_event_recv      49

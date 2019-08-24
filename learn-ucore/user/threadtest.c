@@ -7,6 +7,7 @@ int test(void *arg)
     char *name = (char *)arg;
 	cprintf("test %s ok.\n", name);
     print_pgdir();
+    print_vm();
 	return 0xbee;
 }
 

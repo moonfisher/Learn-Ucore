@@ -105,6 +105,11 @@ int sys_pgdir(void)
     return syscall(SYS_pgdir);
 }
 
+int sys_pvm(void)
+{
+    return syscall(SYS_pvm);
+}
+
 int sys_pvfs(void)
 {
     return syscall(SYS_pvfs);
