@@ -34,7 +34,7 @@ int __sig_setup_frame(int sign, struct sigaction *act, sigset_t oldset, struct t
     // sa_restorer 会重新进入内核，并返回到进程中断前的地址
     // 这种方法虽然可以完成 signal 一个来回，但是 sa_restorer 是借助用户层再次进入内核
     // 来完成的，假如用户层代码写错了，则 signal 无法正常运行
-    kframe->pretcode = (uint64_t)(act->sa_restorer);
+    kframe->pretcode = (uint32_t)(act->sa_restorer);
     kframe->sign = sign;
     kframe->tf = *tf;
     kframe->old_blocked = oldset;
@@ -42,8 +42,8 @@ int __sig_setup_frame(int sign, struct sigaction *act, sigset_t oldset, struct t
     // 内核也可以不借助 sa_restorer，在进程用户态执行完 signal handle 之后，马上调用软中断
     // 重新回到内核态执行 do_sigreturn 流程，但这里需要很巧妙的去构造堆栈桢结构，保证 handle
     // 返回之后，接下来就能执行 do_sigreturn 的系统调用
-    /* popl %eax ; movl $,%eax */
-    kframe->retcode[0] = 0x0000b893;
+    /* popl %eax ; movl 0x93, %eax  # SYS_sigreturn = 0x93 */
+    kframe->retcode[0] = 0x0093b858;
     /* int $0x80 */
     kframe->retcode[1] = 0x80cd0000;
     
@@ -62,7 +62,9 @@ int __sig_setup_frame(int sign, struct sigaction *act, sigset_t oldset, struct t
     unlock_mm(mm);
     kfree(kframe);
 
-    frame->pretcode = (uint64_t)(frame->retcode);
+    cprintf("__sig_setup_frame, frame = 0x%x\n", frame);
+    
+    frame->pretcode = (uint32_t)(frame->retcode);
     // 修改 tf 中断桢，让进程能回到 signal 处理的函数上，不是回到中断前的代码
     tf->tf_eip = (uintptr_t)(act->sa_handler);
     // 因为在用户层堆栈里压入了 sigframe，所以用户堆栈栈底改为 frame
@@ -695,9 +697,9 @@ int do_sigreturn(uint32_t sp)
         return -E_NO_MEM;
     
     uint32_t esp = sp;
-    if (sp == 0)
+//    if (sp == 0)
     {
-        esp = current->tf->tf_esp;
+        esp = current->tf->tf_esp - 2 * sizeof(uint32_t);
     }
     struct sigframe *frame = (struct sigframe *)esp;
     lock_mm(mm);

@@ -32,7 +32,7 @@ struct sigqueue
 
 struct sigframe
 {
-    uint64_t pretcode;
+    uint32_t pretcode;
     int sign;
     struct trapframe tf;
     sigset_t old_blocked;
