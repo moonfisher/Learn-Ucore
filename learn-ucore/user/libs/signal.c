@@ -11,7 +11,7 @@
 void sig_restorer(int sign)
 {
     uint32_t oldesp = read_ebp();
-    cprintf("signal restorer by %d\n", sys_getpid());
+    cprintf("signal restorer by %d, esp = 0x%x\n", sys_getpid(), oldesp);
     sys_sigreturn(oldesp);
 }
 

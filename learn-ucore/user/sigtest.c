@@ -17,6 +17,9 @@ int child()
     signal(SIGUSR1, handler);
     signal(SIGUSR2, handler);
 
+    struct sigaction act = { handler, NULL, 1 << (SIGALRM - 1), 0, NULL };
+    sigaction(SIGALRM, &act);
+    
 	sigset_t set = 1ull << (SIGUSR1 - 1);
 	cprintf("%d block SIGUSER1\n", pid);
 	sigprocmask(SIG_BLOCK, &set, NULL);
@@ -61,7 +64,7 @@ int main()
 		cprintf("SIGUSR1 end\n");
 	}
     
-	sleep(200);
+	sleep(100);
 	for (i = 0; i < child_num; ++i)
     {
 		sleep(20);
@@ -69,6 +72,15 @@ int main()
 		tkill(children[i], SIGUSR2);
 		cprintf("SIGUSR2 end\n");
 	}
+    
+    sleep(100);
+    for (i = 0; i < child_num; ++i)
+    {
+        sleep(20);
+        cprintf("send SIGUSR2 to %d\n", children[i]);
+        tkill(children[i], SIGALRM);
+        cprintf("SIGUSR2 end\n");
+    }
     
 	sleep(400);
 	for (i = 0; i < child_num; ++i)

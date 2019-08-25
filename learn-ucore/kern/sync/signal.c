@@ -30,11 +30,6 @@ int __sig_setup_frame(int sign, struct sigaction *act, sigset_t oldset, struct t
     
     // 下面要通过修改 tf 来实现返回到不同的用户函数地址，这里先保存原有的 tf
     // 处理完 signal 之后，还是需要回到之前的 tf
-    // 用户层的 signal handle 处理完返回之后，会继续走到 pretcode 指向的代码里
-    // sa_restorer 会重新进入内核，并返回到进程中断前的地址
-    // 这种方法虽然可以完成 signal 一个来回，但是 sa_restorer 是借助用户层再次进入内核
-    // 来完成的，假如用户层代码写错了，则 signal 无法正常运行
-    kframe->pretcode = (uint32_t)(act->sa_restorer);
     kframe->sign = sign;
     kframe->tf = *tf;
     kframe->old_blocked = oldset;
@@ -43,9 +38,18 @@ int __sig_setup_frame(int sign, struct sigaction *act, sigset_t oldset, struct t
     // 重新回到内核态执行 do_sigreturn 流程，但这里需要很巧妙的去构造堆栈桢结构，保证 handle
     // 返回之后，接下来就能执行 do_sigreturn 的系统调用
     /* popl %eax ; movl 0x93, %eax  # SYS_sigreturn = 0x93 */
-    kframe->retcode[0] = 0x0093b858;
+    kframe->retcode[0] = 0x0093b890;
     /* int $0x80 */
     kframe->retcode[1] = 0x80cd0000;
+    
+    // 用户层的 signal handle 处理完返回之后，会继续走到 pretcode 指向的代码里
+    // sa_restorer 会重新进入内核，并返回到进程中断前的地址
+    // 这种方法虽然可以完成 signal 一个来回，但是 sa_restorer 是借助用户层再次进入内核
+    // 来完成的，假如用户层代码写错了，则 signal 无法正常运行
+    if (act->sa_restorer)
+    {
+        kframe->pretcode = (uint32_t)(act->sa_restorer);
+    }
     
     // 在当前进程用户堆栈里，压入一个 sigframe 桢结构，保存原有的 tf 内容
     /* 4byte align */
@@ -63,8 +67,12 @@ int __sig_setup_frame(int sign, struct sigaction *act, sigset_t oldset, struct t
     kfree(kframe);
 
     cprintf("__sig_setup_frame, frame = 0x%x\n", frame);
+
+    if (act->sa_restorer == NULL)
+    {
+        frame->pretcode = (uint32_t)(frame->retcode);
+    }
     
-    frame->pretcode = (uint32_t)(frame->retcode);
     // 修改 tf 中断桢，让进程能回到 signal 处理的函数上，不是回到中断前的代码
     tf->tf_eip = (uintptr_t)(act->sa_handler);
     // 因为在用户层堆栈里压入了 sigframe，所以用户堆栈栈底改为 frame
@@ -696,10 +704,10 @@ int do_sigreturn(uint32_t sp)
     if (!kframe)
         return -E_NO_MEM;
     
-    uint32_t esp = sp;
-//    if (sp == 0)
+    uint32_t esp = current->tf->tf_esp - sizeof(uint32_t);
+    if (USERTOP - USTACKSIZE <= sp && sp <= USERTOP)
     {
-        esp = current->tf->tf_esp - 2 * sizeof(uint32_t);
+        esp = sp;
     }
     struct sigframe *frame = (struct sigframe *)esp;
     lock_mm(mm);
