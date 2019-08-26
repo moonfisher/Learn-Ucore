@@ -24,6 +24,28 @@
 #define TICK_NUM            5000
 #define T_TASKGATE          0x90
 
+void do_debug(struct trapframe *tf)
+{
+    if (current->flags & PF_PTRACED)
+//        current->blocked &= ~(1 << (SIGTRAP - 1));
+
+    raise_signal(current, SIGTRAP, 1);
+//    current->tss.trap_no = 1;
+//    current->tss.error_code = error_code;
+    if ((tf->tf_cs & 3) == 0)
+    {
+#if ASM_NO_64
+        /* If this is a kernel mode trap, then reset db7 and allow us to continue */
+        __asm__("movl $0,%%edx\n\t"
+                "movl %%edx,%%db7\n\t"
+                : /* no output */
+                : /* no input */
+                : "dx");
+#endif
+        return;
+    };
+}
+
 static void print_ticks()
 {
     cprintf("%d ticks\n", TICK_NUM);
@@ -376,6 +398,13 @@ static void trap_dispatch(struct trapframe *tf)
 
     switch (tf->tf_trapno)
     {
+        case T_DEBUG:
+            do_debug(tf);
+            break;
+            
+        case T_BRKPT:
+            break;
+            
         case T_PGFLT:  //page fault
             if ((ret = pgfault_handler(tf)) != 0)
             {

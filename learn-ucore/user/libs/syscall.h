@@ -24,6 +24,7 @@ int sys_pvm(void);
 int sys_pvfs(void);
 int sys_sleep(unsigned int time);
 size_t sys_gettime(void);
+int sys_ptrace(int request, int pid, int addr, int data);
 
 int sys_open(const char *path, uint32_t open_flags, uint32_t arg2);
 int sys_close(int fd);

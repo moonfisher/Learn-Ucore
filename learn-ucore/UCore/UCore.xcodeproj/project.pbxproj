@@ -78,6 +78,7 @@
 		C473B37F230D51F9002F6AA9 /* mount.c in Sources */ = {isa = PBXBuildFile; fileRef = C473B37D230D51F8002F6AA9 /* mount.c */; };
 		C473B382230D5649002F6AA9 /* mount.c in Sources */ = {isa = PBXBuildFile; fileRef = C473B380230D5648002F6AA9 /* mount.c */; };
 		C473B383230D5649002F6AA9 /* umount.c in Sources */ = {isa = PBXBuildFile; fileRef = C473B381230D5649002F6AA9 /* umount.c */; };
+		C473D7D723139C1A002F6AA9 /* ptrace.c in Sources */ = {isa = PBXBuildFile; fileRef = C473D7D523139C19002F6AA9 /* ptrace.c */; };
 		C480E29622A0D9170093D61D /* netcheck.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E19122A0D9170093D61D /* netcheck.c */; };
 		C480E29722A0D9170093D61D /* e1000_output_proc.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E19222A0D9170093D61D /* e1000_output_proc.c */; };
 		C480E29822A0D9170093D61D /* e1000.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E19422A0D9170093D61D /* e1000.c */; };
@@ -432,6 +433,8 @@
 		C473B37E230D51F9002F6AA9 /* mount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mount.h; sourceTree = "<group>"; };
 		C473B380230D5648002F6AA9 /* mount.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mount.c; sourceTree = "<group>"; };
 		C473B381230D5649002F6AA9 /* umount.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = umount.c; sourceTree = "<group>"; };
+		C473D7D523139C19002F6AA9 /* ptrace.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ptrace.c; sourceTree = "<group>"; };
+		C473D7D623139C1A002F6AA9 /* ptrace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ptrace.h; sourceTree = "<group>"; };
 		C480E19122A0D9170093D61D /* netcheck.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = netcheck.c; sourceTree = "<group>"; };
 		C480E19222A0D9170093D61D /* e1000_output_proc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = e1000_output_proc.c; sourceTree = "<group>"; };
 		C480E19422A0D9170093D61D /* e1000.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = e1000.c; sourceTree = "<group>"; };
@@ -1640,6 +1643,8 @@
 		C4CB321E2248F5830014426C /* debug */ = {
 			isa = PBXGroup;
 			children = (
+				C473D7D623139C1A002F6AA9 /* ptrace.h */,
+				C473D7D523139C19002F6AA9 /* ptrace.c */,
 				C4CB32252248F5830014426C /* assert.h */,
 				C4CB32222248F5830014426C /* stab.h */,
 				C4CB321F2248F5830014426C /* kmonitor.h */,
@@ -2149,6 +2154,7 @@
 				C480E36322A0D9180093D61D /* socket.c in Sources */,
 				C480E2BC22A0D9170093D61D /* tcpclose.c in Sources */,
 				C480E31322A0D9170093D61D /* tcpout.c in Sources */,
+				C473D7D723139C1A002F6AA9 /* ptrace.c in Sources */,
 				C480E35A22A0D9180093D61D /* ipredirect.c in Sources */,
 				C4CB32C12248F5830014426C /* rand.c in Sources */,
 				C480E2C222A0D9170093D61D /* rarpsend.c in Sources */,

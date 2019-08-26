@@ -110,6 +110,11 @@ unsigned int gettime_msec(void)
     return (unsigned int)sys_gettime();
 }
 
+int ptrace(int request, int pid, int addr, int data)
+{
+    return sys_ptrace(request, pid, addr, data);
+}
+
 int send_event(int pid, int event_type, int event)
 {
     return sys_send_event(pid, event_type, event);

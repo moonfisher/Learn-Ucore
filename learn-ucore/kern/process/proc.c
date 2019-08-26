@@ -102,7 +102,7 @@ static int nr_process = 0;
     void switch_to(struct context *from, struct context *to) {}
 #endif
 
-static void proc_signal_init(struct proc_signal *ps)
+void proc_signal_init(struct proc_signal *ps)
 {
     sigset_initwith(ps->pending.signal, 0);
     ps->signal = NULL;
@@ -133,7 +133,7 @@ static struct proc_struct *alloc_proc(void)
         memset(&(proc->context), 0, sizeof(struct context));
         proc->tf = NULL;
         proc->cr3 = boot_cr3;   // 页目录要用物理地址 0x156000
-        proc->flags = 0;
+        proc->flags &= ~(PF_PTRACED | PF_TRACESYS);
         memset(proc->name, 0, PROC_NAME_LEN);
         proc->wait_state = 0;
         proc->children_ptr = proc->older_ptr = proc->younger_ptr = NULL;
@@ -178,7 +178,7 @@ bool set_pid_name(int32_t pid, const char *name)
 }
 
 // set_links - set the relation links of process
-static void set_links(struct proc_struct *proc)
+void set_links(struct proc_struct *proc)
 {
     list_add(&proc_list, &(proc->list_link));
     proc->younger_ptr = NULL;
@@ -192,7 +192,7 @@ static void set_links(struct proc_struct *proc)
 }
 
 // remove_links - clean the relation links of process
-static void remove_links(struct proc_struct *proc)
+void remove_links(struct proc_struct *proc)
 {
     list_del(&(proc->list_link));
     if (proc->older_ptr != NULL)
@@ -306,7 +306,7 @@ void proc_run(struct proc_struct *proc)
  中断桢的内容，根据需要（如内核态切换到用户态），来修改各个寄存器的值(包括段寄存器 cs，堆栈寄存器 ss)
  无论是切换到用户进程，还是内核进程，流程是一样的，都是 task，只是各个进程自己的 trapframe 结构不同
 */
-static void forkret(void)
+void forkret(void)
 {
     cprintf("forkret: pid = %d, name = \"%s\", kstack = %x, kstacktop = %x.\n", current->pid, current->name, current->kstack, current->kstack + KSTACKSIZE);
     print_trapframe(current->tf);
@@ -314,13 +314,13 @@ static void forkret(void)
 }
 
 // hash_proc - add proc into proc hash_list
-static void hash_proc(struct proc_struct *proc)
+void hash_proc(struct proc_struct *proc)
 {
     list_add(hash_list + pid_hashfn(proc->pid), &(proc->hash_link));
 }
 
 // unhash_proc - delete proc from proc hash_list
-static void unhash_proc(struct proc_struct *proc)
+void unhash_proc(struct proc_struct *proc)
 {
     list_del(&(proc->hash_link));
 }
@@ -383,7 +383,7 @@ static int setup_kstack(struct proc_struct *proc)
 }
 
 // put_kstack - free the memory space of process kernel stack
-static void put_kstack(struct proc_struct *proc)
+void put_kstack(struct proc_struct *proc)
 {
     free_pages(kva2page((void *)(proc->kstack)), KSTACKPAGE);
 }
@@ -411,7 +411,7 @@ static int setup_pgdir(struct mm_struct *mm)
 }
 
 // put_pgdir - free the memory space of PDT
-static void put_pgdir(struct mm_struct *mm)
+void put_pgdir(struct mm_struct *mm)
 {
     free_page(kva2page(mm->pgdir));
 }
@@ -495,7 +495,7 @@ bad_mm:
  *                              |              kstack             |
  * proc->kstack --------------> +---------------------------------+
 */
-static void copy_thread(struct proc_struct *proc, uintptr_t esp, struct trapframe *tf)
+void copy_thread(struct proc_struct *proc, uintptr_t esp, struct trapframe *tf)
 {
     // 在内核堆栈的栈底设置中断帧大小的一块栈空间，用于存放中断桢的数据
     proc->tf = (struct trapframe *)(proc->kstack + KSTACKSIZE) - 1;
@@ -515,7 +515,7 @@ static void copy_thread(struct proc_struct *proc, uintptr_t esp, struct trapfram
 }
 
 // de_thread - delete this thread "proc" from thread_group list
-static void de_thread(struct proc_struct *proc)
+void de_thread(struct proc_struct *proc)
 {
     if (!list_empty(&(proc->thread_group)))
     {
@@ -568,7 +568,7 @@ bad_files_struct:
     return ret;
 }
 
-static void put_fs(struct proc_struct *proc)
+void put_fs(struct proc_struct *proc)
 {
     struct files_struct *filesp = proc->filesp;
     if (filesp != NULL)
@@ -609,7 +609,7 @@ bad_sighand:
     return ret;
 }
 
-static void put_sighand(struct proc_struct *proc)
+void put_sighand(struct proc_struct *proc)
 {
     struct sighand_struct *sh = proc->signal_info.sighand;
     if (sh != NULL)
@@ -651,7 +651,7 @@ bad_signal:
     return ret;
 }
 
-static void put_signal(struct proc_struct *proc)
+void put_signal(struct proc_struct *proc)
 {
     struct signal_struct *sig = proc->signal_info.signal;
     if (sig != NULL)
@@ -1226,7 +1226,7 @@ bad_mm:
 }
 
 // this function isn't very correct
-static void put_kargv(int argc, char **kargv)
+void put_kargv(int argc, char **kargv)
 {
     while (argc > 0)
     {

@@ -38,6 +38,7 @@ static const char * const error_string[MAXERROR + 1] = {
     [E_MAX_OPEN]            = "too many files are open",
     [E_EXISTS]              = "file or directory already exists",
     [E_NOTEMPTY]            = "directory is not empty",
+    [E_PERM]                = "operation not permitted",
 };
 
 /* *

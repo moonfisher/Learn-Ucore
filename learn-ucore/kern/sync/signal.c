@@ -602,6 +602,19 @@ int do_signal(struct trapframe *tf, sigset_t *old)
     {
 		cprintf("do_signal(): sign = %d, pid = %d, name = %s.\n", sign, current->pid, current->name);
 		struct sigaction *act = &(get_si(current)->sighand->action[sign - 1]);
+        if ((current->flags & PF_PTRACED) && sign != SIGKILL)
+        {
+            current->exit_code = sign;
+            current->state = PROC_STOPPED;
+            wakeup_proc(current->p_pptr);
+            schedule();
+            if (!(sign = current->exit_code))
+                continue;
+            current->exit_code = 0;
+            if (sign == SIGSTOP)
+                continue;
+        }
+        
 		if (sign == SIGKILL)
         {
 			do_exit(-E_KILLED);

@@ -17,6 +17,8 @@ enum proc_state
     PROC_RUNNABLE,    // runnable(maybe running)
     PROC_ZOMBIE,      // almost dead, and wait parent proc to reclaim his resource
     PROC_WAIT_EVENT,  // 调用 ipc_recv event，才会进入这个状态
+    PROC_STOPPED,   
+    PROC_SWAPPING
 };
 
 // Saved registers for kernel context switches.
@@ -155,6 +157,7 @@ struct proc_struct
     struct proc_struct *children_ptr;
     struct proc_struct *younger_ptr;
     struct proc_struct *older_ptr;     // relations between processes
+    struct proc_struct *p_pptr;
     // 同一个进程的多个线程 task 都添加到 thread_group 里
     list_entry_t thread_group;    // the threads list including this proc which share resource (mem/file/sem...)
     struct run_queue *rq;                       // running queue contains Process
@@ -172,9 +175,12 @@ struct proc_struct
     // 进程访问文件系统的接口
     struct files_struct *filesp;                // the file related info(pwd, files_count, files_array, fs_semaphore) of process
     struct proc_signal signal_info;
+    unsigned long signal;
 };
 
 #define PF_EXITING                  0x00000001      // getting shutdown
+#define PF_PTRACED                  0x00000010      /* set if ptrace (0) has been called. */
+#define PF_TRACESYS                 0x00000020      /* tracing system calls */
 
 #define WT_INTERRUPTED               0x80000000                    // the wait state could be interrupted
 #define WT_CHILD                    (0x00000001 | WT_INTERRUPTED)  // wait child process
@@ -211,6 +217,9 @@ char *get_proc_name(struct proc_struct *proc);
 bool set_pid_name(int32_t pid, const char *name);
 void cpu_idle(void) __attribute__((noreturn));
 
+void set_links(struct proc_struct *proc);
+void remove_links(struct proc_struct *proc);
+
 struct proc_struct *find_proc(int pid);
 struct proc_struct *next_thread(struct proc_struct *proc);
 
@@ -228,5 +237,6 @@ void set_priority(uint32_t priority);
 int do_brk(uintptr_t *brk_store);
 int do_sleep(unsigned int time);
 int do_shmem(uintptr_t *addr_store, size_t len, uint32_t mmap_flags);
+
 #endif /* !__KERN_PROCESS_PROC_H__ */
 

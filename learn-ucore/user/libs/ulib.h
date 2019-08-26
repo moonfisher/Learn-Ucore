@@ -41,6 +41,7 @@ int mmap(uintptr_t *addr_store, size_t len, uint32_t mmap_flags);
 int munmap(uintptr_t addr, size_t len);
 int sleep(unsigned int time);
 unsigned int gettime_msec(void);
+int ptrace(int request, int pid, int addr, int data);
 
 // network
 int receive_packet(uint8_t *buf, size_t len);

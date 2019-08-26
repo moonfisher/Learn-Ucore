@@ -17,8 +17,18 @@
 #include "event.h"
 #include "vfs.h"
 #include "vmm.h"
+#include "ptrace.h"
 
 extern void netstatus();
+
+static int sys_ptrace(uint32_t arg[])
+{
+    int request = (int)arg[0];
+    int pid = (int)arg[1];
+    int addr = (int)arg[2];
+    int data = (int)arg[3];
+    return do_ptrace(request, pid, addr, data);
+}
 
 static int sys_exit(uint32_t arg[])
 {
@@ -547,6 +557,7 @@ static int (*syscalls[])(uint32_t arg[]) = {
     [SYS_gettime]          = sys_gettime,
     [SYS_clone]            = sys_clone,
     [SYS_exit_thread]      = sys_exit_thread,
+    [SYS_ptrace]           = sys_ptrace,
 
     [SYS_event_send]       = sys_event_send,
     [SYS_event_recv]       = sys_event_recv,

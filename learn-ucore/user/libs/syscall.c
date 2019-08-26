@@ -130,6 +130,11 @@ size_t sys_gettime(void)
     return syscall(SYS_gettime);
 }
 
+int sys_ptrace(int request, int pid, int addr, int data)
+{
+    return syscall(SYS_ptrace, request, pid, addr, data);
+}
+
 int sys_brk(uintptr_t * brk_store)
 {
     return syscall(SYS_brk, brk_store);

@@ -35,8 +35,13 @@
 
 // IPC error 
 #define E_IPC_NOT_RECV      29
+
+#define E_PERM              30  // Operation not permitted
+#define E_SRCH              31  // No such process 
+#define E_IO                32  // I/O error
+
 /* the maximum allowed */
-#define MAXERROR            29
+#define MAXERROR            33
 
 #endif /* !__LIBS_ERROR_H__ */
 
