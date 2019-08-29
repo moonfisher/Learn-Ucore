@@ -1220,7 +1220,7 @@ int sfs_namefile(struct inode *node, struct iobuf *iob)
         resid -= alen;
         ptr -= alen;
         memcpy(ptr, entry->name, alen - 1);
-        ptr[alen - 1] = '/';
+//        ptr[alen - 1] = '/';
     }
     inode_ref_dec(node);
     alen = iob->io_resid - resid - 2;

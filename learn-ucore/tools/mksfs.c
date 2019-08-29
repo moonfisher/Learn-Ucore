@@ -544,8 +544,7 @@ void open_dir(struct sfs_fs *sfs, struct cache_inode *current, struct cache_inod
     {
         open_bug(sfs, NULL, "opendir failed.\n");
     }
-    add_entry(sfs, current, current, ".");
-    add_entry(sfs, current, parent, "..");
+
     struct dirent *direntp;
     while ((direntp = readdir(dir)) != NULL)
     {
