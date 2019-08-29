@@ -129,6 +129,7 @@
 #define O_APPEND            0x00000020  // append on each write
 // additonal related definition
 #define O_ACCMODE           3           // mask for O_RDONLY / O_WRONLY / O_RDWR
+#define O_NOFOLLOW          4
 
 #define NO_FD               -0x9527     // invalid fd
 

@@ -1022,6 +1022,7 @@ int sfs_fstat(struct inode *node, struct stat *stat)
     stat->st_nlinks = din->nlinks;
     stat->st_blocks = din->blocks;
     stat->st_size = din->size;
+    stat->st_ino = sfs_vop_info(node)->ino;
     return 0;
 }
 

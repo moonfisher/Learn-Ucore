@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		735AB82E22C7A1BF00192769 /* mpconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = 735AB82B22C7A1BE00192769 /* mpconfig.c */; };
 		735AB82F22C7A1BF00192769 /* lapic.c in Sources */ = {isa = PBXBuildFile; fileRef = 735AB82D22C7A1BE00192769 /* lapic.c */; };
+		73BA44DE231831F500214A35 /* mksfs.c in Sources */ = {isa = PBXBuildFile; fileRef = 73BA44DD231831F500214A35 /* mksfs.c */; };
 		73DD7D47226F6A8500998EEC /* priority.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB32272248F5830014426C /* priority.c */; };
 		73DD7D48226F6A8500998EEC /* forktree.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB32282248F5830014426C /* forktree.c */; };
 		73DD7D49226F6A8500998EEC /* sleepkill.c in Sources */ = {isa = PBXBuildFile; fileRef = C4CB32292248F5830014426C /* sleepkill.c */; };
@@ -402,6 +403,7 @@
 		735AB82D22C7A1BE00192769 /* lapic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lapic.c; sourceTree = "<group>"; };
 		735AB83022C7ACBC00192769 /* cpu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cpu.h; sourceTree = "<group>"; };
 		735AB83122C7B97800192769 /* mpentry.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = mpentry.S; sourceTree = "<group>"; };
+		73BA44DD231831F500214A35 /* mksfs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mksfs.c; sourceTree = "<group>"; };
 		73DD7D46226F6A4700998EEC /* User */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = User; sourceTree = BUILT_PRODUCTS_DIR; };
 		C403E689226FEE5C00B4A959 /* boot.ld */ = {isa = PBXFileReference; lastKnownFileType = text; path = boot.ld; sourceTree = "<group>"; };
 		C403E68A226FEE5C00B4A959 /* mksfs.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mksfs.c; sourceTree = "<group>"; };
@@ -1658,6 +1660,7 @@
 		C4CB32262248F5830014426C /* user */ = {
 			isa = PBXGroup;
 			children = (
+				73BA44DD231831F500214A35 /* mksfs.c */,
 				C473B380230D5648002F6AA9 /* mount.c */,
 				C473B381230D5649002F6AA9 /* umount.c */,
 				C4A2488D230A857A0098074B /* arpprint.c */,
@@ -1927,6 +1930,7 @@
 				73DD7D55226F6A8500998EEC /* dir.c in Sources */,
 				73DD7D56226F6A8500998EEC /* syscall.c in Sources */,
 				73DD7D57226F6A8500998EEC /* umain.c in Sources */,
+				73BA44DE231831F500214A35 /* mksfs.c in Sources */,
 				73DD7D59226F6A8500998EEC /* file.c in Sources */,
 				C480E97822A0FCD40093D61D /* rtdump.c in Sources */,
 				73DD7D5A226F6A8500998EEC /* ulib.c in Sources */,
