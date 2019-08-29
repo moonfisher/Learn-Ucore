@@ -274,6 +274,8 @@ runit:
         {
             return ret;
         }
+        // 如果找不到文件，尝试从根目录下再次查找一次，这是为了解决进入子目录之后
+        // 根目录下的命令无法执行的问题，此时还没有环境变量的概念
         snprintf(argv0, sizeof(argv0), "/%s", argv[0]);
         argv[0] = argv0;
     }

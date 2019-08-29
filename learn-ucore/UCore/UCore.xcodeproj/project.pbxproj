@@ -302,7 +302,6 @@
 		C480E97822A0FCD40093D61D /* rtdump.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96722A0F8F40093D61D /* rtdump.c */; };
 		C480E97922A0FCD60093D61D /* shmemtest.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96322A0F8F40093D61D /* shmemtest.c */; };
 		C480E97C22A0FD3B0093D61D /* malloc.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E97B22A0FD3B0093D61D /* malloc.c */; };
-		C4A234AC22FBC2F60098074B /* longjmp.S in Sources */ = {isa = PBXBuildFile; fileRef = C4A234AB22FBC2F60098074B /* longjmp.S */; };
 		C4A2486E23025BEF0098074B /* pipe_inode.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486823025BEE0098074B /* pipe_inode.c */; };
 		C4A2486F23025BEF0098074B /* pipe.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486923025BEE0098074B /* pipe.c */; };
 		C4A2487023025BEF0098074B /* pipe_root.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486B23025BEE0098074B /* pipe_root.c */; };
@@ -2134,7 +2133,6 @@
 				C480E2E322A0D9170093D61D /* tfcoalesce.c in Sources */,
 				C480E2CA22A0D9170093D61D /* up_alloc.c in Sources */,
 				C480E2C522A0D9170093D61D /* local_out.c in Sources */,
-				C4A234AC22FBC2F60098074B /* longjmp.S in Sources */,
 				C480E2EC22A0D9170093D61D /* tcpswindow.c in Sources */,
 				C4CB32A02248F5830014426C /* kmonitor.c in Sources */,
 				C480E31A22A0D9170093D61D /* icsetbuf.c in Sources */,

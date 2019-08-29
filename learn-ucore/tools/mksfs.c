@@ -257,6 +257,16 @@ struct cache_inode *search_cache_inode(struct sfs_fs *sfs, ino_t real)
     return ci;
 }
 
+static void init_dir_cache_inode(struct cache_inode *current, struct cache_inode *parent)
+{
+    struct inode *inode = &(current->inode);
+    assert(inode->type == SFS_TYPE_DIR && parent->inode.type == SFS_TYPE_DIR);
+    assert(inode->nlinks == 0 && inode->slots == 0 && inode->parent == 0);
+    inode->nlinks++;
+    parent->inode.nlinks++;
+    inode->parent = parent->ino;
+}
+
 struct sfs_fs *create_sfs(int imgfd)
 {
     uint32_t ninos, next_ino;
@@ -290,6 +300,7 @@ struct sfs_fs *create_sfs(int imgfd)
     }
 
     sfs->root = alloc_cache_inode(sfs, 0, SFS_BLKN_ROOT, SFS_TYPE_DIR);
+    init_dir_cache_inode(sfs->root, sfs->root);
     return sfs;
 }
 
@@ -492,6 +503,7 @@ static void add_entry(struct sfs_fs *sfs, struct cache_inode *current, struct ca
     entry->ino = file->ino, strcpy(entry->name, name);
     uint32_t entry_ino = sfs_alloc_ino(sfs);
     write_block(sfs, entry, sizeof(entry->name), entry_ino);
+    current->inode.slots++;
     append_block(sfs, current, sizeof(entry->name), entry_ino, name);
     file->inode.nlinks ++;
 }
@@ -500,6 +512,7 @@ static void add_dir(struct sfs_fs *sfs, struct cache_inode *parent, const char *
 {
     assert(search_cache_inode(sfs, real) == NULL);
     struct cache_inode *current = alloc_cache_inode(sfs, real, 0, SFS_TYPE_DIR);
+    init_dir_cache_inode(current, parent);
     safe_fchdir(fd), subpath_push(sfs, dirname);
     open_dir(sfs, current, parent);
     safe_fchdir(curfd), subpath_pop(sfs);
