@@ -4,6 +4,7 @@
 int main(void)
 {
     netstatus();
+    return 0;
 }
 
 

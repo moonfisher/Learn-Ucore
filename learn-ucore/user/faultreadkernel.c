@@ -56,5 +56,6 @@ int main(void)
     cprintf("I read %08x from 0x0!\n", *(unsigned *)NULL);
     cprintf("I read %08x from 0xc0000000!\n", *(unsigned *)0xc0000000);
     cprintf("I read %08x from 0xfac00000!\n", *(unsigned *)0xfac00000);
+    return 0;
 }
 

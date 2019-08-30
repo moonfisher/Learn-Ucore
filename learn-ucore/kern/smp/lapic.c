@@ -135,10 +135,11 @@ int cpunum(void)
 {
     uint32_t lapicid = 0;
     uint32_t cpuid = 0;
+    int i = 0;
     if (lapic)
     {
         lapicid = lapic[ID] >> 24;
-        for (int i = 0; i < ncpu; ++i)
+        for (i = 0; i < ncpu; ++i)
         {
             if (cpus[i].apic_id == lapicid)
             {

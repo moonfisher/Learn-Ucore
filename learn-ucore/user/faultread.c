@@ -92,5 +92,6 @@ int main(void)
 //    test_read_illegal_addr_func();
     test_call_gate(SYS_pgdir);
     test_task_gate();
+    return 0;
 }
 
