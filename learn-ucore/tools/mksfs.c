@@ -269,26 +269,30 @@ static void init_dir_cache_inode(struct cache_inode *current, struct cache_inode
 
 struct sfs_fs *create_sfs(int imgfd)
 {
-    uint32_t ninos, next_ino;
+    uint32_t ninos;
+    uint32_t next_ino;
+    
     struct stat *stat = safe_fstat(imgfd);
     if ((ninos = stat->st_size / SFS_BLKSIZE) > SFS_MAX_NBLKS)
     {
         ninos = SFS_MAX_NBLKS;
-        warn("img file is too big (%llu bytes, only use %u blocks).\n",
-                (unsigned long long)stat->st_size, ninos);
+        warn("img file is too big (%llu bytes, only use %u blocks).\n", (unsigned long long)stat->st_size, ninos);
     }
+    
     if ((next_ino = SFS_BLKN_FREEMAP + (ninos + SFS_BLKBITS - 1) / SFS_BLKBITS) >= ninos)
     {
-        bug("img file is too small (%llu bytes, %u blocks, bitmap use at least %u blocks).\n",
-                (unsigned long long)stat->st_size, ninos, next_ino - 2);
+        bug("img file is too small (%llu bytes, %u blocks, bitmap use at least %u blocks).\n", (unsigned long long)stat->st_size, ninos, next_ino - 2);
     }
 
     struct sfs_fs *sfs = safe_malloc(sizeof(struct sfs_fs));
     sfs->super.magic = SFS_MAGIC;
-    sfs->super.blocks = ninos, sfs->super.unused_blocks = ninos - next_ino;
+    sfs->super.blocks = ninos;
+    sfs->super.unused_blocks = ninos - next_ino;
     snprintf(sfs->super.info, SFS_MAX_INFO_LEN, "simple file system");
 
-    sfs->ninos = ninos, sfs->next_ino = next_ino, sfs->imgfd = imgfd;
+    sfs->ninos = ninos;
+    sfs->next_ino = next_ino;
+    sfs->imgfd = imgfd;
     sfs->sp_root = sfs->sp_end = &(sfs->__sp_nil);
     sfs->sp_end->prev = sfs->sp_end->next = NULL;
 
@@ -411,7 +415,7 @@ void close_sfs(struct sfs_fs *sfs)
     }
 }
 
-struct sfs_fs *open_img(const char *imgname)
+int open_img(const char *imgname)
 {
     const char *expect = ".img", *ext = imgname + strlen(imgname) - strlen(expect);
     if (ext <= imgname || strcmp(ext, expect) != 0)
@@ -423,7 +427,7 @@ struct sfs_fs *open_img(const char *imgname)
     {
         bug("open '%s' failed.\n", imgname);
     }
-    return create_sfs(imgfd);
+    return imgfd;
 }
 
 #define open_bug(sfs, name, ...)                                                        \
@@ -561,6 +565,7 @@ void open_dir(struct sfs_fs *sfs, struct cache_inode *current, struct cache_inod
         {
             open_bug(sfs, NULL, "file name is too long: %s\n", name);
         }
+        
         struct stat *stat = safe_lstat(name);
         if (S_ISLNK(stat->st_mode))
         {
@@ -635,10 +640,12 @@ int create_img(struct sfs_fs *sfs, const char *home)
     {
         bug("get current fd failed.\n");
     }
+    
     if ((homefd = open(home, O_RDONLY | O_NOFOLLOW)) < 0)
     {
         bug("open home directory '%s' failed.\n", home);
     }
+    
     safe_fchdir(homefd);
     open_dir(sfs, sfs->root, sfs->root);
     safe_fchdir(curfd);
@@ -665,6 +672,12 @@ static void static_check(void)
     static_assert(SFS_MAX_FILE_SIZE <= 0x80000000UL,"SFS_MAX_FILE_SIZE <= 0x80000000UL");
 }
 
+/*
+ mksfs 使用方法，进入 bin 目录，随便创建一个大小几 M 的文件，命名为 test.img
+ dd if=/dev/zero of=test.img count=20000
+ bin/mksfs test.img disk0
+ 这个命令的意思是，在 test.img 上创建 sfs 文件系统，并把 disk0 目录里面的内容拷贝进去
+*/
 int main(int argc, char **argv)
 {
     static_check();
@@ -672,11 +685,18 @@ int main(int argc, char **argv)
     {
         bug("usage: <input *.img> <input dirname>\n");
     }
-    const char *imgname = argv[1], *home = argv[2];
-    if (create_img(open_img(imgname), home) != 0)
+    
+    const char *imgname = argv[1];
+    const char *home = argv[2];
+    
+    int imgfd = open_img(imgname);
+    struct sfs_fs *sfs = create_sfs(imgfd);
+    
+    if (create_img(sfs, home) != 0)
     {
         bug("create img failed.\n");
     }
+    
     printf("create %s (%s) successfully.\n", imgname, home);
     return 0;
 }

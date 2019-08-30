@@ -22,10 +22,13 @@
 # gdb -q -tui -x tools/gdbinit
 
 # 下面的指令，可以挂载 4 个分区，qemu 最大也只能挂载 4 个，开启 smp
-# qemu-system-i386 -S -s -parallel stdio -smp 16,cores=2,threads=2,sockets=4 -m 512M -drive file=bin/ucore.img -drive file=bin/swap.img -drive file=bin/sfs.img -drive file=bin/sfs1.img 
+# qemu-system-i386 -S -s -parallel stdio -smp 16,cores=2,threads=2,sockets=4 -m 512M -drive file=bin/ucore.img -drive file=bin/swap.img -drive file=bin/sfs.img -drive file=test.img 
 #
 make clean;make;
-cp bin/sfs.img bin/sfs1.img;
+dd if=/dev/zero of=test.img count=20000;
+bin/mksfs test.img disk0;
+
+
 
 
 

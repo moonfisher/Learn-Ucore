@@ -540,6 +540,7 @@ int sfs_dirent_search_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const ch
     // 这里每次搜索都是循环遍历，从磁盘上读出目录项，然后进行 name 名字比较，目录如果很多，估计有性能问题
     for (i = 0; i < nslots; i ++)
     {
+        memset(entry, 0, sizeof(struct sfs_disk_entry));
         if ((ret = sfs_dirent_read_nolock(sfs, sin, i, entry)) != 0)
         {
             goto out;

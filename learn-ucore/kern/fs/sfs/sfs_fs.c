@@ -13,8 +13,6 @@
 #include "error.h"
 #include "assert.h"
 
-int disk0_io(struct device *dev, struct iobuf *iob, bool write);
-
 /*
  * sfs_sync - sync sfs's superblock and freemap in memroy into disk
  */
@@ -195,8 +193,7 @@ int sfs_init_read(struct device *dev, uint32_t blkno, void *blk_buffer)
 {
     struct iobuf __iob;
     struct iobuf *iob = iobuf_init(&__iob, blk_buffer, SFS_BLKSIZE, blkno * SFS_BLKSIZE);
-//    return dev->d_io(dev, iob, 0);
-    return disk0_io(dev, iob, 0);
+    return dev->d_io(dev, iob, 0);
 }
 
 /*

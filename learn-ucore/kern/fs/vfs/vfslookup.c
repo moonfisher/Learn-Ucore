@@ -14,7 +14,7 @@ int pipe_root_lookup_parent(struct inode *node, char *path, struct inode **node_
  *             path and choose the inode to begin the name lookup relative to.
  */
 // 根据文件名获取对应的 inode
-static int get_device(char *path, char **subpath, struct inode **node_store)
+static int get_device(char *path, char *subpath, struct inode **node_store)
 {
     int i, slash = -1, colon = -1;
     for (i = 0; path[i] != '\0'; i ++)
@@ -34,7 +34,7 @@ static int get_device(char *path, char **subpath, struct inode **node_store)
          没有冒号，且斜杠也不是第一个，说明是一个相对路径或只是一个裸文件名，比如 sh 或者 test/test1
          从当前目录开始搜索，并使用整个作为子路径。
         */
-        *subpath = path;
+        strcpy(subpath, path);
         return vfs_get_curdir(node_store);
     }
     
@@ -49,7 +49,7 @@ static int get_device(char *path, char **subpath, struct inode **node_store)
 
         /* device:/path - skip slash, treat as device:path */
         while (pathT[++ colon] == '/');
-        *subpath = pathT + colon;
+        strcpy(subpath, pathT + colon);
         
         // 由于初始化时已将 disk0 的 vfs_dev_t 结构添加到 vdev_list 中，这里遍历链表即可找到对应的 inode
         return vfs_get_root(pathT, node_store);
@@ -85,7 +85,7 @@ static int get_device(char *path, char **subpath, struct inode **node_store)
 
     /* ///... or :/... */
     while (*(++ path) == '/');
-    *subpath = path;
+    strcpy(subpath, path);
     return 0;
 }
 
@@ -96,9 +96,10 @@ int vfs_lookup(char *path, struct inode **node_store)
 {
     int ret;
     struct inode *node;
-    char *subpath = NULL;
+    char subpath[256] = {0};
+    
     // 先根据 path 找到当前目录，可能是根目录，也可能是当前进程所在目录
-    if ((ret = get_device(path, &subpath, &node)) != 0)
+    if ((ret = get_device(path, subpath, &node)) != 0)
     {
         return ret;
     }
@@ -133,7 +134,9 @@ int vfs_lookup_parent(char *path, struct inode **node_store, char **endp)
 {
     int ret;
     struct inode *node;
-    if ((ret = get_device(path, &path, &node)) != 0)
+    char subpath[256] = {0};
+    
+    if ((ret = get_device(path, subpath, &node)) != 0)
     {
         return ret;
     }
