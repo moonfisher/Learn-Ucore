@@ -101,7 +101,7 @@ struct sfs_super
 {
     // magic 代表一个魔数，其值为 0x2f8dbe2a，内核用它来检查磁盘镜像是否合法
     uint32_t magic;                                 /* magic number, should be SFS_MAGIC */
-    // blocks 记录了 sfs 中 block 的数量，1 block =
+    // blocks 记录了 sfs 中 block 的数量，1 block = 4k
     uint32_t blocks;                                /* # of blocks in fs */
     // unused_block 记录了 sfs 中还没有被使用的 block 数量，其中关于物理磁盘的管理与
     // 虚拟内存的管理十分类似，每次使用物理磁盘也会有一个类似于物理内存管理的分配算法。
@@ -178,7 +178,7 @@ struct sfs_inode
 {
     // 磁盘上存放的二进制数据机构，通过这个 inode 完成对文件、目录的打开，读写，关闭等
     struct sfs_disk_inode *din;                     /* on-disk inode */
-    // node 节点编号，实际也是 inode 所在磁盘上第几个 block 的索引
+    // node 节点编号，实际也是 inode 所在磁盘上第几个 block 的索引，一个 block 是 512 字节
     uint32_t ino;                                   /* inode number */
     // 记录内存中的文件节点信息发生变更，已经和磁盘上的数据不一致，后续需要同步到磁盘上
     bool dirty;                                     /* true if inode modified */

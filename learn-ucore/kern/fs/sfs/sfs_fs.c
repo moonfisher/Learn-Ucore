@@ -297,6 +297,7 @@ int sfs_do_mount(struct device *dev, struct fs **fs_store)
     
     // super->blocks        = 0x8000
     // super->unused_blocks = 0x7eec
+    // 正常情况下，这 2 个值应该相等
     if (super->blocks > dev->d_blocks)
     {
         cprintf("sfs: fs has %u blocks, device has %u blocks.\n", super->blocks, dev->d_blocks);

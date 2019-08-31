@@ -805,6 +805,7 @@ int sfs_lookup_once(struct sfs_fs *sfs, struct sfs_inode *sin, const char *name,
     {
         // find the NO. of disk block and logical index of file entry
         // 在目录下通过遍历磁盘上的多个 sfs_disk_entry 目录项结构，匹配 name 字段来搜索文件所在的 ino
+        // 这里 ino 是文件所在磁盘上的物理扇区编号，1 个扇区是 512 字节
         ret = sfs_dirent_search_nolock(sfs, sin, name, &ino, slot, NULL);
     }
     unlock_sin(sin);

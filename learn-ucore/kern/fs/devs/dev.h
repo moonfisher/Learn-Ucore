@@ -32,7 +32,7 @@ struct device
     // 设备块数 = 磁盘扇区总数 ( ide_init 函数里获取 ) / (块大小 / 扇区大小)
     // = (磁盘扇区总数 * 扇区大小) / 块大小
     // block = 262144 / (4096 / 512) = 32768 = 0x8000
-    size_t d_blocks;    // 设备占用的数据块个数
+    size_t d_blocks;    // 设备占用的数据块个数，一块的大小是 4k
     size_t d_blocksize; // 数据块的大小，默认 4k，和内存页面一样大
     int (*d_init) (struct device *dev);
     int (*d_open)(struct device *dev, uint32_t open_flags, uint32_t arg2);

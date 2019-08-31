@@ -220,7 +220,8 @@ static struct cache_block *alloc_cache_block(struct sfs_fs *sfs, uint32_t ino)
     cb->ino = (ino != 0) ? ino : sfs_alloc_ino(sfs);
     cb->cache = memset(safe_malloc(SFS_BLKSIZE), 0, SFS_BLKSIZE);
     struct cache_block **head = sfs->blocks + hash32(ino);
-    cb->hash_next = *head, *head = cb;
+    cb->hash_next = *head;
+    *head = cb;
     return cb;
 }
 
@@ -238,12 +239,15 @@ static struct cache_inode *alloc_cache_inode(struct sfs_fs *sfs, ino_t real, uin
 {
     struct cache_inode *ci = safe_malloc(sizeof(struct cache_inode));
     ci->ino = (ino != 0) ? ino : sfs_alloc_ino(sfs);
-    ci->real = real, ci->nblks = 0, ci->l1 = ci->l2 = NULL;
+    ci->real = real;
+    ci->nblks = 0;
+    ci->l1 = ci->l2 = NULL;
     struct inode *inode = &(ci->inode);
     memset(inode, 0, sizeof(struct inode));
     inode->type = type;
     struct cache_inode **head = sfs->inodes + hash64(real);
-    ci->hash_next = *head, *head = ci;
+    ci->hash_next = *head;
+    *head = ci;
     return ci;
 }
 
@@ -303,6 +307,7 @@ struct sfs_fs *create_sfs(int imgfd)
         sfs->blocks[i] = NULL;
     }
 
+    // root 根目录固定是第 1 号 block
     sfs->root = alloc_cache_inode(sfs, 0, SFS_BLKN_ROOT, SFS_TYPE_DIR);
     init_dir_cache_inode(sfs->root, sfs->root);
     return sfs;
@@ -322,7 +327,8 @@ static void subpath_pop(struct sfs_fs *sfs)
 {
     assert(sfs->sp_root != sfs->sp_end);
     struct subpath *subpath = sfs->sp_end;
-    sfs->sp_end = sfs->sp_end->prev, sfs->sp_end->next = NULL;
+    sfs->sp_end = sfs->sp_end->prev;
+    sfs->sp_end->next = NULL;
     free(subpath->subname), free(subpath);
 }
 
@@ -462,13 +468,16 @@ static void update_cache(struct sfs_fs *sfs, struct cache_block **cbp, uint32_t 
         cb = search_cache_block(sfs, ino);
         assert(cb != NULL && cb->ino == ino);
     }
-    *cbp = cb, *inop = ino;
+    *cbp = cb;
+    *inop = ino;
 }
 
 static void append_block(struct sfs_fs *sfs, struct cache_inode *file, size_t size, uint32_t ino, const char *filename)
 {
     static_assert(SFS_LN_NBLKS <= SFS_L2_NBLKS, "SFS_LN_NBLKS <= SFS_L2_NBLKS");
     assert(size <= SFS_BLKSIZE);
+    
+    // nblks 记录了 file 文件实际物理存储，有多少个 block 节点
     uint32_t nblks = file->nblks;
     struct inode *inode = &(file->inode);
     if (nblks >= SFS_LN_NBLKS)
@@ -504,10 +513,14 @@ static void add_entry(struct sfs_fs *sfs, struct cache_inode *current, struct ca
 {
     static struct sfs_entry __entry, *entry = &__entry;
     assert(current->inode.type == SFS_TYPE_DIR && strlen(name) <= SFS_MAX_FNAME_LEN);
-    entry->ino = file->ino, strcpy(entry->name, name);
+    
+    entry->ino = file->ino;
+    strcpy(entry->name, name);
+    // 所有文件都有目录节点，目录节点和文件节点一样，都占用一个 ino
     uint32_t entry_ino = sfs_alloc_ino(sfs);
     write_block(sfs, entry, sizeof(entry->name), entry_ino);
     current->inode.slots++;
+    // 新的目录节点，添加到当前目录下
     append_block(sfs, current, sizeof(entry->name), entry_ino, name);
     file->inode.nlinks ++;
 }
@@ -517,9 +530,11 @@ static void add_dir(struct sfs_fs *sfs, struct cache_inode *parent, const char *
     assert(search_cache_inode(sfs, real) == NULL);
     struct cache_inode *current = alloc_cache_inode(sfs, real, 0, SFS_TYPE_DIR);
     init_dir_cache_inode(current, parent);
-    safe_fchdir(fd), subpath_push(sfs, dirname);
+    safe_fchdir(fd);
+    subpath_push(sfs, dirname);
     open_dir(sfs, current, parent);
-    safe_fchdir(curfd), subpath_pop(sfs);
+    safe_fchdir(curfd);
+    subpath_pop(sfs);
     add_entry(sfs, parent, current, dirname);
 }
 
@@ -541,6 +556,7 @@ static void add_link(struct sfs_fs *sfs, struct cache_inode *current, const char
     add_entry(sfs, current, file, filename);
 }
 
+// 进入这个函数时，当前目录已经切换成 home 目标目录了
 void open_dir(struct sfs_fs *sfs, struct cache_inode *current, struct cache_inode *parent)
 {
     DIR *dir;
@@ -550,6 +566,7 @@ void open_dir(struct sfs_fs *sfs, struct cache_inode *current, struct cache_inod
     }
 
     struct dirent *direntp;
+    // 遍历 home 目录下的所有文件和文件夹
     while ((direntp = readdir(dir)) != NULL)
     {
         const char *name = direntp->d_name;
@@ -606,11 +623,14 @@ void open_file(struct sfs_fs *sfs, struct cache_inode *file, const char *filenam
 {
     static char buffer[SFS_BLKSIZE];
     ssize_t ret, last = SFS_BLKSIZE;
+    
+    // 按照 4k 大小，循环读取目标文件，重新分配 ino，写入到 sfs 里
     while ((ret = read(fd, buffer, sizeof(buffer))) != 0)
     {
         assert(last == SFS_BLKSIZE);
         uint32_t ino = sfs_alloc_ino(sfs);
         write_block(sfs, buffer, ret, ino);
+        // 把已经写入 sfs 里的 ino 磁盘分区索引，记录在 file 里，此时 file 还只是内存数据结构
         append_block(sfs, file, ret, ino, filename);
         last = ret;
     }
