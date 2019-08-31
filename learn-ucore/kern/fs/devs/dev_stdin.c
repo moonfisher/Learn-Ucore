@@ -11,6 +11,7 @@
 #include "unistd.h"
 #include "error.h"
 #include "assert.h"
+#include "string.h"
 
 #define STDIN_BUFSIZE               4096
 
@@ -119,7 +120,9 @@ static void stdin_device_init(struct device *dev)
     dev->d_close = stdin_close;
     dev->d_io = stdin_io;
     dev->d_ioctl = stdin_ioctl;
-
+    memset(dev->name, 0, 10);
+    memcpy(dev->name, "stdin", strlen("stdin"));
+    
     /*
      stdin 相对于 stdout 多了一个输入缓冲区，需要额外的两个指针 p_rpos, p_wpos 分别记录当前读
      的位置和写的位置，当 p_rpos < p_wpos 时，说明当前有从键盘输入到缓冲区的数据但是还没有读到

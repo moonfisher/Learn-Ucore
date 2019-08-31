@@ -25,8 +25,8 @@
 # qemu-system-i386 -S -s -parallel stdio -smp 16,cores=2,threads=2,sockets=4 -m 512M -drive file=bin/ucore.img -drive file=bin/swap.img -drive file=bin/sfs.img -drive file=test.img 
 #
 make clean;make;
-dd if=/dev/zero of=test.img count=20000;
-bin/mksfs test.img disk0;
+dd if=/dev/zero of=test.img count=10000;
+bin/mksfs test.img disk1;
 
 
 

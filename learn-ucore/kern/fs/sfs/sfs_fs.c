@@ -341,7 +341,8 @@ int sfs_do_mount(struct device *dev, struct fs **fs_store)
         goto failed_cleanup_freemap;
     }
 
-    uint32_t blocks = sfs->super.blocks, unused_blocks = 0;
+    uint32_t blocks = sfs->super.blocks;
+    uint32_t unused_blocks = 0;
     for (i = 0; i < freemap_size_nbits; i ++)
     {
         if (bitmap_test(freemap, i))

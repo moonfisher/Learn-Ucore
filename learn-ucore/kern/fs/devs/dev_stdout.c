@@ -7,6 +7,7 @@
 #include "unistd.h"
 #include "error.h"
 #include "assert.h"
+#include "string.h"
 
 static int stdout_open(struct device *dev, uint32_t open_flags, uint32_t arg2)
 {
@@ -49,6 +50,8 @@ static void stdout_device_init(struct device *dev)
     dev->d_close = stdout_close;
     dev->d_io = stdout_io;
     dev->d_ioctl = stdout_ioctl;
+    memset(dev->name, 0, 10);
+    memcpy(dev->name, "stdout", strlen("stdout"));
 }
 
 void dev_init_stdout(void)

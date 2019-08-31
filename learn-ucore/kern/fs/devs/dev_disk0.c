@@ -9,6 +9,7 @@
 #include "iobuf.h"
 #include "error.h"
 #include "assert.h"
+#include "string.h"
 
 #define DISK0_BLKSIZE                   PGSIZE  // 4096
 #define DISK0_BUFSIZE                   (4 * DISK0_BLKSIZE)
@@ -151,6 +152,8 @@ void disk0_device_init(struct device *dev)
     dev->d_close = disk0_close;
     dev->d_io = disk0_io;
     dev->d_ioctl = disk0_ioctl;
+    memset(dev->name, 0, 10);
+    memcpy(dev->name, "disk0", strlen("disk0"));
     sem_init(&(disk0_sem), 1);
 
     static_assert(DISK0_BUFSIZE % DISK0_BLKSIZE == 0);
