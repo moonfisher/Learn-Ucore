@@ -41,13 +41,16 @@ int disk0_close(struct device *dev)
 
 /*
  从设备上读取数据
- blkno  起始 block 号
- nblks  要读取的 block 数
+ blkno  起始 block 号，这里一个 block 是 4k
+ nblks  要读取的 block 数，这里一个 block 是 4k
  */
 void disk0_read_blks_nolock(uint32_t blkno, uint32_t nblks)
 {
     int ret;
-    uint32_t sectno = blkno * DISK0_BLK_NSECT, nsecs = nblks * DISK0_BLK_NSECT;
+    // sectno 是要读取的起始扇区号，1 个 block（4096）= 8 个扇区（512）
+    uint32_t sectno = blkno * DISK0_BLK_NSECT;
+    // nsecs 是要读取的扇区的个数，1 个 block（4096）= 8 个扇区（512）
+    uint32_t nsecs = nblks * DISK0_BLK_NSECT;
     if ((ret = ide_read_secs(DISK0_DEV_NO, sectno, disk0_buffer, nsecs)) != 0)
     {
         panic("disk0: read blkno = %d (sectno = %d), nblks = %d (nsecs = %d): 0x%08x.\n",

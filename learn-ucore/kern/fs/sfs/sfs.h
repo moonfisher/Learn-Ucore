@@ -112,6 +112,8 @@ struct sfs_super
 
 /* inode (on disk 磁盘上的 inode 二进制结构，也就是 "i 节点") */
 /*
+ sfs_disk_inode 节点，并不是文件二进制本身，而是一个文件的描述节点，用于记录文件的各种属性
+ 
  之前在初始化过程中讨论过 vfs 对应的索引节点，其实索引节点主要是指存在磁盘中的索引节点，
  当把磁盘中的索引节点 load 到内存中之后，在内存中也会存在一个索引节点
  
@@ -126,6 +128,7 @@ struct sfs_disk_inode
 {
     // 如果 inode 表示常规文件，则 size 是文件总的大小
     uint32_t size;                                  /* size of the file (in bytes) */
+    // 这里记录文件一共占用的 block 数量，一个 block 是 4k
     uint32_t slots;                                 /* # of entries in this directory */
     uint32_t parent;                                /* parent inode number */
     // inode 的文件类型，是普通文件，还是目录
@@ -133,11 +136,11 @@ struct sfs_disk_inode
     // 此 inode 的硬链接数
     uint16_t nlinks;                                /* # of hard links to this file */
     // 此 inode 拥有的数据块的个数(direct + indirect)，如果是个目录 node，
-    // 这个也表示目录下文件的个数
+    // 这个也表示目录下文件或者文件夹的总个数
     uint32_t blocks;                                /* # of blocks */
     // 此 inode 的直接数据块索引值（有 SFS_NDIRECT 个)
-    // 如果 type 是目录，这些索引指向当前目录下的所有目录项所在的 block
-    // 如果 type 是文件，这些索引指向文件数据内容真正存放的 block
+    // 如果 type 是目录，这些索引指向当前目录下的所有目录项（sfs_disk_entry）所在的 block 索引
+    // 如果 type 是文件，这些索引指向文件二进制数据内容真正存放的 block 索引
     uint32_t direct[SFS_NDIRECT];                   /* direct blocks */
     // direct 只能存放 12 个索引，放不下的用 indirect 间接索引
     uint32_t indirect;                              /* indirect blocks */
@@ -154,13 +157,17 @@ struct sfs_disk_inode
  文件或文件夹的名称，ino 表示磁盘 block 编号，通过读取该 block 的数据，能够得到相应的文件
  或文件夹的 inode。ino 为 0 时，表示一个无效的 entry。（因为 block 0 用来保存 super block，
  它不可能被其他任何文件或目录使用，所以这么设计也是合理的）。
- 此外，和 inode 相似，每个 sfs_dirent_entry 也占用一个 block。
+ 此外，和 inode 相似，每个 sfs_disk_entry 也占用一个 block。
+ 
+ 无论是文件夹，还是文件，都有一个 sfs_disk_entry 结构与之对应，查找文件夹或者文件，都要先
+ 找到对应的 sfs_disk_entry 结构，然后通过其中的 ino 找到这个文件夹或者文件对应的描述节点
+ sfs_disk_inode，最终通过 sfs_disk_inode 中的 direct[SFS_NDIRECT] 找到真正的文件内容
 */
 struct sfs_disk_entry
 {
-    // 索引节点所占数据块索引值
+    //
     uint32_t ino;                                   /* inode number */
-    // 文件名
+    // 文件名或者目录名
     char name[SFS_MAX_FNAME_LEN + 1];               /* file name */
 };
 
@@ -176,9 +183,10 @@ struct sfs_disk_entry
 */
 struct sfs_inode
 {
-    // 磁盘上存放的二进制数据机构，通过这个 inode 完成对文件、目录的打开，读写，关闭等
+    // 磁盘上存放的二进制数据机构，通过这个 inode 完成对文件、文件夹的打开，读写，关闭等
+    // din 数据会保留 sfs_disk_inode 格式直接写到磁盘，并占用一个 block，大小 4k
     struct sfs_disk_inode *din;                     /* on-disk inode */
-    // node 节点编号，实际也是 inode 所在磁盘上第几个 block 的索引，一个 block 是 512 字节
+    // node 节点编号，实际也是 inode 所在磁盘上第几个 block 的索引，一个 block 是 4k
     uint32_t ino;                                   /* inode number */
     // 记录内存中的文件节点信息发生变更，已经和磁盘上的数据不一致，后续需要同步到磁盘上
     bool dirty;                                     /* true if inode modified */
