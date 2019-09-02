@@ -103,6 +103,7 @@ void vfs_devlist_init(void);
  */
 int vfs_set_curdir(struct inode *dir);
 int vfs_get_curdir(struct inode **dir_store);
+int vfs_sync(void);
 int vfs_get_root(const char *devname, struct inode **root_store);
 const char *vfs_get_devname(struct fs *fs);
 

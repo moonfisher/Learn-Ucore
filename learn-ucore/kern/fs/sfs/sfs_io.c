@@ -116,6 +116,7 @@ int sfs_wbuf(struct sfs_fs *sfs, void *buf, size_t len, uint32_t blkno, off_t of
     int ret;
     lock_sfs_io(sfs);
     {
+        // 因为磁盘必须是整块读写，这里先读出 blkno 所在块的内容，然后根据 offset 再写入
         if ((ret = sfs_rwblock_nolock(sfs, sfs->sfs_buffer, blkno, 0, 1)) == 0)
         {
             memcpy(sfs->sfs_buffer + offset, buf, len);
@@ -147,7 +148,7 @@ int sfs_sync_super(struct sfs_fs *sfs)
  */
 int sfs_sync_freemap(struct sfs_fs *sfs)
 {
-    uint32_t nblks = sfs_freemap_blocks(&(sfs->super));
+    uint32_t nblks = ROUNDUP_DIV((&(sfs->super))->blocks, SFS_BLKBITS);
     return sfs_wblock(sfs, bitmap_getdata(sfs->freemap, NULL), SFS_BLKN_FREEMAP, nblks);
 }
 

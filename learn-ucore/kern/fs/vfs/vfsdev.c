@@ -167,6 +167,27 @@ static bool check_devname_conflict(const char *devname)
     return 1;
 }
 
+int vfs_sync(void)
+{
+    if (!list_empty(&vdev_list))
+    {
+        lock_vdev_list();
+        {
+            list_entry_t *list = &vdev_list, *le = list;
+            while ((le = list_next(le)) != list)
+            {
+                vfs_dev_t *vdev = le2vdev(le, vdev_link);
+                if (vdev->fs != NULL)
+                {
+                    vdev->fs->fs_sync(vdev->fs);
+                }
+            }
+        }
+        unlock_vdev_list();
+    }
+    return 0;
+}
+
 /*
 * vfs_do_add - Add a new device to the VFS layer's device table.
 *

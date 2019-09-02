@@ -532,11 +532,15 @@ int sfs_dirent_search_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const ch
         return -E_NO_MEM;
     }
 
-#define set_pvalue(x, v)            do { if ((x) != NULL) { *(x) = (v); } } while (0)
     int ret = 0;
     int i = 0;
     int nslots = sin->din->blocks;
-    set_pvalue(empty_slot, nslots);
+    // 先假设
+    if (empty_slot)
+    {
+        *empty_slot = nslots;
+    }
+
     // 这里每次搜索都是循环遍历，从磁盘上读出目录项，然后进行 name 名字比较，目录如果很多，估计有性能问题
     for (i = 0; i < nslots; i ++)
     {
@@ -552,18 +556,26 @@ int sfs_dirent_search_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const ch
         // 它不可能被其他任何文件或目录使用
         if (entry->ino == 0)
         {
-            set_pvalue(empty_slot, i);
+            if (empty_slot)
+            {
+                *empty_slot = i;
+            }
             continue ;
         }
         
         if (strcmp(name, entry->name) == 0)
         {
-            set_pvalue(slot, i);
-            set_pvalue(ino_store, entry->ino);
+            if (slot)
+            {
+                *slot = i;
+            }
+            if (ino_store)
+            {
+                *ino_store = entry->ino;
+            }
             goto out;
         }
     }
-#undef set_pvalue
     ret = -E_NOENT;
 out:
     kfree(entry);
@@ -643,12 +655,15 @@ int sfs_dirent_write_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, int slot,
         entry->ino = ino;
         strcpy(entry->name, name);
     }
+    
+    // 目录项 sfs_disk_entry 需要存储在磁盘上，也需要分配一个 block，占用 4k
     int ret;
     if ((ret = sfs_bmap_load_nolock(sfs, sin, slot, &ino)) != 0)
     {
         goto out;
     }
     assert(sfs_block_inuse(sfs, ino));
+    // 目录项写入磁盘
     ret = sfs_wbuf(sfs, entry, sizeof(struct sfs_disk_entry), ino, 0);
 out:
     kfree(entry);
@@ -1650,11 +1665,13 @@ int sfs_create_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const char *nam
     }
     else
     {
+        // 先从磁盘上分配 1 个空闲 block，构造文件描述节点 sfs_disk_inode，并写入磁盘
         if ((ret = sfs_dirent_create_inode(sfs, SFS_TYPE_FILE, &link_node)) != 0)
         {
             return ret;
         }
         
+        // 更新目录项 sfs_disk_entry，如果目录项不存在就创建一个
         struct sfs_inode *link_sin = sfs_vop_info(link_node);
         if ((ret = sfs_dirent_link_nolock(sfs, sin, slot, link_sin, name)) != 0)
         {

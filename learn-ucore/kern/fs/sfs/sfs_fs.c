@@ -16,6 +16,35 @@
 /*
  * sfs_sync - sync sfs's superblock and freemap in memroy into disk
  */
+/*
+ * Get the sfs_fs from the generic abstract fs.
+ *
+ * Note that the abstract struct fs, which is all the VFS
+ * layer knows about, is actually a member of struct sfs_fs.
+ * The pointer in the struct fs points back to the top of the
+ * struct sfs_fs - essentially the same object. This can be a
+ * little confusing at first.
+ *
+ * The following diagram may help:
+ *
+ *     struct sfs_fs        <-----------------\
+ *           :                                |
+ *           :   sfs_absfs (struct fs)        |   <------\
+ *           :      :                         |          |
+ *           :      :  various members        |          |
+ *           :      :                         |          |
+ *           :      :  fs_info(__sfs_info) ---/          |
+ *           :      :                             ...|...
+ *           :                                   .  VFS  .
+ *           :                                   . layer .
+ *           :   other members                    .......
+ *           :
+ *           :
+ *
+ * This construct is repeated with inodes and devices and other
+ * similar things all over the place in ucore, so taking the
+ * time to straighten it out in your mind is worthwhile.
+ */
 int sfs_sync(struct fs *fs)
 {
     assert(fs != NULL && (fs->fs_type == fs_type_sfs_info));
@@ -239,6 +268,8 @@ int sfs_init_freemap(struct device *dev, struct bitmap *freemap, uint32_t blkno,
 */
 int sfs_do_mount(struct device *dev, struct fs **fs_store)
 {
+    // sfs_super，sfs_disk_entry，sfs_disk_inode 都是要存储在磁盘上的
+    // 分别都占用一个 block，4k，所以这里假设这些结构不超过 4k 大小
     static_assert(SFS_BLKSIZE >= sizeof(struct sfs_super));
     static_assert(SFS_BLKSIZE >= sizeof(struct sfs_disk_inode));
     static_assert(SFS_BLKSIZE >= sizeof(struct sfs_disk_entry));
@@ -257,7 +288,6 @@ int sfs_do_mount(struct device *dev, struct fs **fs_store)
     }
     
     assert(fs != NULL && (fs->fs_type == fs_type_sfs_info));
-    
     struct sfs_fs *sfs = &(fs->fs_info.__sfs_info);
     sfs->dev = dev;
 
@@ -328,14 +358,14 @@ int sfs_do_mount(struct device *dev, struct fs **fs_store)
      根据 SFS 中所有块的数量，记录块占用情况，用 1 个 bit 来表示一个块的占用和未被
      占用的情况。这个区域称为 SFS 的 freemap 区域，这将占用若干个块空间
      */
-    uint32_t freemap_size_nbits = sfs_freemap_bits(super);
+    uint32_t freemap_size_nbits = ROUNDUP(super->blocks, SFS_BLKBITS);
     struct bitmap *freemap = bitmap_create(freemap_size_nbits);
     if ((sfs->freemap = freemap) == NULL)
     {
         goto failed_cleanup_hash_list;
     }
     
-    uint32_t freemap_size_nblks = sfs_freemap_blocks(super);
+    uint32_t freemap_size_nblks = ROUNDUP_DIV(super->blocks, SFS_BLKBITS);
     ret = sfs_init_freemap(dev, freemap, SFS_BLKN_FREEMAP, freemap_size_nblks, sfs_buffer);
     if (ret != 0)
     {

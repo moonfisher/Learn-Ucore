@@ -113,13 +113,15 @@ struct sfs_super
 /* inode (on disk 磁盘上的 inode 二进制结构，也就是 "i 节点") */
 /*
  sfs_disk_inode 节点，并不是文件二进制本身，而是一个文件的描述节点，用于记录文件的各种属性
+ sfs_disk_inode 这个数据结构会直接存储在磁盘上的一个 block 里，并分配一个 ino 号
  
  之前在初始化过程中讨论过 vfs 对应的索引节点，其实索引节点主要是指存在磁盘中的索引节点，
  当把磁盘中的索引节点 load 到内存中之后，在内存中也会存在一个索引节点
  
  对于磁盘索引节点，direct（指向文件真正的内容，文件数据块） 指的是这个 inode 的直接索引块的索引值，
  它的大小是 12，所以最多能够通过 direct 的方式支持最大 12 * 4k 的文件大小。
- 之所以这样设计是因为我们实际的文件系统中，绝大多数文件都是小文件，因此直接索引的方式能够提高小文件的存取速度
+ 之所以这样设计是因为我们实际的文件系统中，绝大多数文件都是小文件，因此直接索引的方式能够提高小文件
+ 的存取速度
  
  如果要支持大文件存储，就要通过间接索引的方式。当使用一级间接数据块索引时，ucore 支持最大的文件
  大小为 12 * 4k + 1024 * 4k = 48k + 4m。
@@ -165,7 +167,8 @@ struct sfs_disk_inode
 */
 struct sfs_disk_entry
 {
-    //
+    // ino 指向文件描述节点 sfs_disk_inode 所在的 block 索引
+    // 通过 ino 可以加载 sfs_disk_inode，再通过解析 sfs_disk_inode 找到文件
     uint32_t ino;                                   /* inode number */
     // 文件名或者目录名
     char name[SFS_MAX_FNAME_LEN + 1];               /* file name */
@@ -176,7 +179,7 @@ struct sfs_disk_entry
 
 /* inode for sfs 内存中的 inode 结构 */
 /*
- 内存索引节点
+ 内存索引节点，这个是内存中的数据节点，并不是磁盘上存储的结构
  内存 inode 只有在打开一个文件后才会创建，如果关机则相关信息都会消失。
  可以看到，内存 inode 包含了硬盘 inode 的信息，而且还增加了其他一些信息，这是为了实现判断
  是否改写（dirty），互斥操作（sem），回收（reclaim —— count）和快速定位（hash_link）等作用。
@@ -186,7 +189,7 @@ struct sfs_inode
     // 磁盘上存放的二进制数据机构，通过这个 inode 完成对文件、文件夹的打开，读写，关闭等
     // din 数据会保留 sfs_disk_inode 格式直接写到磁盘，并占用一个 block，大小 4k
     struct sfs_disk_inode *din;                     /* on-disk inode */
-    // node 节点编号，实际也是 inode 所在磁盘上第几个 block 的索引，一个 block 是 4k
+    // din 节点编号，是 din 所在磁盘上第几个 block 的索引，一个 block 是 4k
     uint32_t ino;                                   /* inode number */
     // 记录内存中的文件节点信息发生变更，已经和磁盘上的数据不一致，后续需要同步到磁盘上
     bool dirty;                                     /* true if inode modified */
@@ -226,12 +229,6 @@ struct sfs_fs
 #define SFS_HLIST_SHIFT                             10
 #define SFS_HLIST_SIZE                              (1 << SFS_HLIST_SHIFT)
 #define sin_hashfn(x)                               (hash32(x, SFS_HLIST_SHIFT))
-
-/* size of freemap (in bits) */
-#define sfs_freemap_bits(super)                     ROUNDUP((super)->blocks, SFS_BLKBITS)
-
-/* size of freemap (in blocks) */
-#define sfs_freemap_blocks(super)                   ROUNDUP_DIV((super)->blocks, SFS_BLKBITS)
 
 struct fs;
 struct inode;
