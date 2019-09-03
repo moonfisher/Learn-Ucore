@@ -79,15 +79,18 @@ int sysfile_read(int fd, void *base, size_t len)
     }
 
     int ret = 0;
-    size_t copied = 0, alen;
+    size_t copied = 0;  // 最终读出的大小
+    size_t alen;        // 每次循环读出的大小
     while (len != 0)
     {
-        // 读取长度小于 4k，一次读取，大于 4k，分多次 4k 读取
+        // 读取长度小于 4k，按实际长度读取，大于 4k，分多次 4k 读取
         if ((alen = IOBUF_SIZE) > len)
         {
             alen = len;
         }
+        
         ret = file_read(fd, buffer, alen, &alen);
+        // alen 返回目前已经成功读出的大小
         if (alen != 0)
         {
             lock_mm(mm);
@@ -129,10 +132,13 @@ int sysfile_write(int fd, void *base, size_t len)
     {
         return 0;
     }
+    
     if (!file_testfd(fd, 0, 1))
     {
         return -E_INVAL;
     }
+    
+    // 写文件都是按照 4k 一页来写
     void *buffer;
     if ((buffer = kmalloc(IOBUF_SIZE)) == NULL)
     {
@@ -140,13 +146,16 @@ int sysfile_write(int fd, void *base, size_t len)
     }
 
     int ret = 0;
-    size_t copied = 0, alen;
+    size_t copied = 0;  // 最终写入的大小
+    size_t alen;        // 每次循环写入的大小
     while (len != 0)
     {
         if ((alen = IOBUF_SIZE) > len)
         {
+            // 如果剩余写入的 len 不到 4k，就按实际大小来写
             alen = len;
         }
+        
         lock_mm(mm);
         {
             if (!copy_from_user(mm, buffer, base, alen, 0))
@@ -155,9 +164,11 @@ int sysfile_write(int fd, void *base, size_t len)
             }
         }
         unlock_mm(mm);
+        
         if (ret == 0)
         {
             ret = file_write(fd, buffer, alen, &alen);
+            // alen 返回目前已经成功写入的大小
             if (alen != 0)
             {
                 assert(len >= alen);

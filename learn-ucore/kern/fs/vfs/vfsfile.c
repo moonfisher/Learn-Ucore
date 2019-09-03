@@ -81,7 +81,7 @@ int vfs_open(char *path, uint32_t open_flags, struct inode **node_store)
         assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_truncate != NULL);
         inode_check(node, "truncate");
    
-        // 则将其长度截短为 0
+        // O_TRUNC 如果此文件存在，而且为只读或读写成功打开，则将其长度截短为 0。
         if ((ret = node->in_ops->vop_truncate(node, 0)) != 0)
         {
             inode_open_dec(node);
@@ -150,7 +150,23 @@ int vfs_rename(char *old_path, char *new_path)
     return ret;
 }
 
-// unimplement
+/*
+ 创建硬链接，所谓硬链接，就是新旧文件的目录项不同，但指向相同的文件实体
+ link 之后的新旧文件，sfs_disk_entry 结构不同，但指向相同的 sfs_disk_inode 节点
+ 
+ 硬链接的作用：
+    1.节省硬盘空间。同样的文件，只需要维护硬连接关系，不需要进行多重的拷贝，这样可以节省硬盘空间。
+    2.重命名文件。重命名文件并不需要打开该文件，只需改动某个目录项的内容即可。
+    3.删除文件。删除文件只需将相应的目录项删除，该文件的链接数减 1, 如果删除目录项后该文件的链接数为零，
+      这时系统才把真正的文件从磁盘上删除。
+    4.文件更新。如果涉及文件更新，只需要先下载好一个新版本，然后修改面同名文件的硬即可改变,
+      通过创建链接节点，极大的提高了工作开发的效率
+ 
+ 尽管硬链接节省空间，也是操作系统整合文件系统的传统方式，但是存在一些不足之处：
+    1. 不允许给目录创建硬链接。
+    2. 不可以在不同文件系统的文件间建立链接。因为 inode 是这个文件在当前分区中的索引值，
+       是相对于这个分区的，当然不能跨越文件系统了。
+*/
 int vfs_link(char *old_path, char *new_path)
 {
     int ret;
@@ -160,12 +176,15 @@ int vfs_link(char *old_path, char *new_path)
     {
         return ret;
     }
+    
     if ((ret = vfs_lookup_parent(new_path, &new_dir, &new_name)) != 0)
     {
         inode_ref_dec(old_node);
         return ret;
     }
     
+    // 不可以在不同文件系统的文件间建立链接。
+    // 因为 inode 是这个文件在当前分区中的索引值，是相对于这个分区的，当然不能跨越文件系统了
     if (old_node->in_fs == NULL || old_node->in_fs != new_dir->in_fs)
     {
         ret = -E_XDEV;
@@ -181,7 +200,10 @@ int vfs_link(char *old_path, char *new_path)
     return ret;
 }
 
-// unimplement
+/*
+ 软连接(symbolic link)又叫符号连接。符号连接相当于 Windows 下的快捷方式。
+ 软链接实际上只是一段文字，里面包含着它所指向的文件的名字，系统看到软链接后自动跳到对应的文件位置处进行处理
+*/
 int vfs_symlink(char *old_path, char *new_path)
 {
     int ret;

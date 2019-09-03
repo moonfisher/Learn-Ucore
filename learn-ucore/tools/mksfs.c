@@ -570,6 +570,8 @@ void open_dir(struct sfs_fs *sfs, struct cache_inode *current, struct cache_inod
     while ((direntp = readdir(dir)) != NULL)
     {
         const char *name = direntp->d_name;
+        // 磁盘物理存储上实际并不存在 . 和 .. 这 2 个目录，这里完全是通过代码逻辑
+        // 来处理，以 . 代表当前目录，.. 代表上一级目录
         if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
         {
             continue ;

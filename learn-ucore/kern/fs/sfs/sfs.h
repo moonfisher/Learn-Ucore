@@ -133,9 +133,9 @@ struct sfs_disk_inode
     // 这里记录文件一共占用的 block 数量，一个 block 是 4k
     uint32_t slots;                                 /* # of entries in this directory */
     uint32_t parent;                                /* parent inode number */
-    // inode 的文件类型，是普通文件，还是目录
+    // inode 的文件类型，1 是普通文件，2 是目录
     uint16_t type;                                  /* one of SYS_TYPE_* above */
-    // 此 inode 的硬链接数
+    // 记录此 inode 的硬链接数，也就是引用次数，只有为 0 的时候才能删除这个文件节点
     uint16_t nlinks;                                /* # of hard links to this file */
     // 此 inode 拥有的数据块的个数(direct + indirect)，如果是个目录 node，
     // 这个也表示目录下文件或者文件夹的总个数
@@ -238,8 +238,10 @@ int sfs_mount(const char *devname);
 
 void lock_sfs_fs(struct sfs_fs *sfs);
 void lock_sfs_io(struct sfs_fs *sfs);
+void lock_sfs_mutex(struct sfs_fs *sfs);
 void unlock_sfs_fs(struct sfs_fs *sfs);
 void unlock_sfs_io(struct sfs_fs *sfs);
+void unlock_sfs_mutex(struct sfs_fs *sfs);
 
 int sfs_rblock(struct sfs_fs *sfs, void *buf, uint32_t blkno, uint32_t nblks);
 int sfs_wblock(struct sfs_fs *sfs, void *buf, uint32_t blkno, uint32_t nblks);

@@ -22,6 +22,11 @@ void lock_sfs_io(struct sfs_fs *sfs)
     down(&(sfs->io_sem));
 }
 
+void lock_sfs_mutex(struct sfs_fs *sfs)
+{
+    down(&(sfs->mutex_sem));
+}
+
 /*
  * unlock_sfs_fs - unlock the process of  SFS Filesystem Rd/Wr Disk Block
  *
@@ -41,3 +46,9 @@ void unlock_sfs_io(struct sfs_fs *sfs)
 {
     up(&(sfs->io_sem));
 }
+
+void unlock_sfs_mutex(struct sfs_fs *sfs)
+{
+    up(&(sfs->mutex_sem));
+}
+

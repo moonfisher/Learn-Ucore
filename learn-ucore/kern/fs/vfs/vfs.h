@@ -115,7 +115,7 @@ const char *vfs_get_devname(struct fs *fs);
  *    vfs_close  - Close a inode opened with vfs_open. Does not fail.
  *                 (See vfspath.c for a discussion of why.)
  *    vfs_link         - Create a hard link to a file.
- *    vfs_symlink      - Create a symlink PATH containing contents CONTENTS.
+ *    vfs_symlink      - Create a symlink PATH containing contents CONTENTS (soft link).
  *    vfs_readlink     - Read contents of a symlink into a uio.
  *    vfs_mkdir        - Create a directory. MODE per the syscall.
  *    vfs_unlink       - Delete a file/directory.

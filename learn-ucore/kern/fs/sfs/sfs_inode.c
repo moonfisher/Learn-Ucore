@@ -535,7 +535,7 @@ int sfs_dirent_search_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, const ch
     int ret = 0;
     int i = 0;
     int nslots = sin->din->blocks;
-    // 先假设
+    // 先假设可用空余 slot 从下一个 blocks 索引开始
     if (empty_slot)
     {
         *empty_slot = nslots;
@@ -709,18 +709,21 @@ int sfs_link_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, struct sfs_inode 
     return sfs_dirent_link_nolock(sfs, sin, slot, lnksin, name);
 }
 
+// 硬链接
 int sfs_link(struct inode *node, const char *name, struct inode *link_node)
 {
     if (strlen(name) > SFS_MAX_FNAME_LEN)
     {
         return -E_TOO_BIG;
     }
+    
     if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
     {
         return -E_EXISTS;
     }
     
     struct sfs_inode *lnksin = sfs_vop_info(link_node);
+    // 硬链接不能用来链接文件夹
     if (lnksin->din->type == SFS_TYPE_DIR)
     {
         return -E_ISDIR;
@@ -788,6 +791,7 @@ int sfs_unlink(struct inode *node, const char *name)
     {
         return -E_TOO_BIG;
     }
+    
     if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
     {
         return -E_ISDIR;
@@ -796,11 +800,15 @@ int sfs_unlink(struct inode *node, const char *name)
     struct sfs_fs *sfs = &(((node)->in_fs)->fs_info.__sfs_info);
     struct sfs_inode *sin = sfs_vop_info(node);
     int ret;
-    lock_sin(sin);
+    lock_sfs_mutex(sfs);
     {
-        ret = sfs_unlink_nolock(sfs, sin, name);
+        lock_sin(sin);
+        {
+            ret = sfs_unlink_nolock(sfs, sin, name);
+        }
+        unlock_sin(sin);
     }
-    unlock_sin(sin);
+    unlock_sfs_mutex(sfs);
     return ret;
 }
 
@@ -923,8 +931,8 @@ int sfs_io_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, void *buf, off_t of
     int ret = 0;
     size_t size, alen = 0;
     uint32_t ino;
-    uint32_t blkno = offset / SFS_BLKSIZE;          // The NO. of Rd/Wr begin block
-    uint32_t nblks = endpos / SFS_BLKSIZE - blkno;  // The size of Rd/Wr blocks
+    uint32_t blkno = offset / SFS_BLKSIZE;          // 起始 block 索引
+    uint32_t nblks = endpos / SFS_BLKSIZE - blkno;  // 需要读写的 block 个数
 
     if ((blkoff = offset % SFS_BLKSIZE) != 0)
     {
@@ -1157,10 +1165,12 @@ int sfs_rename(struct inode *node, const char *name, struct inode *new_node, con
     {
         return -E_TOO_BIG;
     }
+    
     if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
     {
         return -E_INVAL;
     }
+    
     if (strcmp(new_name, ".") == 0 || strcmp(new_name, "..") == 0)
     {
         return -E_EXISTS;
@@ -1171,18 +1181,22 @@ int sfs_rename(struct inode *node, const char *name, struct inode *new_node, con
     struct sfs_inode *newsin = sfs_vop_info(new_node);
     
     int ret;
-    lock_sin(sin);
+    lock_sfs_mutex(sfs);
     {
-        if (sin == newsin)
+        lock_sin(sin);
         {
-            ret = sfs_rename1_nolock(sfs, sin, name, new_name);
+            if (sin == newsin)
+            {
+                ret = sfs_rename1_nolock(sfs, sin, name, new_name);
+            }
+            else
+            {
+                ret = sfs_rename2_nolock(sfs, sin, name, newsin, new_name);
+            }
         }
-        else
-        {
-            ret = sfs_rename2_nolock(sfs, sin, name, newsin, new_name);
-        }
+        unlock_sin(sin);
     }
-    unlock_sin(sin);
+    unlock_sfs_mutex(sfs);
     return ret;
 }
 
@@ -1282,8 +1296,7 @@ int sfs_getdirentry_sub_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, int sl
 }
 
 /*
- * sfs_getdirentry - according to the iob->io_offset, calculate the dir entry's slot in disk block,
-                     get dir entry content from the disk 
+ * sfs_getdirentry - according to the iob->io_offset, calculate the dir entry's slot in disk block, get dir entry content from the disk
  */
 int sfs_getdirentry(struct inode *node, struct iobuf *iob)
 {
@@ -1305,6 +1318,8 @@ int sfs_getdirentry(struct inode *node, struct iobuf *iob)
         return -E_INVAL;
     }
     
+    // 磁盘物理存储上实际并不存在 . 和 .. 这 2 个目录，这里完全是通过代码逻辑
+    // 来处理，以 . 代表当前目录，.. 代表上一级目录
     slot = offset / sfs_dentry_size;
     if (slot >= sin->din->slots + 2)
     {
@@ -1312,6 +1327,7 @@ int sfs_getdirentry(struct inode *node, struct iobuf *iob)
         return -E_NOENT;
     }
     
+    // 缺省认为 slot 为 0 代表 . slot 为 1 代表 ..
     switch (slot)
     {
         case 0:
@@ -1353,16 +1369,18 @@ int sfs_reclaim(struct inode *node)
     {
         goto failed_unlock;
     }
+    
+    // 只有硬链接数 nlinks 为 0，才能真正删除文件实体节点
     if (sin->din->nlinks == 0)
     {
         assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_truncate != NULL);
         inode_check(node, "truncate");
-        
         if ((ret = node->in_ops->vop_truncate(node, 0)) != 0)
         {
             goto failed_unlock;
         }
     }
+    
     if (sin->dirty)
     {
         assert(node != NULL && node->in_ops != NULL && node->in_ops->vop_fsync != NULL);
@@ -1375,6 +1393,7 @@ int sfs_reclaim(struct inode *node)
     sfs_remove_links(sin);
     unlock_sfs_fs(sfs);
 
+    // 只有硬链接数 nlinks 为 0，才能真正释放文件实体节点
     if (sin->din->nlinks == 0)
     {
         sfs_block_free(sfs, sin->ino);
@@ -1443,7 +1462,7 @@ int sfs_tryseek(struct inode *node, off_t pos)
 /*
  * sfs_truncfile : reszie the file with new length
  */
-// 文件扩容
+// 文件扩容到指定长度，也可以用于裁剪文件
 int sfs_truncfile(struct inode *node, off_t len)
 {
     if (len < 0 || len > SFS_MAX_FILE_SIZE)
@@ -1465,6 +1484,7 @@ int sfs_truncfile(struct inode *node, off_t len)
         return 0;
     }
 
+    uint32_t ino;
     lock_sin(sin);
 	// old number of disk blocks of file
     nblks = din->blocks;
@@ -1473,7 +1493,7 @@ int sfs_truncfile(struct inode *node, off_t len)
 		// try to enlarge the file size by add new disk block at the end of file
         while (nblks != tblks)
         {
-            if ((ret = sfs_bmap_load_nolock(sfs, sin, nblks, NULL)) != 0)
+            if ((ret = sfs_bmap_load_nolock(sfs, sin, nblks, &ino)) != 0)
             {
                 goto out_unlock;
             }
@@ -1539,7 +1559,9 @@ int sfs_lookup(struct inode *node, char *path, struct inode **node_store)
         }
         
         char *subpath;
-next: 
+next:
+        // 磁盘物理存储上实际并不存在 . 和 .. 这 2 个目录，这里完全是通过代码逻辑
+        // 来处理，以 . 代表当前目录，.. 代表上一级目录
         subpath = sfs_lookup_subpath(path);
         if (strcmp(path, ".") == 0)
         {
@@ -1603,6 +1625,9 @@ int sfs_lookup_parent(struct inode *node, char *path, struct inode **node_store,
             *endp = path;
             return 0;
         }
+        
+        // 磁盘物理存储上实际并不存在 . 和 .. 这 2 个目录，这里完全是通过代码逻辑
+        // 来处理，以 . 代表当前目录，.. 代表上一级目录
         if (strcmp(path, ".") == 0)
         {
             path = subpath;
@@ -1757,6 +1782,7 @@ int sfs_mkdir(struct inode *node, const char *name)
     {
         return -E_TOO_BIG;
     }
+    
     if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
     {
         return -E_EXISTS;

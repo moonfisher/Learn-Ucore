@@ -6,11 +6,11 @@
 #include "file.h"
 #include "dir.h"
 #include "error.h"
-//#include "malloc.h"
+#include "malloc.h"
 #include "unistd.h"
 
 #define printf(...)                 fprintf(1, __VA_ARGS__)
-#define BUF_SIZE 4096
+#define BUF_SIZE                    10000
 
 int main(int argc, char *argv[])
 {
@@ -35,27 +35,27 @@ int main(int argc, char *argv[])
 		return -E_INVAL;
 	}
 
-//    char *buf = (char *)malloc(BUF_SIZE);
-//    if (!buf)
-//    {
-//        printf("out of memory\n");
-//        close(fd1);
-//        close(fd2);
-//        return -E_NO_MEM;
-//    }
+    char *buf = (char *)malloc(BUF_SIZE);
+    if (!buf)
+    {
+        printf("out of memory\n");
+        close(fd1);
+        close(fd2);
+        return -E_NO_MEM;
+    }
 
-//    int readsize;
-//    while (1)
-//    {
-//        readsize = read(fd1, buf, BUF_SIZE);
-//        if (readsize <= 0)
-//            break;
-//        write(fd2, buf, readsize);
-//    }
-//
-//    close(fd1);
-//    close(fd2);
-//
-//    free(buf);
+    int readsize;
+    while (1)
+    {
+        readsize = read(fd1, buf, BUF_SIZE);
+        if (readsize <= 0)
+            break;
+        write(fd2, buf, readsize);
+    }
+
+    close(fd1);
+    close(fd2);
+
+    free(buf);
 	return 0;
 }

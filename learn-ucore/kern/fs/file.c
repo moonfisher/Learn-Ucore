@@ -319,6 +319,7 @@ int file_write(int fd, void *base, size_t len, size_t *copied_store)
     size_t copied = iobuf_used(iob);
     if (file->status == FD_OPENED)
     {
+        // 调整文件 pos 当前位置
         file->pos += copied;
     }
     *copied_store = copied;
@@ -342,11 +343,14 @@ int file_seek(int fd, off_t pos, int whence)
     switch (whence)
     {
         case LSEEK_SET:
+            // 从文件最开始出 seek
             break;
         case LSEEK_CUR:
+            // 从文件当前位置 seek
             pos += file->pos;
             break;
         case LSEEK_END:
+            // 从文件末尾开始 seek，这里需要先获取文件大小
             assert(file->node != NULL && file->node->in_ops != NULL && file->node->in_ops->vop_fstat != NULL);
             inode_check(file->node, "fstat");
             if ((ret = file->node->in_ops->vop_fstat(file->node, stat)) != 0)
