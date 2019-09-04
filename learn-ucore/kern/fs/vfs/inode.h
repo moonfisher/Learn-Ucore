@@ -7,6 +7,7 @@
 #include "atomic.h"
 #include "assert.h"
 #include "pipe.h"
+#include "ffs.h"
 
 struct stat;
 struct iobuf;
@@ -51,6 +52,7 @@ struct inode
         struct sfs_inode __sfs_inode_info;
         struct pipe_root __pipe_root_info;
         struct pipe_inode __pipe_inode_info;
+        struct ffs_inode __ffs_inode_info;
     } in_info;
     
     // 节点类型
@@ -60,6 +62,7 @@ struct inode
         inode_type_sfs_inode_info,
         inode_type_pipe_root_info,
         inode_type_pipe_inode_info,
+        inode_type_ffs_inode_info,
     } in_type;
     
     // 此 inode 的引用计数，说明有关联关系，通过文件引用计数实现文件共享，ref_count 为 0 文件真正删除
@@ -74,8 +77,7 @@ struct inode
     char nodename[256];
 };
 
-#define info2node(info, type)                                       \
-    to_struct((info), struct inode, in_info.__##type##_info)
+#define info2node(info, type)   to_struct((info), struct inode, in_info.__##type##_info)
 
 struct inode *__alloc_inode(int type);
 
@@ -93,6 +95,7 @@ struct device *device_vop_info(struct inode *node);
 struct sfs_inode *sfs_vop_info(struct inode *node);
 struct pipe_inode *pipe_inode_vop_info(struct inode *node);
 struct pipe_root *pipe_root_vop_info(struct inode *node);
+struct ffs_inode *ffs_vop_info(struct inode *node);
 
 #define VOP_MAGIC                           0x8c4ba476
 

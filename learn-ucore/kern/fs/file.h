@@ -1,7 +1,7 @@
 #ifndef __KERN_FS_FILE_H__
 #define __KERN_FS_FILE_H__
 
-//#include "types.h"
+#include "defs.h"
 #include "fs.h"
 #include "proc.h"
 #include "atomic.h"

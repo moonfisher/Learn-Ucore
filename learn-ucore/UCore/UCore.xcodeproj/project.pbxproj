@@ -304,6 +304,12 @@
 		C480E97922A0FCD60093D61D /* shmemtest.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E96322A0F8F40093D61D /* shmemtest.c */; };
 		C480E97C22A0FD3B0093D61D /* malloc.c in Sources */ = {isa = PBXBuildFile; fileRef = C480E97B22A0FD3B0093D61D /* malloc.c */; };
 		C48CA474231F4EAA00C000C7 /* signal.h in Sources */ = {isa = PBXBuildFile; fileRef = C4A248852303CDB80098074B /* signal.h */; };
+		C48CA497231FC75300C000C7 /* ff.c in Sources */ = {isa = PBXBuildFile; fileRef = C48CA48C231FC75200C000C7 /* ff.c */; };
+		C48CA498231FC75300C000C7 /* ffs_lock.c in Sources */ = {isa = PBXBuildFile; fileRef = C48CA491231FC75200C000C7 /* ffs_lock.c */; };
+		C48CA499231FC75300C000C7 /* ffs_fs.c in Sources */ = {isa = PBXBuildFile; fileRef = C48CA492231FC75200C000C7 /* ffs_fs.c */; };
+		C48CA49A231FC75300C000C7 /* ffs_inode.c in Sources */ = {isa = PBXBuildFile; fileRef = C48CA494231FC75200C000C7 /* ffs_inode.c */; };
+		C48CA49B231FC75300C000C7 /* diskio.c in Sources */ = {isa = PBXBuildFile; fileRef = C48CA495231FC75200C000C7 /* diskio.c */; };
+		C48CA49C231FC75300C000C7 /* ffs.c in Sources */ = {isa = PBXBuildFile; fileRef = C48CA496231FC75200C000C7 /* ffs.c */; };
 		C4A2486E23025BEF0098074B /* pipe_inode.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486823025BEE0098074B /* pipe_inode.c */; };
 		C4A2486F23025BEF0098074B /* pipe.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486923025BEE0098074B /* pipe.c */; };
 		C4A2487023025BEF0098074B /* pipe_root.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486B23025BEE0098074B /* pipe_root.c */; };
@@ -704,6 +710,17 @@
 		C480E96922A0F8F40093D61D /* ping.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ping.c; sourceTree = "<group>"; };
 		C480E97A22A0FD3A0093D61D /* malloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = malloc.h; sourceTree = "<group>"; };
 		C480E97B22A0FD3B0093D61D /* malloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = malloc.c; sourceTree = "<group>"; };
+		C48CA48C231FC75200C000C7 /* ff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ff.c; sourceTree = "<group>"; };
+		C48CA48D231FC75200C000C7 /* diskio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = diskio.h; sourceTree = "<group>"; };
+		C48CA48E231FC75200C000C7 /* ff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ff.h; sourceTree = "<group>"; };
+		C48CA48F231FC75200C000C7 /* ffconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ffconf.h; sourceTree = "<group>"; };
+		C48CA490231FC75200C000C7 /* integer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = integer.h; sourceTree = "<group>"; };
+		C48CA491231FC75200C000C7 /* ffs_lock.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ffs_lock.c; sourceTree = "<group>"; };
+		C48CA492231FC75200C000C7 /* ffs_fs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ffs_fs.c; sourceTree = "<group>"; };
+		C48CA493231FC75200C000C7 /* ffs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ffs.h; sourceTree = "<group>"; };
+		C48CA494231FC75200C000C7 /* ffs_inode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ffs_inode.c; sourceTree = "<group>"; };
+		C48CA495231FC75200C000C7 /* diskio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = diskio.c; sourceTree = "<group>"; };
+		C48CA496231FC75200C000C7 /* ffs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ffs.c; sourceTree = "<group>"; };
 		C4A234AA22FBC2F50098074B /* setjmp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = setjmp.h; sourceTree = "<group>"; };
 		C4A234AB22FBC2F60098074B /* longjmp.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = longjmp.S; sourceTree = "<group>"; };
 		C4A2486823025BEE0098074B /* pipe_inode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pipe_inode.c; sourceTree = "<group>"; };
@@ -1370,6 +1387,32 @@
 			path = socket;
 			sourceTree = "<group>";
 		};
+		C48CA48A231FC75200C000C7 /* fatfs */ = {
+			isa = PBXGroup;
+			children = (
+				C48CA48B231FC75200C000C7 /* fatfs */,
+				C48CA491231FC75200C000C7 /* ffs_lock.c */,
+				C48CA492231FC75200C000C7 /* ffs_fs.c */,
+				C48CA493231FC75200C000C7 /* ffs.h */,
+				C48CA494231FC75200C000C7 /* ffs_inode.c */,
+				C48CA495231FC75200C000C7 /* diskio.c */,
+				C48CA496231FC75200C000C7 /* ffs.c */,
+			);
+			path = fatfs;
+			sourceTree = "<group>";
+		};
+		C48CA48B231FC75200C000C7 /* fatfs */ = {
+			isa = PBXGroup;
+			children = (
+				C48CA48C231FC75200C000C7 /* ff.c */,
+				C48CA48D231FC75200C000C7 /* diskio.h */,
+				C48CA48E231FC75200C000C7 /* ff.h */,
+				C48CA48F231FC75200C000C7 /* ffconf.h */,
+				C48CA490231FC75200C000C7 /* integer.h */,
+			);
+			path = fatfs;
+			sourceTree = "<group>";
+		};
 		C4A2486723025BEE0098074B /* pipe */ = {
 			isa = PBXGroup;
 			children = (
@@ -1562,6 +1605,7 @@
 		C4CB31F52248F5820014426C /* fs */ = {
 			isa = PBXGroup;
 			children = (
+				C48CA48A231FC75200C000C7 /* fatfs */,
 				C4A2486723025BEE0098074B /* pipe */,
 				C4CB31F62248F5820014426C /* vfs */,
 				C4CB31FF2248F5820014426C /* devs */,
@@ -1980,6 +2024,7 @@
 				C480E2EE22A0D9170093D61D /* tcpwinit.c in Sources */,
 				C480E35422A0D9180093D61D /* ipdbc.c in Sources */,
 				C480E2DC22A0D9170093D61D /* recvtim.c in Sources */,
+				C48CA498231FC75300C000C7 /* ffs_lock.c in Sources */,
 				C480E2F922A0D9170093D61D /* tcpackit.c in Sources */,
 				C4CB32732248F5830014426C /* ide.c in Sources */,
 				C480E34D22A0D9180093D61D /* rthash.c in Sources */,
@@ -1993,6 +2038,7 @@
 				C480E2F722A0D9170093D61D /* tcpdodat.c in Sources */,
 				C480E2BA22A0D9170093D61D /* tcpwr.c in Sources */,
 				C480E30222A0D9170093D61D /* tcpfin1.c in Sources */,
+				C48CA49C231FC75300C000C7 /* ffs.c in Sources */,
 				C480E36222A0D9180093D61D /* slowtimer.c in Sources */,
 				C480E2AA22A0D9170093D61D /* tcpread.c in Sources */,
 				C480E30622A0D9170093D61D /* tcplisten.c in Sources */,
@@ -2045,6 +2091,7 @@
 				C480E35622A0D9180093D61D /* ipfcons.c in Sources */,
 				C480E2E222A0D9170093D61D /* tcpnet2h.c in Sources */,
 				C480E35822A0D9180093D61D /* ipgetp.c in Sources */,
+				C48CA49A231FC75300C000C7 /* ffs_inode.c in Sources */,
 				C4CB32972248F5830014426C /* sfs_fs.c in Sources */,
 				C4CB32762248F5830014426C /* trap.c in Sources */,
 				C4CB327E2248F5830014426C /* default_pmm.c in Sources */,
@@ -2053,6 +2100,7 @@
 				C480E33B22A0D9180093D61D /* arp_in.c in Sources */,
 				C480E2BE22A0D9170093D61D /* tcpwrite.c in Sources */,
 				C480E32422A0D9170093D61D /* dgread.c in Sources */,
+				C48CA49B231FC75300C000C7 /* diskio.c in Sources */,
 				C480E34822A0D9180093D61D /* ipftimer.c in Sources */,
 				C4CB32BF2248F5830014426C /* bootmain.c in Sources */,
 				C480E35F22A0D9180093D61D /* ipnet2h.c in Sources */,
@@ -2112,6 +2160,7 @@
 				C480E33F22A0D9180093D61D /* arpdq.c in Sources */,
 				C480E29E22A0D9170093D61D /* ripok.c in Sources */,
 				C480E2AB22A0D9170093D61D /* tcpputc.c in Sources */,
+				C48CA497231FC75300C000C7 /* ff.c in Sources */,
 				C4A2487023025BEF0098074B /* pipe_root.c in Sources */,
 				C4CB329A2248F5830014426C /* file.c in Sources */,
 				C480E36822A0DA530093D61D /* slab.c in Sources */,
@@ -2221,6 +2270,7 @@
 				C480E2EA22A0D9170093D61D /* tcpidle.c in Sources */,
 				C4A2487123025BEF0098074B /* pipe_state.c in Sources */,
 				C480E33122A0D9170093D61D /* hgleave.c in Sources */,
+				C48CA499231FC75300C000C7 /* ffs_fs.c in Sources */,
 				C480E33C22A0D9180093D61D /* arpfind.c in Sources */,
 				C480E29F22A0D9170093D61D /* ripin.c in Sources */,
 				C480E2FE22A0D9170093D61D /* tcpclosewait.c in Sources */,

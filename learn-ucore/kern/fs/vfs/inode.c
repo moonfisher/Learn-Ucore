@@ -49,7 +49,7 @@ void inode_kill(struct inode *node)
 
 /* *
  * inode_ref_inc - increment ref_count
- * invoked by vop_ref_inc
+ * invoked by inode_ref_inc
  * */
 int inode_ref_inc(struct inode *node)
 {
@@ -160,6 +160,13 @@ struct pipe_root *pipe_root_vop_info(struct inode *node)
     struct inode *__node = node;
     assert(__node != NULL && (__node->in_type == inode_type_pipe_root_info));
     return &(__node->in_info.__pipe_root_info);
+}
+
+struct ffs_inode *ffs_vop_info(struct inode *node)
+{
+    struct inode *__node = node;
+    assert(__node != NULL && (__node->in_type == inode_type_ffs_inode_info));
+    return &(__node->in_info.__ffs_inode_info);
 }
 
 /* *

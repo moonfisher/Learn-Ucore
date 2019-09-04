@@ -5,6 +5,7 @@
 #include "fs.h"
 #include "sfs.h"
 #include "pipe.h"
+#include "ffs.h"
 
 struct inode;   // abstract structure for an on-disk file (inode.h)
 struct device;  // abstract structure for a device (dev.h)
@@ -50,6 +51,7 @@ struct fs
     {
         struct sfs_fs __sfs_info;
         struct pipe_fs __pipe_info;
+        struct ffs_fs __ffs_info;
     } fs_info;                                      // filesystem-specific data
     
     // 文件系统类型
@@ -57,6 +59,7 @@ struct fs
     {
         fs_type_pipe_info,
         fs_type_sfs_info,
+        fs_type_ffs_info,
     } fs_type;                                      // filesystem type
     
     // 文件系统名，增加这个字段方便调试
