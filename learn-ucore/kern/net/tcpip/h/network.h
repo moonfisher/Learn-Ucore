@@ -20,10 +20,8 @@
 #include "proc.h"
 #include "dev.h"
 
-#define OK 1      /* returned when system	call ok	*/
-#define SYSERR -1 /* returned when sys. call fails*/
-
-#define EOF -2 /* End-of-file (usu. from read)	*/
+#define OK 1        /* returned when system	call ok	*/
+#define SYSERR  -1  /* returned when sys. call fails*/
 
 #define TIMEOUT -3L /* time out (usu. recvtime) */
 

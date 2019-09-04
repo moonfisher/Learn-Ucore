@@ -41,7 +41,7 @@ DRESULT disk_read(BYTE drive, BYTE * buffer, DWORD sectorNumber, BYTE sectorCoun
     int ret;
 
     //  kprintf("disk_read ## %d\n", drive);
-    if ((ret = ide_read_secs(MMC0_DEV_NO, sectorNumber, buffer, sectorCount)) != 0)
+    if ((ret = ide_read_secs(DISK1_DEV_NO, sectorNumber, buffer, sectorCount)) != 0)
     {
         panic("fat: read blkno = %d (sectno = %d), nblks = %d (nsecs = %d): 0x%08x.\n", -1, sectorNumber, 0, sectorCount, ret);
     }
@@ -50,37 +50,26 @@ DRESULT disk_read(BYTE drive, BYTE * buffer, DWORD sectorNumber, BYTE sectorCoun
 }
 
 #if	_READONLY == 0
-    DRESULT disk_write(BYTE drive, const BYTE * buffer, DWORD sectorNumber,
-		       BYTE sectorCount)
+
+DRESULT disk_write(BYTE drive, const BYTE * buffer, DWORD sectorNumber, BYTE sectorCount)
 {
-	
-	    //FAT_PRINTF("[FATFS], disk_write on drive%d\n", drive);
+    //FAT_PRINTF("[FATFS], disk_write on drive%d\n", drive);
 	int ret;
-	
-if ((ret =
-	      ide_write_secs(MMC0_DEV_NO, sectorNumber, buffer,
-			     sectorCount)) != 0) {
-		
-panic
-		    ("fat: write blkno = %d (sectno = %d), nblks = %d (nsecs = %d): 0x%08x.\n",
-		     
--1, sectorNumber, 0, sectorCount, ret);
-	
-}
-	
-return 0;
-
+    if ((ret = ide_write_secs(DISK1_DEV_NO, sectorNumber, buffer, sectorCount)) != 0)
+    {
+        panic("fat: write blkno = %d (sectno = %d), nblks = %d (nsecs = %d): 0x%08x.\n", -1, sectorNumber, 0, sectorCount, ret);
+    }
+    
+    return 0;
 }
 
+#endif
 
-#endif /* 
- */
-    DRESULT disk_ioctl(BYTE drive, BYTE command, void *buffer)
+DRESULT disk_ioctl(BYTE drive, BYTE command, void *buffer)
 {
-	
-	    //FAT_PRINTF("[FATFS], disk_ioctl on drive%d, command = %d\n", drive, command);
-	    return 0;
 
+    //FAT_PRINTF("[FATFS], disk_ioctl on drive%d, command = %d\n", drive, command);
+    return 0;
 }
 
 

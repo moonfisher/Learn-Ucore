@@ -92,8 +92,7 @@
 #include "stdio.h"
 #include "ff.h"			/* FatFs configurations and declarations */
 #include "diskio.h"		/* Declarations of low level disk I/O functions */
-
-
+#include "string.h"
 
 /*--------------------------------------------------------------------------
 
@@ -137,11 +136,12 @@
 #if _FS_READONLY
 #error _FS_SHARE must be 0 on read-only cfg.
 #endif
-typedef struct {
-	FATFS *fs;				/* File ID 1, volume (NULL:blank entry) */
-	DWORD clu;				/* File ID 2, directory */
-	WORD idx;				/* File ID 3, directory index */
-	WORD ctr;				/* File open counter, 0:none, 0x01..0xFF:read open count, 0x100:write mode */
+typedef struct
+{
+	FATFS *fs;          /* File ID 1, volume (NULL:blank entry) */
+	DWORD clu;          /* File ID 2, directory */
+	WORD idx;           /* File ID 3, directory index */
+	WORD ctr;           /* File open counter, 0:none, 0x01..0xFF:read open count, 0x100:write mode */
 } FILESEM;
 #endif
 
@@ -2117,11 +2117,11 @@ FRESULT chk_mounted (	/* FR_OK(0): successful, !=0: any error occurred */
 	if (nclst >= MIN_FAT16) fmt = FS_FAT16;
 	if (nclst >= MIN_FAT32) fmt = FS_FAT32;
 
-  if(strncmp(fs->win+BS_FilSysType, "FAT12", 5)==0){
+  if(strncmp((const char *)(fs->win + BS_FilSysType), "FAT12", 5)==0){
     fmt = FS_FAT12;
-  }else if(strncmp(fs->win+BS_FilSysType, "FAT16", 5)==0){
+  }else if(strncmp((const char *)(fs->win + BS_FilSysType), "FAT16", 5)==0){
     fmt = FS_FAT16;
-  }else if(strncmp(fs->win+BS_FilSysType32, "FAT32", 5)==0){
+  }else if(strncmp((const char *)(fs->win + BS_FilSysType32), "FAT32", 5)==0){
     fmt = FS_FAT32;
   }
   FAT_PRINTF("FAT version: %d\n", fmt);

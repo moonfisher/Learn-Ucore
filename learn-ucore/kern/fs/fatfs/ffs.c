@@ -3,6 +3,8 @@
 #include "assert.h"
 #include "fatfs/ffconf.h"
 #include "ffs.h"
+#include "vfs.h"
+#include "stdio.h"
 
 DWORD get_fattime(void)
 {
@@ -17,8 +19,15 @@ DWORD get_fattime(void)
 void ffs_init()
 {
 	int ret;
-	if ((ret = ffs_mount("mmc0")) != 0) {
-		panic("failed: ffs: ffs_mount: %e.\n", ret);
+    if ((ret = register_filesystem("fatfs", ffs_mount)) != 0)
+    {
+        cprintf("failed: ffs: register_filesystem: %e.\n", ret);
+        return;
+    }
+    
+	if ((ret = ffs_mount("disk1")) != 0)
+    {
+		cprintf("failed: ffs: ffs_mount: %e.\n", ret);
 	}
 }
 
@@ -43,8 +52,11 @@ bool ff_req_grant(_SYNC_t sobj)
 }
 
 void ff_rel_grant(_SYNC_t sobj)
+
 #endif
+
 #if _USE_LFN == 3
+
 void *ff_memalloc(UINT size)
 {
 	return malloc(size);
@@ -54,4 +66,5 @@ void ff_memfree(void *mblock)
 {
 	free(mblock);
 }
+
 #endif

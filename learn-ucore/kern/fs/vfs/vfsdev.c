@@ -13,6 +13,7 @@
 
 struct inode *sfs_get_root(struct fs *fs);
 struct inode *pipe_get_root(struct fs *fs);
+struct inode *ffs_get_root(struct fs *fs);
 
 // device info entry in vdev_list
 // 挂载在 vdev_list 下的虚拟设备节点
@@ -105,6 +106,10 @@ int vfs_get_root(const char *devname, struct inode **node_store)
                         else if (vdev->fs->fs_type == fs_type_sfs_info)
                         {
                             found = sfs_get_root(vdev->fs);
+                        }
+                        else if (vdev->fs->fs_type == fs_type_ffs_info)
+                        {
+                            found = ffs_get_root(vdev->fs);
                         }
                     }
                     // fs 不存在，说明当前设备上没有文件系统，可能是输入，输出，网卡等设备

@@ -17,7 +17,7 @@
  * flush all dirty buffers to disk
  * return 0 if sync successful
  */
-static int ffs_sync(struct fs *fs)
+int ffs_sync(struct fs *fs)
 {
 	//TODO
 	return 0;
@@ -29,14 +29,15 @@ static int ffs_sync(struct fs *fs)
 	while (inode_list->next != NULL)
     {
 		inode_list = inode_list->next;
-		vop_fsync(info2node(inode_list->f_inode, ffs_inode));
+        struct inode *inode = info2node(inode_list->f_inode, ffs_inode);
+		inode->in_ops->vop_fsync(inode);
 	}
 
 	return 0;
 }
 
 /* return root inode of filesystem */
-static struct inode *ffs_get_root(struct fs *fs)
+struct inode *ffs_get_root(struct fs *fs)
 {
     struct inode *node;
     assert(fs != NULL && (fs->fs_type == fs_type_ffs_info));
@@ -52,7 +53,7 @@ static struct inode *ffs_get_root(struct fs *fs)
 }
 
 /* attempt unmount of filesystem */
-static int ffs_unmount(struct fs *fs)
+int ffs_unmount(struct fs *fs)
 {
 	//TODO
 	FAT_PRINTF("[ffs_unmount]\n");
@@ -92,7 +93,7 @@ static void ffs_cleanup(struct fs *fs)
 	}
 }
 
-static int ffs_do_mount(struct device *dev, struct fs **fs_store)
+int ffs_do_mount(struct device *dev, struct fs **fs_store)
 {
 	static_assert(FFS_BLKSIZE >= sizeof(struct ffs_disk_inode));
 	if (dev->d_blocksize != FFS_BLKSIZE)

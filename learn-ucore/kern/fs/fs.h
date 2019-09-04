@@ -35,7 +35,6 @@
 #define SWAP_DEV_NO         1
 #define DISK0_DEV_NO        2
 #define DISK1_DEV_NO        3
-#define MMC0_DEV_NO         4
 
 void fs_init(void);
 void fs_cleanup(void);

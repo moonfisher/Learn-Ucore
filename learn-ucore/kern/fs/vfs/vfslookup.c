@@ -9,6 +9,9 @@ int sfs_lookup(struct inode *node, char *path, struct inode **node_store);
 int sfs_lookup_parent(struct inode *node, char *path, struct inode **node_store, char **endp);
 int pipe_root_lookup(struct inode *node, char *path, struct inode **node_store);
 int pipe_root_lookup_parent(struct inode *node, char *path, struct inode **node_store, char **endp);
+int ffs_lookup(struct inode *node, char *path, struct inode **node_store);
+int ffs_lookup_parent(struct inode *node, char *path, struct inode **node_store, char **endp);
+
 /*
  * get_device- Common code to pull the device name, if any, off the front of a
  *             path and choose the inode to begin the name lookup relative to.
@@ -118,6 +121,10 @@ int vfs_lookup(char *path, struct inode **node_store)
         {
             ret = pipe_root_lookup(node, subpath, node_store);
         }
+        else if (node->in_fs->fs_type == fs_type_ffs_info)
+        {
+            ret = ffs_lookup(node, subpath, node_store);
+        }
         inode_ref_dec(node);
         return ret;
     }
@@ -154,6 +161,11 @@ int vfs_lookup_parent(char *path, struct inode **node_store, char **endp)
     else if (node->in_fs->fs_type == fs_type_sfs_info)
     {
         ret = sfs_lookup_parent(node, path, node_store, endp);
+        inode_ref_dec(node);
+    }
+    else if (node->in_fs->fs_type == fs_type_ffs_info)
+    {
+        ret = ffs_lookup_parent(node, path, node_store, endp);
         inode_ref_dec(node);
     }
     

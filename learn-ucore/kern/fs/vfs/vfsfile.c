@@ -8,6 +8,7 @@
 
 int sfs_create(struct inode *node, const char *name, bool excl, struct inode **node_store);
 int pipe_root_create(struct inode *__node, const char *name, bool excl, struct inode **node_store);
+int ffs_create(struct inode *node, const char *name, bool excl, struct inode **node_store);
 
 // open file in vfs, get/create inode for file with filename path.
 int vfs_open(char *path, uint32_t open_flags, struct inode **node_store)
@@ -54,6 +55,10 @@ int vfs_open(char *path, uint32_t open_flags, struct inode **node_store)
         else if (dir->in_fs->fs_type == fs_type_sfs_info)
         {
             ret = sfs_create(dir, name, excl, &node);
+        }
+        else if (dir->in_fs->fs_type == fs_type_ffs_info)
+        {
+            ret = ffs_create(dir, name, excl, &node);
         }
         inode_ref_dec(dir);
     }

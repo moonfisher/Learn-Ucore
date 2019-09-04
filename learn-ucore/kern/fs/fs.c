@@ -8,6 +8,7 @@
 #include "inode.h"
 #include "assert.h"
 #include "pipe.h"
+#include "ffs.h"
 
 //called when init_main proc start
 /*
@@ -28,6 +29,7 @@ void fs_init(void)
     // 只要文件系统能满足虚拟文件系统接口，就能注册并被操作系统挂载
     sfs_init();
     pipe_init();
+    ffs_init();
 }
 
 void fs_cleanup(void)

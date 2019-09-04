@@ -118,7 +118,7 @@ static char *ffs_lookup_subpath(char *path)
  *  @fin:   the father inode.
  *  @name:  an entry name in fin. There will be no '/' in name.
  */
-static int ffs_dirent_search_nolock(struct ffs_inode *fin, const char *name)
+int ffs_dirent_search_nolock(struct ffs_inode *fin, const char *name)
 {
 	int ret = -E_NOENT;
 	DIR dirobject;
@@ -155,7 +155,7 @@ static int ffs_dirent_search_nolock(struct ffs_inode *fin, const char *name)
  *  @name:  the entry name in fin. There will be no '/' in the name.
  *  @node_store:    if right inode found, *node_store will be assigned it, else ret != 0.
  */
-static int ffs_lookup_once(struct ffs_fs *ffs, struct ffs_inode *fin, TCHAR * name, struct inode **node_store)
+int ffs_lookup_once(struct ffs_fs *ffs, struct ffs_inode *fin, TCHAR * name, struct inode **node_store)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_lookup_once] path = %s, name = %s\n", fin->path, name);
@@ -239,7 +239,7 @@ static struct inode *lookup_ffs_nolock(struct ffs_fs *ffs, TCHAR * path, struct 
  * @node_store: *node_store will be assigned the new node.
  * @parent: the parent ffs_inode of the file of dir.
  */
-static int ffs_create_inode(struct ffs_fs *ffs, struct ffs_disk_inode *din, const char *path, struct inode **node_store, struct ffs_inode *parent)
+int ffs_create_inode(struct ffs_fs *ffs, struct ffs_disk_inode *din, const char *path, struct inode **node_store, struct ffs_inode *parent)
 {
 	struct inode *node;
 	if ((node = __alloc_inode(inode_type_ffs_inode_info)) != NULL)
@@ -413,7 +413,7 @@ failed:
  * May there will be other requirement in the future, so I leave the
  * realization of mine here.
  */
-static int ffs_opendir(struct inode *node, uint32_t open_flags)
+int ffs_opendir(struct inode *node, uint32_t open_flags)
 {
 	return 0;
 	FAT_PRINTF("[ffs_opendir]\n");
@@ -437,7 +437,7 @@ static int ffs_opendir(struct inode *node, uint32_t open_flags)
  *  @open_flags:    the open mode. O_RDONLY means read only,
  *  else will have the write to create and write the file.
  */
-static int ffs_openfile(struct inode *node, uint32_t open_flags)
+int ffs_openfile(struct inode *node, uint32_t open_flags)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_openfile], open_flags = %d\n", open_flags);
@@ -481,7 +481,7 @@ static int ffs_openfile(struct inode *node, uint32_t open_flags)
  *  ffs_close:  close the file and free the memory.
  *  @node:  the file to be closed.
  */
-static int ffs_close(struct inode *node)
+int ffs_close(struct inode *node)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_close]\n");
@@ -502,7 +502,7 @@ static int ffs_close(struct inode *node)
  *  Since ffs_opendir will do nothing, so will ffs_closedir.
  *  Both will be done when needed.
  */
-static int ffs_closedir(struct inode *node)
+int ffs_closedir(struct inode *node)
 {
 	return 0;
 
@@ -520,7 +520,7 @@ static int ffs_closedir(struct inode *node)
  *  we use io_len stands for the bytes want to read and rc stands for the bytes actually read.
  *  after the read operation, io_base += rc, io_offset += rc, io_resid -= rc.
  */
-static int ffs_read(struct inode *node, struct iobuf *iob)
+int ffs_read(struct inode *node, struct iobuf *iob)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_read]\n");
@@ -563,7 +563,7 @@ static int ffs_read(struct inode *node, struct iobuf *iob)
  *  we use io_len stands for the bytes want to write and rc stands for the bytes actually write.
  *  after the write operation, io_base += rc, io_offset += rc, io_resid -= rc.
  */
-static int ffs_write(struct inode *node, struct iobuf *iob)
+int ffs_write(struct inode *node, struct iobuf *iob)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_write]\n");
@@ -591,7 +591,7 @@ static int ffs_write(struct inode *node, struct iobuf *iob)
  *  @node:  the file or dir whose state will be got.
  *  @stat:  store the state information of the node.
  */
-static int ffs_fstat(struct inode *node, struct stat *stat)
+int ffs_fstat(struct inode *node, struct stat *stat)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_fstat]\n");
@@ -616,7 +616,7 @@ static int ffs_fstat(struct inode *node, struct stat *stat)
  *  since FatFs module have done something to synchronize
  *  the data immediately, so this function is no use now.
  */
-static int ffs_fsync(struct inode *node)
+int ffs_fsync(struct inode *node)
 {
 	return 0;
 
@@ -645,7 +645,7 @@ static int ffs_fsync(struct inode *node)
  *  @node_store:    *node_store will be assigned the new inode.
  *  @name:  the absolute path of the file or dir.
  */
-static int ffs_dirent_create_inode(struct ffs_fs *ffs, struct ffs_inode *fin, uint16_t type, struct inode **node_store, const char *name)
+int ffs_dirent_create_inode(struct ffs_fs *ffs, struct ffs_inode *fin, uint16_t type, struct inode **node_store, const char *name)
 {
 	struct ffs_disk_inode *din;
 	if ((din = kmalloc(sizeof(struct ffs_disk_inode))) == NULL)
@@ -676,7 +676,7 @@ failed_cleanup_din:
  *  @name:  the name of the new dir.
  *  @node:  the parent dir of the new dir.
  */
-static int ffs_mkdir(struct inode *node, const char *name)
+int ffs_mkdir(struct inode *node, const char *name)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_mkdir]\n");
@@ -716,7 +716,7 @@ static int ffs_mkdir(struct inode *node, const char *name)
  *  ffs_link: since there's no hard link in fat32, 
  *  so this function is no use.
  */
-static int ffs_link(struct inode *node, const char *name, struct inode *link_node)
+int ffs_link(struct inode *node, const char *name, struct inode *link_node)
 {
 	FAT_PRINTF("[ffs_link]\n");
 	if (strlen(name) > FFS_MAX_FNAME_LEN)
@@ -776,7 +776,7 @@ static struct ffs_inode *findNode(struct ffs_fs *ffs, const char *name, uint32_t
  *  @new_node:  the new parent inode.
  *  @new_name:  the new relative path of the file or dir.
  */
-static int ffs_rename(struct inode *node, const char *name, struct inode *new_node, const char *new_name)
+int ffs_rename(struct inode *node, const char *name, struct inode *new_node, const char *new_name)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_rename]\n");
@@ -838,7 +838,7 @@ static int ffs_rename(struct inode *node, const char *name, struct inode *new_no
  *  After the operation need use iobuf_skip to maintain
  *  the information of the io buffer.
  */
-static int ffs_namefile(struct inode *node, struct iobuf *iob)
+int ffs_namefile(struct inode *node, struct iobuf *iob)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_namefile]\n");
@@ -882,7 +882,7 @@ static int ffs_namefile(struct inode *node, struct iobuf *iob)
  *  @node:  the dir's node.
  *  @iob:   io buffer to store the entry's name.
  */
-static int ffs_getdirentry(struct inode *node, struct iobuf *iob)
+int ffs_getdirentry(struct inode *node, struct iobuf *iob)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_getdirentry]\n");
@@ -936,7 +936,7 @@ static int ffs_getdirentry(struct inode *node, struct iobuf *iob)
  *  not be deleted in fat32. As a result, this function is no
  *  use now.
  */
-static int ffs_reclaim(struct inode *node)
+int ffs_reclaim(struct inode *node)
 {
 	return 0;
 
@@ -964,7 +964,7 @@ static int ffs_reclaim(struct inode *node)
     
 	ffs_remove_links(ffs, fin);
 	kfree(fin->din);
-	vop_kill(node);
+    inode_kill(node);
 
 	FAT_PRINTF("[ffs_reclaim] reclaim success\n");
 	return 0;
@@ -978,7 +978,7 @@ failed:
  *  @node:  the file or dir to be got type.
  *  @type_store:    store the stat type.
  */
-static int ffs_gettype(struct inode *node, uint32_t * type_store)
+int ffs_gettype(struct inode *node, uint32_t * type_store)
 {
 
 #if PRINTFSINFO
@@ -1016,7 +1016,7 @@ static int ffs_gettype(struct inode *node, uint32_t * type_store)
  *  @node:  the file to be seek.
  *  @pos:   position paramter.
  */
-static int ffs_tryseek(struct inode *node, off_t pos)
+int ffs_tryseek(struct inode *node, off_t pos)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_tryseek]\n");
@@ -1039,7 +1039,7 @@ static int ffs_tryseek(struct inode *node, off_t pos)
  *  Have no sample test data using this function.
  *  And there's no need to truncdir in fat32.
  */
-static int ffs_truncdir(struct inode *node, off_t len)
+int ffs_truncdir(struct inode *node, off_t len)
 {
 	FAT_PRINTF("[ffs_truncdir]\n");
 	int ret = -E_BUSY;
@@ -1051,7 +1051,7 @@ static int ffs_truncdir(struct inode *node, off_t len)
  *  Have no sample test data using this function.
  */
 
-static int ffs_truncfile(struct inode *node, off_t len)
+int ffs_truncfile(struct inode *node, off_t len)
 {
 	struct ffs_inode *fin = ffs_vop_info(node);
 	struct ffs_disk_inode *din = fin->din;
@@ -1088,7 +1088,7 @@ static int ffs_truncfile(struct inode *node, off_t len)
  *  otherwise, use the existing file if there's one.
  *  @node_store:    store the new file's inode.
  */
-static int ffs_create(struct inode *node, const char *name, bool excl, struct inode **node_store)
+int ffs_create(struct inode *node, const char *name, bool excl, struct inode **node_store)
 {
 	if (strlen(name) > FFS_MAX_FNAME_LEN)
     {
@@ -1158,7 +1158,7 @@ out:
  *  @node:  the dir's node.
  *  @name:  the entry's name to be unlink in node.
  */
-static int ffs_unlink(struct inode *node, const char *name)
+int ffs_unlink(struct inode *node, const char *name)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_unlink]\n");
@@ -1222,7 +1222,7 @@ static int ffs_unlink(struct inode *node, const char *name)
  *  @path:  relative path, may '/' in it, to the @node.
  *  @node_store:    *node_store will store the found node.
  */
-static int ffs_lookup(struct inode *node, char *path, struct inode **node_store)
+int ffs_lookup(struct inode *node, char *path, struct inode **node_store)
 {
     assert(node->in_fs != NULL && node->in_fs->fs_type == fs_type_ffs_info);
     struct ffs_fs *ffs = &(node->in_fs->fs_info.__ffs_info);
@@ -1278,7 +1278,7 @@ static int ffs_lookup(struct inode *node, char *path, struct inode **node_store)
  *  @path:  relative path, may '/' in it, to the @node.
  *  @node_store:    *node_store will store the found node.
  */
-static int ffs_lookup_parent(struct inode *node, char *path, struct inode **node_store, char **endp)
+int ffs_lookup_parent(struct inode *node, char *path, struct inode **node_store, char **endp)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_lookup_parent]\n");

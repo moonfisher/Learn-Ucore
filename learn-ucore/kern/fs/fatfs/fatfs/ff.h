@@ -29,14 +29,13 @@ extern "C" {
 #error Wrong configuration file (ffconf.h).
 #endif
 
-
-
 /* Definitions of volume management */
 
 #if _MULTI_PARTITION		/* Multiple partition configuration */
 #define LD2PD(vol) (VolToPart[vol].pd)	/* Get physical drive# */
 #define LD2PT(vol) (VolToPart[vol].pt)	/* Get partition# */
-typedef struct {
+typedef struct
+{
 	BYTE pd;	/* Physical drive# */
 	BYTE pt;	/* Partition # (0-3) */
 } PARTITION;
@@ -47,8 +46,6 @@ extern const PARTITION VolToPart[];	/* Volume - Physical location resolution tab
 #define LD2PT(vol) 0		/* Always mounts the 1st partition */
 
 #endif
-
-
 
 /* Type of path name strings on FatFs API */
 
@@ -71,11 +68,9 @@ typedef char TCHAR;
 
 #endif
 
-
-
 /* File system object structure (FATFS) */
-
-typedef struct FATFS {
+typedef struct FATFS
+{
 	BYTE	fs_type;		/* FAT sub-type (0:Not mounted) */
 	BYTE	drv;			/* Physical drive number */
 	BYTE	csize;			/* Sectors per cluster (1,2,4...128) */
@@ -107,12 +102,10 @@ typedef struct FATFS {
 	BYTE	win[_MAX_SS];	/* Disk access window for Directory, FAT (and Data on tiny cfg) */
 } FATFS;
 
-
-
 /* File object structure (FIL) */
-
-typedef struct FIL {
-	FATFS*	fs;				/* Pointer to the owner file system object */
+typedef struct FIL
+{
+	FATFS   *fs;            /* Pointer to the owner file system object */
 	WORD	id;				/* Owner file system mount ID */
 	BYTE	flag;			/* File status flags */
 	BYTE	pad1;
@@ -123,10 +116,10 @@ typedef struct FIL {
 	DWORD	dsect;			/* Current data sector */
 #if !_FS_READONLY
 	DWORD	dir_sect;		/* Sector containing the directory entry */
-	BYTE*	dir_ptr;		/* Ponter to the directory entry in the window */
+	BYTE    *dir_ptr;		/* Ponter to the directory entry in the window */
 #endif
 #if _USE_FASTSEEK
-	DWORD*	cltbl;			/* Pointer to the cluster link map table (null on file open) */
+	DWORD   *cltbl;			/* Pointer to the cluster link map table (null on file open) */
 #endif
 #if _FS_SHARE
 	UINT	lockid;			/* File lock ID (index of file semaphore table) */
@@ -136,46 +129,40 @@ typedef struct FIL {
 #endif
 } FIL;
 
-
-
 /* Directory object structure (DIR) */
-
-typedef struct DIR {
-	FATFS*	fs;				/* Pointer to the owner file system object */
+typedef struct DIR
+{
+	FATFS   *fs;            /* Pointer to the owner file system object */
 	WORD	id;				/* Owner file system mount ID */
 	WORD	index;			/* Current read/write index number */
 	DWORD	sclust;			/* Table start cluster (0:Root dir) */
 	DWORD	clust;			/* Current cluster */
 	DWORD	sect;			/* Current sector */
-	BYTE*	dir;			/* Pointer to the current SFN entry in the win[] */
-	BYTE*	fn;				/* Pointer to the SFN (in/out) {file[8],ext[3],status[1]} */
+	BYTE    *dir;			/* Pointer to the current SFN entry in the win[] */
+	BYTE    *fn;            /* Pointer to the SFN (in/out) {file[8],ext[3],status[1]} */
 #if _USE_LFN
 	WCHAR*	lfn;			/* Pointer to the LFN working buffer */
 	WORD	lfn_idx;		/* Last matched LFN index number (0xFFFF:No LFN) */
 #endif
 } DIR;
 
-
-
 /* File status structure (FILINFO) */
-
-typedef struct FILINFO {
+typedef struct FILINFO
+{
 	DWORD	fsize;			/* File size */
 	WORD	fdate;			/* Last modified date */
 	WORD	ftime;			/* Last modified time */
 	BYTE	fattrib;		/* Attribute */
 	TCHAR	fname[13];		/* Short file name (8.3 format) */
 #if _USE_LFN
-	TCHAR*	lfname;			/* Pointer to the LFN buffer */
+	TCHAR   *lfname;        /* Pointer to the LFN buffer */
 	UINT 	lfsize;			/* Size of LFN buffer in TCHAR */
 #endif
 } FILINFO;
 
-
-
 /* File function return code (FRESULT) */
-
-typedef enum {
+typedef enum
+{
 	FR_OK = 0,				/* (0) Succeeded */
 	FR_DISK_ERR,			/* (1) A hard error occured in the low level disk I/O layer */
 	FR_INT_ERR,				/* (2) Assertion failed */
@@ -196,8 +183,6 @@ typedef enum {
 	FR_NOT_ENOUGH_CORE,		/* (17) LFN working buffer could not be allocated */
 	FR_TOO_MANY_OPEN_FILES	/* (18) Number of open files > _FS_SHARE */
 } FRESULT;
-
-
 
 /*--------------------------------------------------------------*/
 /* FatFs module application interface                           */
@@ -238,9 +223,6 @@ TCHAR* f_gets (TCHAR*, int, FIL*);					/* Get a string from the file */
 #define f_tell(fp) ((fp)->fptr)
 #define f_size(fp) ((fp)->fsize)
 
-
-
-
 /*--------------------------------------------------------------*/
 /* Additional user defined functions                            */
 
@@ -266,9 +248,6 @@ int ff_req_grant (_SYNC_t);			/* Lock sync object */
 void ff_rel_grant (_SYNC_t);		/* Unlock sync object */
 int ff_del_syncobj (_SYNC_t);		/* Delete a sync object */
 #endif
-
-
-
 
 /*--------------------------------------------------------------*/
 /* Flags and offset address                                     */
@@ -308,11 +287,8 @@ int ff_del_syncobj (_SYNC_t);		/* Delete a sync object */
 #define AM_ARC	0x20	/* Archive */
 #define AM_MASK	0x3F	/* Mask of defined bits */
 
-
 /* Fast seek function */
 #define CREATE_LINKMAP	0xFFFFFFFF
-
-
 
 /*--------------------------------*/
 /* Multi-byte word access macros  */

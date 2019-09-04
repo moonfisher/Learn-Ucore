@@ -170,7 +170,9 @@ KINCLUDE	+= kern/debug/ \
 			   kern/fs/vfs/ \
 			   kern/fs/devs/ \
 			   kern/fs/sfs/ \
-                           kern/fs/pipe/ \
+			   kern/fs/pipe/ \
+			   kern/fs/fatfs/ \
+			   kern/fs/fatfs/fatfs/ \
 			   kern/net/     \
 			   kern/net/e1000 
 
@@ -189,7 +191,9 @@ KSRCDIR		+= kern/init \
 			   kern/fs/vfs \
 			   kern/fs/devs \
 			   kern/fs/sfs \
-                           kern/fs/pipe \
+			   kern/fs/pipe \
+			   kern/fs/fatfs/ \
+			   kern/fs/fatfs/fatfs/ \
 			   kern/smp \
 			   kern/net \
 			   kern/net/e1000 \
