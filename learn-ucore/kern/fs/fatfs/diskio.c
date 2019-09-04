@@ -7,72 +7,47 @@
 #include "inode.h"
 #include "fatfs/diskio.h"
     
-#define PRINTFSINFO 1
+#define PRINTFSINFO         1
     
 /*---------------------------------------*/ 
 /* Prototypes for disk control functions */ 
 
 int assign_drives(int st, int ed)
 {
-	
 #if PRINTFSINFO
-	    FAT_PRINTF("[FATFS], assign %d to %d\n", st, ed);
-	
-#endif /* 
- */
-	    return 1;
-
+    FAT_PRINTF("[FATFS], assign %d to %d\n", st, ed);
+#endif
+    return 1;
 }
-
 
 DSTATUS disk_initialize(BYTE drive)
 {
-	
 #if PRINTFSINFO
-	    FAT_PRINTF("[FATFS], disk_init on drive%d\n", drive);
-	
-#endif /* 
- */
-	    return 0;
-
+    FAT_PRINTF("[FATFS], disk_init on drive%d\n", drive);
+#endif
+    return 0;
 }
 
-
- 
 DSTATUS disk_status(BYTE drive)
 {
-	
-	    //FAT_PRINTF("[FATFS], disk_status on drive%d\n", drive);
-	    return 0;
-
+    //FAT_PRINTF("[FATFS], disk_status on drive%d\n", drive);
+    return 0;
 }
 
-
- 
-DRESULT disk_read(BYTE drive, BYTE * buffer, DWORD sectorNumber,
-		     BYTE sectorCount)
+DRESULT disk_read(BYTE drive, BYTE * buffer, DWORD sectorNumber, BYTE sectorCount)
 {
-	
-	    //FAT_PRINTF("[FATFS], disk_read on drive%d\n", drive);
-	    //from dev_diso0.c read_blks
-	int ret;
-	
-//  kprintf("disk_read ## %d\n", drive);
-	    if ((ret =
-		 ide_read_secs(MMC0_DEV_NO, sectorNumber, buffer,
-			       sectorCount)) != 0) {
-		
-panic
-		    ("fat: read blkno = %d (sectno = %d), nblks = %d (nsecs = %d): 0x%08x.\n",
-		     
--1, sectorNumber, 0, sectorCount, ret);
-	
-}
-	
-return 0;
+    //FAT_PRINTF("[FATFS], disk_read on drive%d\n", drive);
+    //from dev_diso0.c read_blks
+    int ret;
 
-}
+    //  kprintf("disk_read ## %d\n", drive);
+    if ((ret = ide_read_secs(MMC0_DEV_NO, sectorNumber, buffer, sectorCount)) != 0)
+    {
+        panic("fat: read blkno = %d (sectno = %d), nblks = %d (nsecs = %d): 0x%08x.\n", -1, sectorNumber, 0, sectorCount, ret);
+    }
 
+    return 0;
+}
 
 #if	_READONLY == 0
     DRESULT disk_write(BYTE drive, const BYTE * buffer, DWORD sectorNumber,

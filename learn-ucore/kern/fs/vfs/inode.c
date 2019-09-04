@@ -59,7 +59,7 @@ int inode_ref_inc(struct inode *node)
 
 /* *
  * inode_ref_dec - decrement ref_count
- * invoked by vop_ref_dec
+ * invoked by inode_ref_dec
  * calls vop_reclaim if the ref_count hits zero
  * */
 int inode_ref_dec(struct inode *node)

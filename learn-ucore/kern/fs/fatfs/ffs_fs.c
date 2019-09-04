@@ -42,7 +42,7 @@ static struct inode *ffs_get_root(struct fs *fs)
     assert(fs != NULL && (fs->fs_type == fs_type_ffs_info));
     struct ffs_fs *ffs = &(fs->fs_info.__ffs_info);
     
-    int ret = ffs_load_inode(ffs, &node, "0:/", NULL);
+    int ret = ffs_load_inode(ffs, &node, "0:/", NULL, "");
     if (ret != 0)
     {
         panic("load ffs root failed: %e", ret);

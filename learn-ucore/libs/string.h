@@ -29,6 +29,8 @@ void bzero(void *s, size_t n);
 char *index(char *, char);
 int	atoi(const char *);
 
+int stricmp(const char *s1, const char *s2);
+
 #define	BLKEQU(b1, b2, len)	(!memcmp((b1), (b2), len))
 #define blkcopy  memcpy
 
