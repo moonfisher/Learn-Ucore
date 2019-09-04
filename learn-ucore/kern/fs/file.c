@@ -544,5 +544,16 @@ failed_cleanup_file:
     return ret;
 }
 
+int file_fchdir(int fd)
+{
+    int ret = 0;
+    struct file *file;
+    if ((ret = fd2file(fd, &file)) != 0)
+    {
+        return ret;
+    }
 
+    ret = vfs_set_curdir(file->node);
+    return ret;
+}
 

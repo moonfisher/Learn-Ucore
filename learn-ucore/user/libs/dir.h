@@ -14,6 +14,7 @@ DIR *opendir(const char *path);
 struct dirent *readdir(DIR *dirp);
 void closedir(DIR *dirp);
 int chdir(const char *path);
+int fchdir(int fd);
 int getcwd(char *buffer, size_t len);
 int mkdir(const char *path);
 int rm(const char *path);

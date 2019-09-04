@@ -230,6 +230,12 @@ int sysfile_fsync(int fd)
 }
 
 /* sysfile_chdir - change dir */
+int sysfile_fchdir(int fd)
+{
+    return file_fchdir(fd);
+}
+
+/* sysfile_chdir - change dir */
 int sysfile_chdir(const char *__path)
 {
     int ret;

@@ -220,6 +220,11 @@ int sys_chdir(const char *path)
     return syscall(SYS_chdir, path);
 }
 
+int sys_fchdir(int fd)
+{
+    return syscall(SYS_fchdir, fd);
+}
+
 int sys_rename(const char *path1, const char *path2)
 {
     return syscall(SYS_rename, path1, path2);

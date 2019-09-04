@@ -40,6 +40,7 @@
 #define SYS_seek            104
 #define SYS_fstat           110
 #define SYS_fsync           111
+#define SYS_fchdir          112
 #define SYS_chdir           120
 #define SYS_getcwd          121
 #define SYS_mkdir           122
@@ -129,7 +130,6 @@
 #define O_APPEND            0x00000020  // append on each write
 // additonal related definition
 #define O_ACCMODE           3           // mask for O_RDONLY / O_WRONLY / O_RDWR
-#define O_NOFOLLOW          4
 
 #define NO_FD               -0x9527     // invalid fd
 

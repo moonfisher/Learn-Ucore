@@ -14,7 +14,7 @@ For example:
 
 */
 
-#if 0
+#if 1
 
 #include "defs.h"
 #include "stdio.h"
@@ -44,32 +44,13 @@ void *safe_malloc(size_t size)
     return ret;
 }
 
-char *safe_strdup(const char *str)
-{
-    char *ret;
-    if ((ret = strdup(str)) == NULL)
-    {
-        cprintf("strdup failed: %s\n", str);
-    }
-    return ret;
-}
-
 struct stat *safe_fstat(int fd)
 {
     static struct stat __stat;
     if (fstat(fd, &__stat) != 0)
     {
         cprintf("fstat %d failed.\n", fd);
-    }
-    return &__stat;
-}
-
-struct stat *safe_lstat(const char *name)
-{
-    static struct stat __stat;
-    if (lstat(name, &__stat) != 0)
-    {
-        cprintf("lstat '%s' failed.\n", name);
+        return NULL;
     }
     return &__stat;
 }
@@ -164,6 +145,7 @@ static uint32_t sfs_alloc_ino(struct sfs_fs *sfs)
         return sfs->next_ino ++;
     }
     cprintf("out of disk space.\n");
+    return 0;
 }
 
 static struct cache_block *alloc_cache_block(struct sfs_fs *sfs, uint32_t ino)
@@ -231,10 +213,13 @@ struct sfs_fs *create_sfs(int imgfd)
     {
         ninos = SFS_MAX_NBLKS;
         cprintf("img file is too big (%llu bytes, only use %u blocks).\n", (unsigned long long)stat->st_size, ninos);
+        return NULL;
     }
+    
     if ((next_ino = SFS_BLKN_FREEMAP + (ninos + SFS_BLKBITS - 1) / SFS_BLKBITS) >= ninos)
     {
         cprintf("img file is too small (%llu bytes, %u blocks, bitmap use at least %u blocks).\n", (unsigned long long)stat->st_size, ninos, next_ino - 2);
+        return NULL;
     }
 
     struct sfs_fs *sfs = safe_malloc(sizeof(struct sfs_fs));
@@ -264,7 +249,11 @@ struct sfs_fs *create_sfs(int imgfd)
 static void subpath_push(struct sfs_fs *sfs, const char *subname)
 {
     struct subpath *subpath = safe_malloc(sizeof(struct subpath));
-    subpath->subname = safe_strdup(subname);
+    size_t len = strlen(subname);
+    char *name = safe_malloc(len + 1);
+    memcpy(name, subname, len);
+    name[len] = '\0';
+    subpath->subname = name;
     sfs->sp_end->next = subpath;
     subpath->prev = sfs->sp_end;
     subpath->next = NULL;
@@ -292,7 +281,8 @@ static void write_block(struct sfs_fs *sfs, void *data, size_t len, uint32_t ino
     }
     off_t offset = (off_t)ino * SFS_BLKSIZE;
     ssize_t ret;
-    if ((ret = pwrite(sfs->imgfd, data, SFS_BLKSIZE, offset)) != SFS_BLKSIZE)
+    ret = seek(sfs->imgfd, offset, LSEEK_SET);
+    if ((ret = write(sfs->imgfd, data, SFS_BLKSIZE)) != SFS_BLKSIZE)
     {
         cprintf("write %u block failed: (%d/%d).\n", ino, (int)ret, SFS_BLKSIZE);
     }
@@ -355,19 +345,24 @@ void close_sfs(struct sfs_fs *sfs)
     }
 }
 
-struct sfs_fs *open_img(const char *imgname)
+int open_img(const char *imgname)
 {
-    const char *expect = ".img", *ext = imgname + strlen(imgname) - strlen(expect);
+    const char *expect = ".img";
+    const char *ext = imgname + strlen(imgname) - strlen(expect);
     if (ext <= imgname || strcmp(ext, expect) != 0)
     {
         cprintf("invalid .img file name '%s'.\n", imgname);
+        return -1;
     }
+    
     int imgfd;
     if ((imgfd = open(imgname, O_WRONLY)) < 0)
     {
         cprintf("open '%s' failed.\n", imgname);
+        return -1;
     }
-    return create_sfs(imgfd);
+    
+    return imgfd;
 }
 
 void open_dir(struct sfs_fs *sfs, struct cache_inode *current, struct cache_inode *parent);
@@ -406,7 +401,9 @@ static void append_block(struct sfs_fs *sfs, struct cache_inode *file, size_t si
     if (nblks >= SFS_LN_NBLKS)
     {
         cprintf("file %s is too big.\n", filename);
+        return;
     }
+    
     if (nblks < SFS_L0_NBLKS)
     {
         inode->direct[nblks] = ino;
@@ -482,6 +479,7 @@ void open_dir(struct sfs_fs *sfs, struct cache_inode *current, struct cache_inod
     if ((dir = opendir(".")) == NULL)
     {
         cprintf("opendir failed.\n");
+        return;
     }
 
     struct dirent *direntp;
@@ -499,22 +497,26 @@ void open_dir(struct sfs_fs *sfs, struct cache_inode *current, struct cache_inod
         if (strlen(name) > SFS_MAX_FNAME_LEN)
         {
             cprintf("file name is too long: %s\n", name);
+            continue;
         }
-        struct stat *stat = safe_lstat(name);
+        
+        int fd;
+        if ((fd = open(name, O_RDONLY)) < 0)
+        {
+            cprintf("open failed: %s\n", name);
+            continue;
+        }
+        
+        struct stat *stat = safe_fstat(fd);
         if (S_ISLNK(stat->st_mode))
         {
             add_link(sfs, current, name, stat->st_ino);
         }
         else
         {
-            int fd;
-            if ((fd = open(name, O_RDONLY)) < 0)
-            {
-                cprintf("open failed: %s\n", name);
-            }
             if (S_ISDIR(stat->st_mode))
             {
-                add_dir(sfs, current, name, dirfd(dir), fd, stat->st_ino);
+                add_dir(sfs, current, name, dir->fd, fd, stat->st_ino);
             }
             else if (S_ISREG(stat->st_mode))
             {
@@ -557,7 +559,7 @@ void open_link(struct sfs_fs *sfs, struct cache_inode *file, const char *filenam
 {
     static char buffer[SFS_BLKSIZE];
     uint32_t ino = sfs_alloc_ino(sfs);
-    ssize_t ret = readlink(filename, buffer, sizeof(buffer));
+    ssize_t ret = 0;//readlink(filename, buffer, sizeof(buffer));
     if (ret < 0 || ret == SFS_BLKSIZE)
     {
         cprintf("read link %s failed, %d", filename, (int)ret);
@@ -572,11 +574,15 @@ int create_img(struct sfs_fs *sfs, const char *home)
     if ((curfd = open(".", O_RDONLY)) < 0)
     {
         cprintf("get current fd failed.\n");
+        return -1;
     }
-    if ((homefd = open(home, O_RDONLY | O_NOFOLLOW)) < 0)
+    
+    if ((homefd = open(home, O_RDONLY)) < 0)
     {
         cprintf("open home directory '%s' failed.\n", home);
+        return -1;
     }
+    
     safe_fchdir(homefd);
     open_dir(sfs, sfs->root, sfs->root);
     safe_fchdir(curfd);
@@ -588,23 +594,35 @@ int create_img(struct sfs_fs *sfs, const char *home)
 
 int main(int argc, char **argv)
 {
-    static_check();
     if (argc != 3)
     {
         cprintf("usage: <input *.img> <input dirname>\n");
+        return -1;
     }
-    const char *imgname = argv[1], *home = argv[2];
-    if (create_img(open_img(imgname), home) != 0)
+    
+    const char *imgname = argv[1];
+    const char *home = argv[2];
+    
+    int imgfd = open_img(imgname);
+    struct sfs_fs *sfs = create_sfs(imgfd);
+    
+    if (create_img(sfs, home) != 0)
     {
         cprintf("create img failed.\n");
+        return -1;
     }
+    
     cprintf("create %s (%s) successfully.\n", imgname, home);
     return 0;
 }
 
-#endif
+#else
 
 int main(int argc, char **argv)
 {
     return 0;
 }
+
+#endif
+
+

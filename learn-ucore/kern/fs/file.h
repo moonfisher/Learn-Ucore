@@ -59,6 +59,7 @@ int file_getdirentry(int fd, struct dirent *dirent);
 int file_dup(int fd1, int fd2);
 int file_pipe(int fd[]);
 int file_mkfifo(const char *name, uint32_t open_flags);
+int file_fchdir(int fd);
 
 static inline int fopen_count(struct file *file)
 {

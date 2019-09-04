@@ -217,6 +217,12 @@ static int sys_fsync(uint32_t arg[])
     return sysfile_fsync(fd);
 }
 
+static int sys_fchdir(uint32_t arg[])
+{
+    int fd = (int)arg[0];
+    return sysfile_fchdir(fd);
+}
+
 static int sys_chdir(uint32_t arg[])
 {
     const char *path = (const char *)arg[0];
@@ -579,6 +585,7 @@ static int (*syscalls[])(uint32_t arg[]) = {
     [SYS_mkdir]            = sys_mkdir,
     [SYS_getdirentry]      = sys_getdirentry,
     [SYS_dup]              = sys_dup,
+    [SYS_fchdir]           = sys_fchdir,
     [SYS_chdir]            = sys_chdir,
     [SYS_link]             = sys_link,
     [SYS_rename]           = sys_rename,

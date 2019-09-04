@@ -13,7 +13,8 @@ int sysfile_write(int fd, void *base, size_t len);              // Write file
 int sysfile_seek(int fd, off_t pos, int whence);                // Seek file  
 int sysfile_fstat(int fd, struct stat *stat);                   // Stat file 
 int sysfile_fsync(int fd);                                      // Sync file
-int sysfile_chdir(const char *path);                            // change DIR  
+int sysfile_chdir(const char *path);                            // change DIR
+int sysfile_fchdir(int fd);                                     // change DIR
 int sysfile_mkdir(const char *path);                            // create DIR
 int sysfile_link(const char *path1, const char *path2);         // set a path1's link as path2
 int sysfile_rename(const char *path1, const char *path2);       // rename file

@@ -40,6 +40,7 @@ void sys_set_priority(uint32_t priority);
 int sys_mkdir(const char *path);
 int sys_rm(const char *path);
 int sys_chdir(const char *path);
+int sys_fchdir(int fd);
 int sys_rename(const char *path1, const char *path2);
 int sys_pipe(int *fd_store);
 int sys_mkfifo(const char *name, uint32_t open_flags);
