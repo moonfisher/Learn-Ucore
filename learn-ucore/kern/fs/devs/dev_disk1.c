@@ -152,6 +152,7 @@ void disk1_device_init(struct device *dev)
     dev->d_close = disk1_close;
     dev->d_io = disk1_io;
     dev->d_ioctl = disk1_ioctl;
+    dev->dvnum = DISK1_DEV_NO;
     memset(dev->name, 0, 10);
     memcpy(dev->name, "disk1", strlen("disk1"));
     sem_init(&(disk1_sem), 1);

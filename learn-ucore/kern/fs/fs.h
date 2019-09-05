@@ -28,8 +28,8 @@
  其中第 1 个 -drive 位置不能动，必须是第 1 个，否则加载不到内核，第 2，3 两个 -drive 可以调换位置
  但调换之后下面的宏定义也要对应修改才行
  
- 下面的指令，可以挂载 4 个分区，qemu 最大也只能挂载 4 个
- qemu-system-i386 -S -s -parallel stdio -m 512M -drive file=bin/ucore.img -drive file=bin/swap.img -drive file=bin/sfs.img -drive file=bin/sfs1.img
+ 下面的指令，可以挂载 4 个磁盘分区，qemu 最大也只能挂载 4 个，开启 smp，最后一个分区是 fatfs 文件系统
+ qemu-system-i386 -S -s -parallel stdio -smp 16,cores=2,threads=2,sockets=4 -m 512M -drive file=bin/ucore.img -drive file=bin/swap.img -drive file=bin/sfs.img -drive file=fat.img
 */
 #define UCORE_DEV_NO        0
 #define SWAP_DEV_NO         1

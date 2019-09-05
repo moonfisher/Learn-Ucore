@@ -65,7 +65,7 @@ static char *getAbsolutePath(struct ffs_inode *fin, char *path)
 #endif
 	int len = strlen(path);
 	struct ffs_inode *_fin = fin;
-	if (_fin != NULL && strcmp("0:/", _fin->path))
+	if (_fin != NULL && strcmp(FFS_PATH, _fin->path))
     {
 		len += strlen(_fin->path);
 		/* for '/' in path */
@@ -79,7 +79,7 @@ static char *getAbsolutePath(struct ffs_inode *fin, char *path)
 	char *p;
 	strcpy(ret + len, path);
 	int tlen, i;
-	if (_fin != NULL && strcmp("0:/", _fin->path))
+	if (_fin != NULL && strcmp(FFS_PATH, _fin->path))
     {
 		p = _fin->path;
 		tlen = strlen(_fin->path);
@@ -171,7 +171,7 @@ int ffs_lookup_once(struct ffs_fs *ffs, struct ffs_inode *fin, TCHAR * name, str
 	if (!strcmp(name, ".."))
     {
 		ret = 0;
-		if (fin->parent == NULL || !strcmp("0:/", fin->path))
+		if (fin->parent == NULL || !strcmp(FFS_PATH, fin->path))
         {
 			/* if it's root */
 			*node_store = info2node(fin, ffs_inode);
@@ -334,7 +334,7 @@ int ffs_load_inode(struct ffs_fs *ffs, struct inode **node_store, TCHAR *path, s
 	struct FILINFO fno;
 	FRESULT result;
 
-	if (strcmp(path, "0:/"))
+	if (strcmp(path, FFS_PATH))
     {
 		/* if not root inode */
 		char *actualPath = NULL;
@@ -980,7 +980,6 @@ failed:
  */
 int ffs_gettype(struct inode *node, uint32_t * type_store)
 {
-
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_gettype]\n");
 #endif
@@ -1050,7 +1049,6 @@ int ffs_truncdir(struct inode *node, off_t len)
  *  ffs_truncfile:   truncate file to needed size.
  *  Have no sample test data using this function.
  */
-
 int ffs_truncfile(struct inode *node, off_t len)
 {
 	struct ffs_inode *fin = ffs_vop_info(node);

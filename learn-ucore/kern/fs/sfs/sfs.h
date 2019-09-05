@@ -195,6 +195,7 @@ struct sfs_inode
     bool dirty;                                     /* true if inode modified */
     int reclaim_count;                              /* kill inode if it hits zero */
     semaphore_t sem;                                /* semaphore for din */
+    // 保存所有已经创建的 inode 的一个链表
     list_entry_t inode_link;                        /* entry for linked-list in sfs_fs */
     list_entry_t hash_link;                         /* entry for hash linked-list in sfs_fs */
 };

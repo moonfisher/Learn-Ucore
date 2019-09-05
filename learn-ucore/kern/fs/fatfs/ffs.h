@@ -31,9 +31,27 @@
 #define FFS_TYPE_LINK                               3
 
 /*
+ 如何制作 fat.img
+ 在 Linux 上可以通过如下办法制作一个 2M 的 fat32 格式的分区
+ dd if=/dev/zero of=fat.img count=4000
+ mkfs -t vfat -F 32 fat.img
+ 然后挂载 sudo mount -o loop -t vfat fat.img /mnt
+ 这样通过 /mnt 直接往里面拷贝文件
+*/
+
+/*
  * On-disk superblock
  * no use in fat32
  */
+/*
+ FAT32 是没有 superblock 的，虽然这个文件中也进行了定义，但实际上没有任何地方使用到它。
+ 然后是 ffs inode，因为 FAT32 原来是没有 inode 的，所以就需要人为的对它进行定义和赋值。
+ 这里去掉了原有的 ino，即 inode number。然后为了识别每一个特定的 inode，在 inode 中添加
+ 了绝对路径的信息和父目录的 inode 的信息。
+ 
+ 其他 sfs 类似，在 ffs disk inode 中，因为已经不需要记录文件的位置等信息（因为有 FatFs 库）
+ 所以我们只需要记录此 inode 对应的文件或者文件夹的内存的指针即可。
+*/
 struct ffs_super
 {
 	uint32_t magic;		                /* magic number, should be FFS_MAGIC */
@@ -43,6 +61,11 @@ struct ffs_super
 };
 
 /* inode (on disk) */
+/*
+ 在 sfs disk inode 中，会记录文件或文件夹在磁盘中的位置，但是这里有 FatFs 库了，
+ 所以无需那部分信息，只需要记录 FatFs 库需要的信息就可以了。
+ 在 ffs inode 中已经记录了绝对路径，这里需要 FIL 或者 DIR，即这个 inode 对应的文件或者文件夹的信息
+*/
 struct ffs_disk_inode
 {
 	uint16_t type;		                /* one of SYS_TYPE_* above */
@@ -66,17 +89,29 @@ struct ffs_disk_entry
 #define ffs_dentry_size         sizeof(((struct ffs_disk_entry *)0)->name)
 
 /* inode for ffs */
+/*
+ 由于 FAT32 的 inode 不同于 sfs 的 inode，所以要维护好自己特有的一些信息。
+ ffs inode 以及 ffs disk inode 中不同于原有文件系统的部分。
+ 由于 FAT32 是没有 inode 的，所以就需要我们自己构建 inode。
+ 
+ 在 sfs inode 中，会有一个 ino，即 inode number，来唯一标识每一个 sfs inode
+ FatFs 库很多函数都是直接需要绝对路径，而 ffs inode 又是自己构建的，所以直接用绝对路
+ 径来代替原来的 ino
+*/
 struct ffs_inode
 {
 	struct ffs_disk_inode *din;	        /* on-disk inode */
+    // 为了遍历时加快速度，通过 path 计算 hashno
 	uint32_t hashno;	                /* hash number */
 	TCHAR *path;		                /* absolute path */
+    // parent 是指向该文件或文件夹所在的父目录的 ffs inode，这是为了在查询的时候方便
 	struct ffs_inode *parent;	        /* parent inode */
 	bool dirty;		                    /* true if inode modified */
 	int reclaim_count;	                /* kill inode if it hits zero */
 	semaphore_t sem;	                /* semaphore for din */
 //    list_entry_t inode_link;            /* entry for linked-list in ffs_fs */
 //    list_entry_t hash_link;             /* entry for hash linked-list in ffs_fs */
+    // 保存所有已经创建的 inode 的一个链表
 	struct ffs_inode_list *inode_link;	/* entry for linked-list in ffs_fs */
 };
 
@@ -102,6 +137,8 @@ struct ffs_fs
 
 #define FFS_HLIST_SHIFT	    10
 #define FFS_HLIST_SIZE	    (1 << FFS_HLIST_SHIFT)
+
+#define FFS_PATH            "/"
 
 struct fs;
 struct inode;

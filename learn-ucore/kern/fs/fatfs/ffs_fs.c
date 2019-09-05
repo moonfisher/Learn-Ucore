@@ -43,7 +43,7 @@ struct inode *ffs_get_root(struct fs *fs)
     assert(fs != NULL && (fs->fs_type == fs_type_ffs_info));
     struct ffs_fs *ffs = &(fs->fs_info.__ffs_info);
     
-    int ret = ffs_load_inode(ffs, &node, "0:/", NULL, "");
+    int ret = ffs_load_inode(ffs, &node, FFS_PATH, NULL, "");
     if (ret != 0)
     {
         panic("load ffs root failed: %e", ret);
@@ -113,7 +113,9 @@ int ffs_do_mount(struct device *dev, struct fs **fs_store)
 
 	FRESULT result;
 	struct FATFS *fatfs = kmalloc(FFS_BLKSIZE);
-	if ((result = f_mount(0, fatfs)) != FR_OK)
+    // 这里把 ffs 挂载在 disk1 上
+    f_chdrive(dev->dvnum);
+	if ((result = f_mount(dev->dvnum, fatfs)) != FR_OK)
     {
 		FAT_PRINTF("[ffs_do_mount], failed = %d\n", result);
 		goto failed_cleanup_ffs;

@@ -21,12 +21,23 @@
 # qemu-system-i386 -S -s -parallel stdio -m 512M -drive file=bin/ucore.img -drive file=bin/swap.img -drive file=bin/sfs.img
 # gdb -q -tui -x tools/gdbinit
 
-# 下面的指令，可以挂载 4 个分区，qemu 最大也只能挂载 4 个，开启 smp
-# qemu-system-i386 -S -s -parallel stdio -smp 16,cores=2,threads=2,sockets=4 -m 512M -drive file=bin/ucore.img -drive file=bin/swap.img -drive file=bin/sfs.img -drive file=test.img 
+# 下面的指令，可以挂载 4 个磁盘分区，qemu 最大也只能挂载 4 个，开启 smp，最后一个分区是 fatfs 文件系统
+# qemu-system-i386 -S -s -parallel stdio -smp 16,cores=2,threads=2,sockets=4 -m 512M -drive file=bin/ucore.img -drive file=bin/swap.img -drive file=bin/sfs.img -drive file=fat.img 
 #
+
+# 如何制作 fatfs 文件系统磁盘
+# 在 Linux 上可以通过如下办法制作一个 2M 的 fat32 格式的分区
+# dd if=/dev/zero of=fat.img count=4000
+# mkfs -t vfat -F 32 fat.img
+# 然后挂载 sudo mount -o loop -t vfat fat.img /mnt
+# 这样通过 /mnt 直接往里面拷贝文件
+
+# 如何制作 sfs 文件系统磁盘
+# dd if=/dev/zero of=test.img count=2000;
+# bin/mksfs test.img disk1;
+
 make clean;make;
-dd if=/dev/zero of=test.img count=2000;
-bin/mksfs test.img disk1;
+
 
 
 
