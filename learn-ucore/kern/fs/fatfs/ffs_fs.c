@@ -43,7 +43,7 @@ struct inode *ffs_get_root(struct fs *fs)
     assert(fs != NULL && (fs->fs_type == fs_type_ffs_info));
     struct ffs_fs *ffs = &(fs->fs_info.__ffs_info);
     
-    int ret = ffs_load_inode(ffs, &node, FFS_PATH, NULL, "");
+    int ret = ffs_load_inode(ffs, &node, FFS_PATH, NULL, FFS_PATH);
     if (ret != 0)
     {
         panic("load ffs root failed: %e", ret);
@@ -178,6 +178,9 @@ int ffs_do_mount(struct device *dev, struct fs **fs_store)
 	ffs->inode_list->next = ffs->inode_list->prev = NULL;
 	ffs->inocnt = 0;
 
+    memset(fs->fsname, 0, 256);
+    memcpy(fs->fsname, "fatfs", strlen("fatfs"));
+    
 	FAT_PRINTF("ffs_do_mount done\n");
 	fs->fs_sync = ffs_sync;
 	fs->fs_get_root = ffs_get_root;
@@ -192,7 +195,7 @@ failed_cleanup_ffs:
 	return -E_NO_MEM;
 }
 
-int ffs_mount(const char *devname)
+int ffs_mount(const char *devname, const char *source, const void *data)
 {
-	return vfs_mount(devname, ffs_do_mount);
+	return vfs_mount(devname, source, data, ffs_do_mount);
 }

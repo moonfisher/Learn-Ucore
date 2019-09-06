@@ -155,7 +155,7 @@ int ffs_dirent_search_nolock(struct ffs_inode *fin, const char *name)
  *  @name:  the entry name in fin. There will be no '/' in the name.
  *  @node_store:    if right inode found, *node_store will be assigned it, else ret != 0.
  */
-int ffs_lookup_once(struct ffs_fs *ffs, struct ffs_inode *fin, TCHAR * name, struct inode **node_store)
+int ffs_lookup_once(struct ffs_fs *ffs, struct ffs_inode *fin, TCHAR *name, struct inode **node_store)
 {
 #if PRINTFSINFO
 	FAT_PRINTF("[ffs_lookup_once] path = %s, name = %s\n", fin->path, name);
@@ -165,9 +165,9 @@ int ffs_lookup_once(struct ffs_fs *ffs, struct ffs_inode *fin, TCHAR * name, str
     {
 		ret = 0;
 		*node_store = info2node(fin, ffs_inode);
-		inode_ref_inc(*node_store);
 		goto label_out;
 	}
+    
 	if (!strcmp(name, ".."))
     {
 		ret = 0;
@@ -175,12 +175,11 @@ int ffs_lookup_once(struct ffs_fs *ffs, struct ffs_inode *fin, TCHAR * name, str
         {
 			/* if it's root */
 			*node_store = info2node(fin, ffs_inode);
-			inode_ref_inc(*node_store);
 			goto label_out;
 		}
         else
         {
-			ret = ffs_load_inode(ffs, node_store, fin->parent->path, fin->parent->parent, "");
+			ret = ffs_load_inode(ffs, node_store, fin->parent->path, fin->parent->parent, name);
 			goto label_out;
 		}
 	}
@@ -188,7 +187,7 @@ int ffs_lookup_once(struct ffs_fs *ffs, struct ffs_inode *fin, TCHAR * name, str
 	ret = ffs_dirent_search_nolock(fin, name);
 	if (ret == 0)
     {
-		ret = ffs_load_inode(ffs, node_store, name, fin, "");
+		ret = ffs_load_inode(ffs, node_store, name, fin, name);
 	}
 label_out:
 	return ret;
@@ -248,12 +247,12 @@ int ffs_create_inode(struct ffs_fs *ffs, struct ffs_disk_inode *din, const char 
         struct ffs_inode *fin = ffs_vop_info(node);
 		fin->din = din;
 		fin->dirty = 0;
+        // 创建 node 节点，缺省设置有 1 个引用
 		fin->reclaim_count = 1;
 		char *absPath = getAbsolutePath(parent, (char *)path);
 		fin->path = absPath;
 		fin->hashno = hash(absPath);
 		fin->parent = parent;
-		inode_ref_inc(node);
 		*node_store = node;
 		return 0;
 	}
@@ -867,6 +866,7 @@ int ffs_namefile(struct inode *node, struct iobuf *iob)
 		*((char *)iob->io_base) = '/';
 	}
     
+    inode_ref_dec(node);
 	iobuf_skip(iob, alen);
 	return 0;
 }
@@ -938,16 +938,13 @@ int ffs_getdirentry(struct inode *node, struct iobuf *iob)
  */
 int ffs_reclaim(struct inode *node)
 {
-	return 0;
-
     assert(node->in_fs != NULL && node->in_fs->fs_type == fs_type_ffs_info);
     struct ffs_fs *ffs = &(node->in_fs->fs_info.__ffs_info);
 	struct ffs_inode *fin = ffs_vop_info(node);
-	FAT_PRINTF("[ffs_reclaim], path = %s\n", fin->path);
+	//FAT_PRINTF("[ffs_reclaim], path = %s\n", fin->path);
 
 	int ret = -E_BUSY;
 	assert(fin->reclaim_count > 0);
-
 	if ((--fin->reclaim_count) != 0 || inode_ref_count(node) != 0)
     {
 		goto failed;
@@ -966,7 +963,7 @@ int ffs_reclaim(struct inode *node)
 	kfree(fin->din);
     inode_kill(node);
 
-	FAT_PRINTF("[ffs_reclaim] reclaim success\n");
+	//FAT_PRINTF("[ffs_reclaim] reclaim success\n");
 	return 0;
 
 failed:
@@ -1114,7 +1111,7 @@ int ffs_create(struct inode *node, const char *name, bool excl, struct inode **n
 		}
 		if (!excl)
         {
-			if ((ret = ffs_load_inode(ffs, &link_node, (char *)name, fin, "")) != 0)
+			if ((ret = ffs_load_inode(ffs, &link_node, (char *)name, fin, name)) != 0)
             {
 				return ret;
 			}
@@ -1181,7 +1178,7 @@ int ffs_unlink(struct inode *node, const char *name)
 	}
 	
     struct inode *link_node;
-	if ((ret = ffs_load_inode(ffs, &link_node, (char *)name, fin, "")) != 0)
+	if ((ret = ffs_load_inode(ffs, &link_node, (char *)name, fin, name)) != 0)
     {
 		return ret;
 	}
@@ -1241,20 +1238,31 @@ int ffs_lookup(struct inode *node, char *path, struct inode **node_store)
 			return -E_NOTDIR;
 		}
 
-		char *subpath = ffs_lookup_subpath(path);
+        char *subpath;
+next:
+        subpath = ffs_lookup_subpath(path);
+        if (strcmp(path, ".") == 0)
+        {
+            if ((path = subpath) != NULL)
+            {
+                goto next;
+            }
+            break;
+        }
 #if PRINTFSINFO
 		FAT_PRINTF("[ffs_lookup] get subpath=%s\n", subpath);
 #endif
-		if (strlen(path) > FFS_MAX_FNAME_LEN)
+        int ret;
+        struct inode *subnode;
+        if (strlen(path) > FFS_MAX_FNAME_LEN)
         {
-			inode_ref_dec(node);
-			return -E_TOO_BIG;
-		}
-		struct inode *subnode;
+            inode_ref_dec(node);
+            return -E_TOO_BIG;
+        }
 #if PRINTFSINFO
-		FAT_PRINTF("[ffs_lookup] to lookup once, path=%s\n", path);
+        FAT_PRINTF("[ffs_lookup] to lookup once, path=%s\n", path);
 #endif
-		int ret = ffs_lookup_once(ffs, fin, path, &subnode);
+        ret = ffs_lookup_once(ffs, fin, path, &subnode);
 		inode_ref_dec(node);
 		if (ret != 0)
         {

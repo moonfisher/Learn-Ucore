@@ -235,7 +235,7 @@ struct fs;
 struct inode;
 
 void sfs_init(void);
-int sfs_mount(const char *devname);
+int sfs_mount(const char *devname, const char *source, const void *data);
 
 void lock_sfs_fs(struct sfs_fs *sfs);
 void lock_sfs_io(struct sfs_fs *sfs);

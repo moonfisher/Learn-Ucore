@@ -144,7 +144,7 @@ struct fs;
 struct inode;
 
 void ffs_init(void);
-int ffs_mount(const char *devname);
+int ffs_mount(const char *devname, const char *source, const void *data);
 
 void lock_ffs_fs(struct ffs_fs *ffs);
 void lock_ffs_io(struct ffs_fs *ffs);

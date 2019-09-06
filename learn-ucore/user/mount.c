@@ -7,12 +7,12 @@
 
 void usage(void)
 {
-	printf("usage: mount -t filesystem device\n");
+	printf("usage: mount -t filesystem file dir\n");
 }
 
 int check(int argc, char **argv)
 {
-	if (argc != 4)
+	if (argc != 5 && argc != 6)
     {
 		return -1;
 	}
@@ -23,6 +23,7 @@ int check(int argc, char **argv)
 	return 0;
 }
 
+// mount -t sfs test.img /mnt
 int main(int argc, char **argv)
 {
 	int ret;
@@ -33,7 +34,7 @@ int main(int argc, char **argv)
 	}
     else
     {
-		ret = mount(argv[3], NULL, argv[2], NULL);
+		ret = mount(argv[3], argv[4], argv[2], NULL);
 	}
 
 	if (!ret)

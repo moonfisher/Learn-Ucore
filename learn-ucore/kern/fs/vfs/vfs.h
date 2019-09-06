@@ -75,7 +75,7 @@ struct fs
 struct file_system_type
 {
     const char *name;
-    int (*mount) (const char *devname);
+    int (*mount) (const char *devname, const char *source, const void *data);
     list_entry_t file_system_type_link;
 };
 
@@ -202,16 +202,16 @@ int vfs_get_bootfs(struct inode **node_store);
 int vfs_add_fs(const char *devname, struct fs *fs);
 int vfs_add_dev(const char *devname, struct inode *devnode, bool mountable);
 
-int vfs_mount(const char *devname, int (*mountfunc)(struct device *dev, struct fs **fs_store));
+int vfs_mount(const char *devname, const char *source, const void *data, int (*mountfunc)(struct device *dev, struct fs **fs_store));
 int vfs_unmount(const char *devname);
 int vfs_unmount_all(void);
 void vfs_print(void);
 
 void file_system_type_list_init(void);
-int register_filesystem(const char *name, int (*mount) (const char *devname));
+int register_filesystem(const char *name, int (*mount)(const char *devname, const char *source, const void *data));
 int unregister_filesystem(const char *name);
 
-int do_mount(const char *devname, const char *fsname);
+int do_mount(const char *source, const char *devname, const char *fsname, const void *data);
 int do_umount(const char *devname);
 
 #endif /* !__KERN_FS_VFS_VFS_H__ */

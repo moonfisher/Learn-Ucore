@@ -147,6 +147,7 @@ int sfs_create_inode(struct sfs_fs *sfs, struct sfs_disk_inode *din, uint32_t in
         sin->din = din;
         sin->ino = ino;
         sin->dirty = 0;
+        // 创建 node 节点，缺省设置有 1 个引用
         sin->reclaim_count = 1;
         sem_init(&(sin->sem), 1);
         *node_store = node;

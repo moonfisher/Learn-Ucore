@@ -292,10 +292,10 @@ static int sys_unlink(uint32_t arg[])
 static int sys_mount(uint32_t arg[])
 {
     const char *source = (const char *)arg[0];
-//    const char *target = (const char *)arg[1];
+    const char *target = (const char *)arg[1];
     const char *filesystemtype = (const char *)arg[2];
-//    const void *data = (const void *)arg[3];
-    return do_mount(source, filesystemtype);
+    const void *data = (const void *)arg[3];
+    return do_mount(source, target, filesystemtype, data);
 }
 
 static int sys_umount(uint32_t arg[])

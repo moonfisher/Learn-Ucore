@@ -416,8 +416,8 @@ failed_cleanup_fs:
 /*
  挂载 disk0，并安装 sfs 文件系统
  */
-int sfs_mount(const char *devname)
+int sfs_mount(const char *devname, const char *source, const void *data)
 {
-    return vfs_mount(devname, sfs_do_mount);
+    return vfs_mount(devname, source, data, sfs_do_mount);
 }
 

@@ -307,7 +307,7 @@ static int find_mount(const char *devname, vfs_dev_t **vdev_store)
  其中这里面最重要的就是对回调函数 sfs_do_mount(mountfunc) 的调用，sfs_do_mount 主要完成对 struct sfs
  数据结构的初始化，这里的 sfs 是 simple file system 的缩写
 */
-int vfs_mount(const char *devname, int (*mountfunc)(struct device *dev, struct fs **fs_store))
+int vfs_mount(const char *devname, const char *source, const void *data, int (*mountfunc)(struct device *dev, struct fs **fs_store))
 {
     int ret;
     lock_vdev_list();

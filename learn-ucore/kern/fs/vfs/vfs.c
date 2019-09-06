@@ -224,8 +224,7 @@ static bool check_file_system_type_name_conflict(const char *name)
     list_entry_t *list = &file_system_type_list, *le = list;
     while ((le = list_next(le)) != list)
     {
-        struct file_system_type *fstype =
-        le2fstype(le, file_system_type_link);
+        struct file_system_type *fstype = le2fstype(le, file_system_type_link);
         if (strcmp(fstype->name, name) == 0)
         {
             return 0;
@@ -240,7 +239,7 @@ void file_system_type_list_init(void)
     sem_init(&file_system_type_sem, 1);
 }
 
-int register_filesystem(const char *name, int (*mount)(const char *devname))
+int register_filesystem(const char *name, int (*mount)(const char *devname, const char *source, const void *data))
 {
     assert(name != NULL);
     if (strlen(name) > FS_MAX_DNAME_LEN)
@@ -305,7 +304,7 @@ int unregister_filesystem(const char *name)
     return ret;
 }
 
-int do_mount(const char *devname, const char *fsname)
+int do_mount(const char *source, const char *devname, const char *fsname, const void *data)
 {
     int ret = -E_EXISTS;
     lock_file_system_type_list();
@@ -316,7 +315,7 @@ int do_mount(const char *devname, const char *fsname)
         if (strcmp(fstype->name, fsname) == 0)
         {
             assert(fstype->mount);
-            ret = (fstype->mount)(devname);
+            ret = (fstype->mount)(devname, source, data);
             break;
         }
     }

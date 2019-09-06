@@ -25,10 +25,11 @@ void ffs_init()
         return;
     }
     
-	if ((ret = ffs_mount("disk1")) != 0)
-    {
-		cprintf("failed: ffs: ffs_mount: %e.\n", ret);
-	}
+//    // disk1 可以不初始化，后续通过 mount 来挂载
+//    if ((ret = ffs_mount("disk1", "", NULL)) != 0)
+//    {
+//        cprintf("failed: ffs: ffs_mount: %e.\n", ret);
+//    }
 }
 
 #if _FS_REENTRANT
