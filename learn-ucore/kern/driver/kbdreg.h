@@ -15,7 +15,15 @@
 
 
 /* This is i8042reg.h + kbdreg.h from NetBSD. */
-
+/*
+ 端口地址参考 cat /proc/ioports
+ 60H-61H　     键盘输入数据缓冲区
+ 61H　　　      AT:8042键盘控制寄存器/XT:8255输出寄存器
+ 62H　　　      8255输入寄存器
+ 63H　　　      8255命令方式寄存器
+ 64H　　　      8042键盘输入缓冲区/8042状态
+ 65H-6FH　     8255/8042专用
+ */
 #define KBSTATP             0x64    // kbd controller status port(I)
 #define KBS_DIB             0x01    // kbd data in buffer
 #define KBS_IBF             0x02    // kbd input buffer low

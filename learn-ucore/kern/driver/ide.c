@@ -37,7 +37,25 @@
 #define IDE_IDENT_MAX_LBA       120
 #define IDE_IDENT_MAX_LBA_EXT   200
 
-// 端口地址参考 cat /proc/ioports
+/*
+ 端口地址参考 cat /proc/ioports
+ 170H　　      1号硬盘数据寄存器
+ 171H　　      1号硬盘错误寄存器
+ 172H　　      1号硬盘数据扇区计数
+ 173H　　      1号硬盘扇区数
+ 174H　　      1号硬盘柱面（低字节）
+ 175H　　      1号硬盘柱面（高字节）
+ 176H　　      1号硬盘驱动器/磁头寄存器
+ 177H　　      1号硬盘状态寄存器
+ 1F0H　　      0号硬盘数据寄存器
+ 1F1H　　      0号硬盘错误寄存器
+ 1F2H　　      0号硬盘数据扇区计数
+ 1F3H　　      0号硬盘扇区数
+ 1F4H　　      0号硬盘柱面（低字节）
+ 1F5H　　      0号硬盘柱面（高字节）
+ 1F6H　　      0号硬盘驱动器/磁头寄存器
+ 1F7H　　      0号硬盘状态寄存器
+*/
 #define IO_BASE0                0x1F0
 #define IO_BASE1                0x170
 #define IO_CTRL0                0x3F4
@@ -102,6 +120,7 @@ static struct ide_device
     unsigned char model[41];    // Model in String
 } ide_devices[MAX_IDE];
 
+// 这里还是 cpu while 循环等待磁盘是否准备好，耗费 cpu，效率低
 static int ide_wait_ready(unsigned short iobase, bool check_error)
 {
     int r;

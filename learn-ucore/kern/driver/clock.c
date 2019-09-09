@@ -7,7 +7,16 @@
  * Support for time-related hardware gadgets - the 8253 timer,
  * which generates interruptes on IRQ-0.
  * */
-// 端口地址参考 cat /proc/ioports
+/*
+ 端口地址参考 cat /proc/ioports
+ 40H　　　      可编程中断计时器(8253)使用，读/写计数器0
+ 41H　　　      可编程中断计时器寄存器
+ 42H　　　      可编程中断计时器杂项寄存器
+ 43H　　　      可编程中断计时器,控制字寄存器
+ 44H　　　      可编程中断计时器,杂项寄存器（AT）
+ 47H　　　      可编程中断计时器,计数器0的控制字寄存器
+ 48H-5FH       可编程中断计时器使用
+*/
 #define IO_TIMER1       0x040               // 8253 Timer #1
 
 /* *

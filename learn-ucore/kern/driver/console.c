@@ -28,7 +28,16 @@ static void delay(void)
 }
 
 /***** Serial I/O code *****/
-// 端口地址参考 cat /proc/ioports
+/*
+ 端口地址参考 cat /proc/ioports
+ 3F8H　　　    1号串行口，发送/保持寄存器(RS232接口卡1)
+ 3F9H　　　    1号串行口，中断有效寄存器
+ 3FAH　　　    1号串行口，中断ID寄存器
+ 3FBH　　　    1号串行口，线控制寄存器
+ 3FCH　　　    1号串行口，调制解调控制寄存器
+ 3FDH　　　    1号串行口，线状态寄存器
+ 3FEH　　　    1号串行口，调制解调状态寄存器
+*/
 #define COM1            0x3F8
 
 #define COM_RX          0       // In:  Receive buffer (DLAB=0)
@@ -52,6 +61,8 @@ static void delay(void)
 #define COM_LSR_TSRE    0x40    // Transmitter off
 
 // 端口地址参考 cat /proc/ioports
+// 3B0H-3BFH　  MDA视频寄存器
+// 3D0H-3D7H　  CGA视频寄存器
 // 显示器初始化，CGA 是 Color Graphics Adapter 的缩写
 // CGA 显存按照下面的方式映射：
 // -- 0xB0000 - 0xB7FFF 单色字符模式
@@ -69,6 +80,12 @@ static void delay(void)
 #define CRT_COLS        80
 #define CRT_SIZE        (CRT_ROWS * CRT_COLS)
 
+/*
+ 端口地址参考 cat /proc/ioports
+ 378H　　　    2号并行口，数据端口
+ 379H　　　    2号并行口，状态端口
+ 37AH　　　    2号并行口，控制端口
+*/
 #define LPTPORT         0x378
 
 // crt_buf 是 CGA 显存起始地址
@@ -220,7 +237,7 @@ static void cga_putc(int c)
             crt_pos -= (crt_pos % CRT_COLS);
             break;
         default:
-            crt_buf[crt_pos ++] = c;     // write the character
+            crt_buf[crt_pos ++] = c;     // MMIO address, write the character
             break;
     }
 
@@ -314,6 +331,16 @@ static void cons_intr(int (*proc)(void))
 }
 
 /* serial_proc_data - get data from serial port */
+/*
+ 端口地址参考 cat /proc/ioports
+ 3F8H　　　    1号串行口，发送/保持寄存器(RS232接口卡1)
+ 3F9H　　　    1号串行口，中断有效寄存器
+ 3FAH　　　    1号串行口，中断ID寄存器
+ 3FBH　　　    1号串行口，线控制寄存器
+ 3FCH　　　    1号串行口，调制解调控制寄存器
+ 3FDH　　　    1号串行口，线状态寄存器
+ 3FEH　　　    1号串行口，调制解调状态寄存器
+ */
 static int serial_proc_data(void)
 {
     if (!(inb(COM1 + COM_LSR) & COM_LSR_DATA))
@@ -437,6 +464,15 @@ static uint8_t *charcode[4] = {
  * The kbd_proc_data() function gets data from the keyboard.
  * If we finish a character, return it, else 0. And return -1 if no data.
  * */
+/*
+ 端口地址参考 cat /proc/ioports
+ 60H-61H　     键盘输入数据缓冲区
+ 61H　　　      AT:8042键盘控制寄存器/XT:8255输出寄存器
+ 62H　　　      8255输入寄存器
+ 63H　　　      8255命令方式寄存器
+ 64H　　　      8042键盘输入缓冲区/8042状态
+ 65H-6FH　     8255/8042专用
+ */
 static int kbd_proc_data(void)
 {
     int c;

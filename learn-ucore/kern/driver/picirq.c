@@ -9,6 +9,12 @@ uint16_t irq_mask_8259A = 0xFFFF & ~(1 << IRQ_SLAVE);
 static bool did_init = 0;
 
 /* pic_init - initialize the 8259A interrupt controllers */
+/*
+ 端口地址参考 cat /proc/ioports
+ 20H-3FH　     可编程中断控制器1(8259)使用
+ 0A0H　　　     NM1屏蔽寄存器/可编程中断控制器2
+ 0A1H　　　     可编程中断控制器2屏蔽
+ */
 void pic_init(void)
 {
     did_init = 1;

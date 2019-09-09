@@ -40,7 +40,17 @@ static void waitdisk(void)
 }
 
 /* readsect - read a single sector at @secno into @dst */
-// 端口地址参考 cat /proc/ioports
+/*
+ 端口地址参考 cat /proc/ioports
+ 1F0H　　      0号硬盘数据寄存器
+ 1F1H　　      0号硬盘错误寄存器
+ 1F2H　　      0号硬盘数据扇区计数
+ 1F3H　　      0号硬盘扇区数
+ 1F4H　　      0号硬盘柱面（低字节）
+ 1F5H　　      0号硬盘柱面（高字节）
+ 1F6H　　      0号硬盘驱动器/磁头寄存器
+ 1F7H　　      0号硬盘状态寄存器
+*/
 static void readsect(void *dst, uint32_t secno)
 {
     // wait for disk to be ready
