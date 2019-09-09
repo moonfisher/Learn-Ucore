@@ -22,8 +22,6 @@
 #include "acpi.h"
 #include "pci.h"
 
-#define SMP         0
-
 int kern_init(void) __attribute__((noreturn));
 int mon_backtrace(int argc, char **argv, struct trapframe *tf);
 void boot_aps(void);

@@ -310,6 +310,7 @@
 		C48CA49A231FC75300C000C7 /* ffs_inode.c in Sources */ = {isa = PBXBuildFile; fileRef = C48CA494231FC75200C000C7 /* ffs_inode.c */; };
 		C48CA49B231FC75300C000C7 /* diskio.c in Sources */ = {isa = PBXBuildFile; fileRef = C48CA495231FC75200C000C7 /* diskio.c */; };
 		C48CA49C231FC75300C000C7 /* ffs.c in Sources */ = {isa = PBXBuildFile; fileRef = C48CA496231FC75200C000C7 /* ffs.c */; };
+		C48CA4FE232633E800C000C7 /* dma.c in Sources */ = {isa = PBXBuildFile; fileRef = C48CA4FC232633E700C000C7 /* dma.c */; };
 		C4A2486E23025BEF0098074B /* pipe_inode.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486823025BEE0098074B /* pipe_inode.c */; };
 		C4A2486F23025BEF0098074B /* pipe.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486923025BEE0098074B /* pipe.c */; };
 		C4A2487023025BEF0098074B /* pipe_root.c in Sources */ = {isa = PBXBuildFile; fileRef = C4A2486B23025BEE0098074B /* pipe_root.c */; };
@@ -721,6 +722,8 @@
 		C48CA494231FC75200C000C7 /* ffs_inode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ffs_inode.c; sourceTree = "<group>"; };
 		C48CA495231FC75200C000C7 /* diskio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = diskio.c; sourceTree = "<group>"; };
 		C48CA496231FC75200C000C7 /* ffs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ffs.c; sourceTree = "<group>"; };
+		C48CA4FC232633E700C000C7 /* dma.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dma.c; sourceTree = "<group>"; };
+		C48CA4FD232633E700C000C7 /* dma.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dma.h; sourceTree = "<group>"; };
 		C4A234AA22FBC2F50098074B /* setjmp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = setjmp.h; sourceTree = "<group>"; };
 		C4A234AB22FBC2F60098074B /* longjmp.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = longjmp.S; sourceTree = "<group>"; };
 		C4A2486823025BEE0098074B /* pipe_inode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pipe_inode.c; sourceTree = "<group>"; };
@@ -1500,6 +1503,8 @@
 		C4CB31C52248F5820014426C /* driver */ = {
 			isa = PBXGroup;
 			children = (
+				C48CA4FD232633E700C000C7 /* dma.h */,
+				C48CA4FC232633E700C000C7 /* dma.c */,
 				C480E37922A0E3CA0093D61D /* pci.h */,
 				C480E37822A0E3CA0093D61D /* pci.c */,
 				C480E37722A0E3C90093D61D /* pcireg.h */,
@@ -2055,6 +2060,7 @@
 				C480E2BB22A0D9170093D61D /* tcpgetdata.c in Sources */,
 				C480E2B322A0D9170093D61D /* tcpnxtp.c in Sources */,
 				C480E32022A0D9170093D61D /* dgwrite.c in Sources */,
+				C48CA4FE232633E800C000C7 /* dma.c in Sources */,
 				C480E2FD22A0D9170093D61D /* tmclear.c in Sources */,
 				C480E34E22A0D9180093D61D /* isbrc.c in Sources */,
 				C480E37422A0DA9A0093D61D /* event.c in Sources */,

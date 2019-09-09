@@ -1,6 +1,9 @@
 #ifndef __LIBS_DEFS_H__
 #define __LIBS_DEFS_H__
 
+#define SMP             0
+#define DMA             0
+
 #if DEBUG
     #define ASM_NO_64    0
 #else
