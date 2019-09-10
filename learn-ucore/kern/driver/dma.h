@@ -167,27 +167,27 @@ static __inline__ void set_dma_page(unsigned int dmanr, char pagenr)
 {
     switch(dmanr)
     {
-    case 0:
-        outb(pagenr, DMA_PAGE_0);
-        break;
-    case 1:
-        outb(pagenr, DMA_PAGE_1);
-        break;
-    case 2:
-        outb(pagenr, DMA_PAGE_2);
-        break;
-    case 3:
-        outb(pagenr, DMA_PAGE_3);
-        break;
-    case 5:
-        outb(pagenr & 0xfe, DMA_PAGE_5);
-        break;
-    case 6:
-        outb(pagenr & 0xfe, DMA_PAGE_6);
-        break;
-    case 7:
-        outb(pagenr & 0xfe, DMA_PAGE_7);
-        break;
+        case 0:
+            outb(pagenr, DMA_PAGE_0);
+            break;
+        case 1:
+            outb(pagenr, DMA_PAGE_1);
+            break;
+        case 2:
+            outb(pagenr, DMA_PAGE_2);
+            break;
+        case 3:
+            outb(pagenr, DMA_PAGE_3);
+            break;
+        case 5:
+            outb(pagenr & 0xfe, DMA_PAGE_5);
+            break;
+        case 6:
+            outb(pagenr & 0xfe, DMA_PAGE_6);
+            break;
+        case 7:
+            outb(pagenr & 0xfe, DMA_PAGE_7);
+            break;
     }
 }
 

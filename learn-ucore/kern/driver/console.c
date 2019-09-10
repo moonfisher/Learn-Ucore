@@ -8,6 +8,7 @@
 #include "memlayout.h"
 #include "sync.h"
 #include "cpu.h"
+#include "dma.h"
 
 /* 为什么显卡在内存中的映射是 0xB8000 ?
  https://www.zhihu.com/question/269649445/answer/351632444?hb_wx_block=0&utm_source=wechat_session&utm_medium=social&utm_oi=638074379922313216

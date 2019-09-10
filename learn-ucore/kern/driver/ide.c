@@ -7,6 +7,7 @@
 #include "x86.h"
 #include "assert.h"
 #include "cpu.h"
+#include "dma.h"
 
 #define ISA_DATA                0x00
 #define ISA_ERROR               0x01
@@ -235,6 +236,21 @@ int ide_read_secs(unsigned short ideno, uint32_t secno, void *dst, size_t nsecs)
     assert(secno < MAX_DISK_NSECS && secno + nsecs <= MAX_DISK_NSECS);
     unsigned short iobase = IO_BASE(ideno), ioctrl = IO_CTRL(ideno);
 
+    
+#define KBD_DMA 2
+    if ((unsigned int)dst - KERNBASE < 0x1000000 - 1) /* transfer to address < 16M? */
+    {
+        if (!request_dma(KBD_DMA))
+        {
+            disable_dma(KBD_DMA);
+            clear_dma_ff(KBD_DMA);
+            set_dma_mode(KBD_DMA, DMA_MODE_READ);
+            set_dma_addr(KBD_DMA, (unsigned int)dst - KERNBASE);
+            set_dma_count(KBD_DMA, 1);
+            enable_dma(KBD_DMA);
+        }
+    }
+    
     ide_wait_ready(iobase, 0);
 
     // generate interrupt
