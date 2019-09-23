@@ -176,6 +176,7 @@ struct proc_struct
     struct files_struct *filesp;                // the file related info(pwd, files_count, files_array, fs_semaphore) of process
     struct proc_signal signal_info;
     unsigned long signal;
+    int preempt_count;
 };
 
 #define PF_EXITING                  0x00000001      // getting shutdown

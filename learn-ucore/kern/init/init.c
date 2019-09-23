@@ -143,7 +143,7 @@ int kern_init(void)
 #if SMP
     boot_aps();                 // smp starting non-boot CPUs
 #endif
-    intr_enable();              // enable irq interrupt
+    local_irq_enable();              // enable irq interrupt
     unlock_kernel();
     
     cpu_idle();                 // run idle process
@@ -224,7 +224,7 @@ void mp_main(void)
     // only one CPU can enter the scheduler at a time!
     //
     lock_kernel();
-//    intr_enable();
+//    local_irq_enable();
     
 //    schedule();
     while (1) {

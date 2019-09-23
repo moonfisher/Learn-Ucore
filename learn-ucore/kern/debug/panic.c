@@ -34,7 +34,7 @@ void __panic(const char *file, int line, const char *fmt, ...)
     va_end(ap);
 
 panic_dead:
-    intr_disable();
+    local_irq_disable();
     while (1)
     {
         kmonitor(NULL);
